@@ -26,12 +26,12 @@ install(FILES
 
 install(
         TARGETS ${H_TARGETS}
-        EXPORT ${H_PROJECT_NAME}Targets
+        EXPORT ProjectTargets
         FILE_SET HEADERS
 )
 
 install(
-        EXPORT ${H_PROJECT_NAME}Targets
+        EXPORT ProjectTargets
         NAMESPACE ${H_PROJECT_NAME}::
         DESTINATION ${CMAKE_INSTALL_DATADIR}/${H_PROJECT_NAME}
 )

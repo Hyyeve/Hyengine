@@ -1,4 +1,4 @@
-#include "debug_renderer.hpp"
+#include "basic_immediate_renderer.hpp"
 
 #include "../../common/colors.hpp"
 #include "../../core/logger.hpp"

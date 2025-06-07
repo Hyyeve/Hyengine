@@ -27,7 +27,7 @@ target_sources(Hyengine PRIVATE
         graphics/buffers/texture_buffer.cpp
         graphics/buffers/vertex_format_buffer.cpp
 
-        graphics/renderers/debug_renderer.cpp
+        graphics/renderers/basic_immediate_renderer.cpp
 
         input/input.cpp
         $<$<PLATFORM_ID:Windows>: input/native_input_windows.cpp >
@@ -73,7 +73,7 @@ target_sources(Hyengine PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILE
         graphics/buffers/typed_data_buffer.hpp
         graphics/buffers/typed_pool_buffer.hpp
 
-        graphics/renderers/debug_renderer.hpp
+        graphics/renderers/basic_immediate_renderer.hpp
 
         input/input.hpp
         input/native_input.hpp

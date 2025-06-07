@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
+set(CMAKE_DEBUG_POSTFIX "-debug")
 
 include(cmake/Config.cmake)
 
@@ -10,6 +11,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
 include(cmake/Dependencies.cmake)
 include(cmake/Sources.cmake)
+
+set_target_properties(${H_TARGETS} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+add_custom_target(InstallProject "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --target install)
 
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)

@@ -43,7 +43,7 @@ namespace hyengine {
 
         if (main_window_config.gl_profile_debug) graphics::enable_gl_debug();
 
-        graphics::apply_viewport(window->get_viewport());
+        graphics::set_viewport(window->get_viewport());
 
         return window;
     }

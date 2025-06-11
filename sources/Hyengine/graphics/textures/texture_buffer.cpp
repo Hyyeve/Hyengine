@@ -184,7 +184,7 @@ namespace hyengine::graphics {
     { glTextureParameteri(buffer_id, GL_DEPTH_STENCIL_TEXTURE_MODE, mode); }
 
 
-    void texture_buffer::set_mipmap_first_level(const int level) const
+    void texture_buffer::set_mipmap_min_level(const int level) const
     { glTextureParameteri(buffer_id, GL_TEXTURE_BASE_LEVEL, level); }
 
 

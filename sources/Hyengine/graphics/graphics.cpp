@@ -123,8 +123,6 @@ namespace hyengine::graphics {
 
     #pragma region Scissor
 
-    std::stack<rectangle> scissor_stack;
-
     void set_scissor(const rectangle& rect) {
         set_scissor(rect.position, rect.size);
     }
@@ -146,51 +144,13 @@ namespace hyengine::graphics {
         glDisable(GL_SCISSOR_TEST);
     }
 
-    void push_scissor(const rectangle& rect, const ScissorMode mode, const bool replace) {
-        rectangle scissor = rect;
-        const bool empty = scissor_stack.empty();
-        if (!empty && mode != ScissorMode::OVERWRITE) {
-            const rectangle& prev = scissor_stack.top();
-            switch (mode) {
-                case ScissorMode::UNION:
-                    scissor = prev.union_with(rect);
-                    break;
-                default:
-                    scissor = prev.intersection_with(rect);
-                    break;
-            }
-        }
-        if(replace && !empty) scissor_stack.pop();
-        scissor_stack.push(scissor);
-        set_scissor(scissor);
-        enable_scissor_test();
-    }
-
-    void push_scissor(const rectangle& rect, const ScissorMode mode) {
-        push_scissor(rect, mode, false);
-    }
-
-    void replace_scissor(const rectangle& rect, const ScissorMode mode) {
-        push_scissor(rect, mode, true);
-    }
-
-    void pop_scissor() {
-        scissor_stack.pop();
-        if (scissor_stack.empty()) disable_scissor_test();
-        else set_scissor(scissor_stack.top());
-    }
-
-    const rectangle& peek_scissor() {
-        return scissor_stack.top();
-    }
-
     #pragma endregion
 
     #pragma region Viewport
 
     static viewport current_viewport{};
 
-    void apply_viewport(const viewport& viewport) {
+    void set_viewport(const viewport& viewport) {
         current_viewport = viewport;
         glViewport(viewport.x_offset, viewport.y_offset, viewport.width, viewport.height);
     }
@@ -199,7 +159,7 @@ namespace hyengine::graphics {
         return current_viewport;
     }
 
-    viewport letterbox_viewport(const viewport& to_fit, const int target_width, const int target_height, const bool fill) {
+    viewport create_letterbox_viewport(const viewport& to_fit, const int target_width, const int target_height, const bool fill) {
         const float aspectA = to_fit.height * target_width;
         const float aspectB = target_height * to_fit.width;
 
@@ -219,6 +179,83 @@ namespace hyengine::graphics {
         return result;
     }
 
-    #pragma endregion
+    void set_gl_flag_enabled(const GLenum setting, const bool enable)
+    {
+        if (enable) glEnable(setting);
+        else glDisable(setting);
+    }
+
+    void set_blending_config(const blending_config& config, const unsigned int buffer_slot)
+    {
+        glBlendColor(config.constant_blend_color.r, config.constant_blend_color.g, config.constant_blend_color.b, config.constant_blend_color.a);
+        glBlendEquationSeparatei(buffer_slot, config.rgb_equation, config.alpha_equation);
+        glBlendFuncSeparatei(buffer_slot, config.source_blend_rgb, config.dest_blend_rgb, config.source_blend_alpha, config.dest_blend_alpha);
+    }
+
+    void set_blending_enabled(const bool enable)
+    {
+        set_gl_flag_enabled(GL_BLEND, enable);
+    }
+
+    void set_stencil_config(const stencil_config& config, const GLenum facing)
+    {
+        glStencilFuncSeparate(facing, config.test_func, config.reference, config.test_mask);
+        glStencilMaskSeparate(facing, config.write_mask);
+        glStencilOpSeparate(facing, config.stencil_fail_op, config.depth_fail_op, config.pixel_pass_op);
+    }
+
+    void set_stencil_enabled(const bool enable)
+    {
+        set_gl_flag_enabled(GL_STENCIL_TEST, enable);
+    }
+
+    void set_cull_face_enabled(const bool enable)
+    {
+        set_gl_flag_enabled(GL_CULL_FACE, enable);
+    }
+
+    void set_cull_face_mode(const GLenum mode)
+    {
+        glCullFace(mode);
+    }
+
+    void set_depth_test_enabled(const bool enable)
+    {
+        set_gl_flag_enabled(GL_DEPTH_TEST, enable);
+    }
+
+    void set_cubemap_seamless_sampling(const bool enable)
+    {
+        set_gl_flag_enabled(GL_TEXTURE_CUBE_MAP_SEAMLESS, enable);
+    }
+
+    void set_clear_color(const glm::vec4 color)
+    {
+        glClearColor(color.r, color.g, color.b, color.a);
+    }
+
+    void set_clear_depth(const float depth)
+    {
+        glClearDepthf(depth);
+    }
+
+    void set_clear_stencil(const int stencil)
+    {
+        glClearStencil(stencil);
+    }
+
+    void clear_buffers(const GLbitfield mask)
+    {
+        glClear(mask);
+    }
+
+    unsigned int get_max_texture_units()
+    {
+        GLint result = 0;
+        glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &result);
+        return static_cast<unsigned int>(result);
+    }
+
+#pragma endregion
 
 }

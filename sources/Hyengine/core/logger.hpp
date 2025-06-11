@@ -75,7 +75,7 @@ namespace hyengine::logger {
         return format_stream.str();
     }
 
-#define VARARG_DEF(type) void type(const std::string id, const auto... msg) { message_ ## type(format(msg...), id); }
+#define VARARG_DEF(type) void type(const std::string_view id, const auto... msg) { message_ ## type(format(msg...), id); }
 
     VARARG_DEF(debug)
     VARARG_DEF(info)

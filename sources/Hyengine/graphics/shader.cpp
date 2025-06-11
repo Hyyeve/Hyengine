@@ -13,12 +13,7 @@ namespace hyengine::graphics {
     using namespace hyengine;
     using namespace glm;
 
-    shader::shader(std::string asset_id, const bool preload) : asset_id(std::move(asset_id))
-    {
-        if(preload) load();
-    }
-
-    shader::shader(std::string asset_id) noexcept : asset_id(std::move(asset_id)) {}
+    shader::shader(std::string asset_id) noexcept : asset_id(std::move(asset_id)), binary_asset_id(get_binary_asset_id(this->asset_id)) {}
 
     shader::~shader()
     {
@@ -27,27 +22,32 @@ namespace hyengine::graphics {
 
     bool shader::valid() const
     {
-        return program != 0;
+        return program_id != 0;
     }
 
     bool shader::active() const
     {
         int current_program = 0;
         glGetIntegerv(GL_CURRENT_PROGRAM, &current_program);
-        return current_program == program;
+        return current_program == program_id;
     }
 
-    void shader::use()
+    void shader::use() const
     {
-        if(!initialized) load();
-        glUseProgram(program);
+        glUseProgram(program_id);
     }
 
     void shader::load()
     {
-        if(initialized) return;
-        program = load_program(asset_id);
-        if(program != 0)
+        if(program_id != 0)
+        {
+            logger::warn(logger_tag, "Shader ", asset_id, " already loaded!");
+            return;
+        }
+
+        program_id = load_program(asset_id, binary_asset_id);
+
+        if(program_id != 0)
         {
             load_uniform_locations();
             logger::message_info(logger::format("Loaded shader ", asset_id, " and located ", uniform_locations.size(), " uniforms"), logger_tag);
@@ -56,14 +56,14 @@ namespace hyengine::graphics {
         {
             logger::message_error(logger::format("Shader initialization for ", asset_id, " failed!"), logger_tag);
         }
-        initialized = true;
     }
 
     void shader::unload() {
-        if(!initialized) return;
-        glDeleteProgram(program);
-        program = 0;
-        initialized = false;
+        if(program_id == 0) return;
+
+        glDeleteProgram(program_id);
+
+        program_id = 0;
         uniform_locations.clear();
     }
 
@@ -75,6 +75,10 @@ namespace hyengine::graphics {
         if(in_use) use();
     }
 
+    void shader::clear_binary_cache()
+    {
+        common::file_io::delete_asset_directory(get_binary_asset_id("shader:dummy"));
+    }
 
     static GLuint compile_shader(const std::string& share, const std::string& source, const GLuint type)
     {
@@ -108,6 +112,35 @@ namespace hyengine::graphics {
         return shader;
     }
 
+    void log_program_info(const std::string_view header, const GLuint program)
+    {
+        int log_length = 0;
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &log_length);
+
+        std::string log;
+        log.resize(max(log_length, 0));
+
+        glGetProgramInfoLog(program, log_length, nullptr, log.data());
+
+        log.insert(0, header);
+        log.insert(log.length() - 1, "\n ---------------------------------------- ");
+
+        glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, log.length(), log.data());
+    }
+
+    bool validate_program(const GLuint program)
+    {
+        GLint success = GL_TRUE;
+        glValidateProgram(program);
+        glGetProgramiv(program, GL_VALIDATE_STATUS, &success);
+        if (success != GL_TRUE)
+        {
+            log_program_info("\n ---------- Failed to validate program: \n", program);
+            return false;
+        }
+        return true;
+    }
+
     GLuint shader::link_program(const std::vector<GLuint>& shaders)
     {
         const GLuint program = glCreateProgram();
@@ -123,22 +156,16 @@ namespace hyengine::graphics {
 
         if (success != GL_TRUE)
         {
-            int log_length = 0;
-            glGetProgramiv(program, GL_INFO_LOG_LENGTH, &log_length);
-
-            std::string log;
-            log.resize(max(log_length, 0));
-
-            glGetProgramInfoLog(program, log_length, nullptr, log.data());
-
-            log.insert(0, "\n ---------- Failed to link program: \n");
-            log.insert(log.length() - 1, "\n ---------------------------------------- ");
-
-            glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, log.length(), log.data());
+            log_program_info("\n ---------- Failed to link program: \n", program);
             return 0;
         }
 
-        return program;
+        return validate_program(program) ? program : 0;
+    }
+
+    std::string shader::get_binary_asset_id(const std::string& normal_asset_id)
+    {
+        return logger::format(cache_directory, ":", common::file_io::get_asset_name(normal_asset_id));
     }
 
     static bool line_contains(const std::string_view line, const std::string_view str)
@@ -146,7 +173,12 @@ namespace hyengine::graphics {
         return line.find(str) != std::string::npos;
     }
 
-    GLuint shader::load_program(const std::string& asset_id) {
+    GLuint shader::load_program(const std::string& asset_id, const std::string& binary_asset_id) {
+
+        if (!common::file_io::asset_exists(asset_id)) return 0;
+
+        const GLuint binary_program = load_binary_program(binary_asset_id);
+        if (binary_program != 0) return binary_program;
 
         const std::string raw_text = common::file_io::read_asset_text(asset_id);
         std::istringstream text(raw_text);
@@ -191,7 +223,48 @@ namespace hyengine::graphics {
             if(shader != 0) glDeleteShader(shader);
         }
 
+        save_binary_program(binary_asset_id, program);
+
         return program;
+    }
+
+    GLuint shader::load_binary_program(const std::string& asset_id)
+    {
+        if (!common::file_io::asset_exists(asset_id)) return 0;
+        const std::vector<unsigned char> binary_data = common::file_io::read_raw_asset_bytes(asset_id);
+
+        const void* header_pointer = binary_data.data();
+        const void* data_pointer = static_cast<const unsigned char*>(header_pointer) + sizeof(GLenum);
+        const GLenum format = *static_cast<const GLenum*>(header_pointer);
+
+        const GLuint program = glCreateProgram();
+        glProgramBinary(program, format, data_pointer, binary_data.size() - sizeof(GLenum));
+
+        return validate_program(program) ? program : 0;
+    }
+
+    void shader::save_binary_program(const std::string& asset_id, const GLuint program)
+    {
+        if (program == 0) return;
+
+        GLint buffer_size = 0;
+        glGetProgramiv(program, GL_PROGRAM_BINARY_LENGTH, &buffer_size);
+
+        std::vector<unsigned char> binary_data(buffer_size + sizeof(GLenum));
+        void* pointer = binary_data.data();
+
+        GLint written_length = 0;
+        GLenum written_format = 0;
+
+        glGetProgramBinary(program, buffer_size, &written_length, &written_format, static_cast<unsigned char*>(pointer) + sizeof(GLenum));
+        static_cast<GLenum*>(pointer)[0] = written_format;
+
+        if (written_length != buffer_size - sizeof(GLenum))
+        {
+            binary_data.resize(written_length + sizeof(GLenum));
+        }
+
+        common::file_io::save_raw_asset(asset_id, binary_data);
     }
 
     void shader::load_uniform_locations()
@@ -201,14 +274,14 @@ namespace hyengine::graphics {
         std::array<GLint, 1> name_length{};
         std::string name_buf;
 
-        glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &count);
+        glGetProgramiv(program_id, GL_ACTIVE_UNIFORMS, &count);
 
         for(int i = 0; i < count; i++)
         {
-            glGetProgramResourceiv(program, GL_UNIFORM, i, 1, properties.data(), 1, nullptr, name_length.data());
+            glGetProgramResourceiv(program_id, GL_UNIFORM, i, 1, properties.data(), 1, nullptr, name_length.data());
             name_buf.resize(name_length[0] - 1);
-            glGetProgramResourceName(program, GL_UNIFORM, i, name_length[0], nullptr, name_buf.data());
-            const int location = glGetUniformLocation(program, name_buf.data());
+            glGetProgramResourceName(program_id, GL_UNIFORM, i, name_length[0], nullptr, name_buf.data());
+            const int location = glGetUniformLocation(program_id, name_buf.data());
             uniform_locations[name_buf] = location;
         }
     }
@@ -216,99 +289,98 @@ namespace hyengine::graphics {
 #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(name); location != uniform_locations.end()) { setter; } else logger::message_warn("Failed to set uniform '" + name + "'", logger_tag);
 
     void shader::set_uniform(const std::string& name, const bool value) const {
-        TRY_SET_UNIFORM(glProgramUniform1i(program, location->second, value))
+        TRY_SET_UNIFORM(glProgramUniform1i(program_id, location->second, value))
     }
 
     void shader::set_uniform(const std::string& name, const bvec2 value) const {
-        TRY_SET_UNIFORM(glProgramUniform2i(program, location->second, value.x, value.y))
+        TRY_SET_UNIFORM(glProgramUniform2i(program_id, location->second, value.x, value.y))
     }
 
     void shader::set_uniform(const std::string& name, const bvec3 value) const {
-        TRY_SET_UNIFORM(glProgramUniform3i(program, location->second, value.x, value.y, value.z))
+        TRY_SET_UNIFORM(glProgramUniform3i(program_id, location->second, value.x, value.y, value.z))
     }
 
     void shader::set_uniform(const std::string& name, const bvec4 value) const {
-        TRY_SET_UNIFORM(glProgramUniform4i(program, location->second, value.x, value.y, value.z, value.w))
+        TRY_SET_UNIFORM(glProgramUniform4i(program_id, location->second, value.x, value.y, value.z, value.w))
     }
 
     void shader::set_uniform(const std::string& name, const float value) const {
-        TRY_SET_UNIFORM(glProgramUniform1f(program, location->second, value))
+        TRY_SET_UNIFORM(glProgramUniform1f(program_id, location->second, value))
     }
 
     void shader::set_uniform(const std::string& name, const vec2 value) const {
-        TRY_SET_UNIFORM(glProgramUniform2f(program, location->second, value.x, value.y))
+        TRY_SET_UNIFORM(glProgramUniform2f(program_id, location->second, value.x, value.y))
     }
 
     void shader::set_uniform(const std::string& name, const vec3 value) const {
-        TRY_SET_UNIFORM(glProgramUniform3f(program, location->second, value.x, value.y, value.z))
+        TRY_SET_UNIFORM(glProgramUniform3f(program_id, location->second, value.x, value.y, value.z))
     }
 
     void shader::set_uniform(const std::string& name, const vec4 value) const {
-        TRY_SET_UNIFORM(glProgramUniform4f(program, location->second, value.x, value.y, value.z, value.w))
+        TRY_SET_UNIFORM(glProgramUniform4f(program_id, location->second, value.x, value.y, value.z, value.w))
     }
 
     void shader::set_uniform(const std::string& name, const double value) const {
-        TRY_SET_UNIFORM(glProgramUniform1d(program, location->second, value))
+        TRY_SET_UNIFORM(glProgramUniform1d(program_id, location->second, value))
     }
 
     void shader::set_uniform(const std::string& name, const dvec2 value) const {
-        TRY_SET_UNIFORM(glProgramUniform2d(program, location->second, value.x, value.y))
+        TRY_SET_UNIFORM(glProgramUniform2d(program_id, location->second, value.x, value.y))
     }
 
     void shader::set_uniform(const std::string& name, const dvec3& value) const {
-        TRY_SET_UNIFORM(glProgramUniform3d(program, location->second, value.x, value.y, value.z))
+        TRY_SET_UNIFORM(glProgramUniform3d(program_id, location->second, value.x, value.y, value.z))
     }
 
     void shader::set_uniform(const std::string& name, const dvec4& value) const {
-        TRY_SET_UNIFORM(glProgramUniform4d(program, location->second, value.x, value.y, value.z, value.w))
+        TRY_SET_UNIFORM(glProgramUniform4d(program_id, location->second, value.x, value.y, value.z, value.w))
     }
 
     void shader::set_uniform(const std::string& name, const int value) const {
-        TRY_SET_UNIFORM(glProgramUniform1i(program, location->second, value))
+        TRY_SET_UNIFORM(glProgramUniform1i(program_id, location->second, value))
     }
 
     void shader::set_uniform(const std::string& name, const ivec2 value) const {
-        TRY_SET_UNIFORM(glProgramUniform2i(program, location->second, value.x, value.y))
+        TRY_SET_UNIFORM(glProgramUniform2i(program_id, location->second, value.x, value.y))
     }
 
     void shader::set_uniform(const std::string& name, const ivec3 value) const {
-        TRY_SET_UNIFORM(glProgramUniform3i(program, location->second, value.x, value.y, value.z))
+        TRY_SET_UNIFORM(glProgramUniform3i(program_id, location->second, value.x, value.y, value.z))
     }
 
     void shader::set_uniform(const std::string& name, const ivec4 value) const {
-        TRY_SET_UNIFORM(glProgramUniform4i(program, location->second, value.x, value.y, value.z, value.w))
+        TRY_SET_UNIFORM(glProgramUniform4i(program_id, location->second, value.x, value.y, value.z, value.w))
     }
 
     void shader::set_uniform(const std::string& name, const unsigned int value) const {
-        TRY_SET_UNIFORM(glProgramUniform1ui(program, location->second, value))
+        TRY_SET_UNIFORM(glProgramUniform1ui(program_id, location->second, value))
     }
 
     void shader::set_uniform(const std::string& name, const uvec2 value) const {
-        TRY_SET_UNIFORM(glProgramUniform2ui(program, location->second, value.x, value.y))
+        TRY_SET_UNIFORM(glProgramUniform2ui(program_id, location->second, value.x, value.y))
     }
 
     void shader::set_uniform(const std::string& name, const uvec3 value) const {
-        TRY_SET_UNIFORM(glProgramUniform3ui(program, location->second, value.x, value.y, value.z))
+        TRY_SET_UNIFORM(glProgramUniform3ui(program_id, location->second, value.x, value.y, value.z))
     }
 
     void shader::set_uniform(const std::string& name, const uvec4 value) const {
-        TRY_SET_UNIFORM(glProgramUniform4ui(program, location->second, value.x, value.y, value.z, value.w))
+        TRY_SET_UNIFORM(glProgramUniform4ui(program_id, location->second, value.x, value.y, value.z, value.w))
     }
 
     void shader::set_uniform(const std::string& name, mat2 value) const {
-        TRY_SET_UNIFORM(glProgramUniformMatrix2fv(program, location->second, 1, GL_FALSE, glm::value_ptr(value)))
+        TRY_SET_UNIFORM(glProgramUniformMatrix2fv(program_id, location->second, 1, GL_FALSE, glm::value_ptr(value)))
     }
 
     void shader::set_uniform(const std::string& name, mat3 value) const {
-        TRY_SET_UNIFORM(glProgramUniformMatrix3fv(program, location->second, 1, GL_FALSE, glm::value_ptr(value)))
+        TRY_SET_UNIFORM(glProgramUniformMatrix3fv(program_id, location->second, 1, GL_FALSE, glm::value_ptr(value)))
     }
 
     void shader::set_uniform(const std::string& name, mat4 value) const {
-        TRY_SET_UNIFORM(glProgramUniformMatrix4fv(program, location->second, 1, GL_FALSE, glm::value_ptr(value)))
+        TRY_SET_UNIFORM(glProgramUniformMatrix4fv(program_id, location->second, 1, GL_FALSE, glm::value_ptr(value)))
     }
 
-    void shader::set_sampler(const std::string& name, const int texture, const int slot) const {
-        glBindTextureUnit(slot, texture);
-        TRY_SET_UNIFORM(glProgramUniform1i(program, location->second, slot));
+    void shader::set_sampler_slot(const std::string& name, const int slot) const {
+        TRY_SET_UNIFORM(glProgramUniform1i(program_id, location->second, slot));
     }
 }

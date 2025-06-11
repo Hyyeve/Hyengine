@@ -1,6 +1,6 @@
 #pragma once
-#include "render_texture.hpp"
-#include "texture_buffer.hpp"
+#include "../textures/render_texture.hpp"
+#include "../textures/texture_buffer.hpp"
 #include "../../library/gl.hpp"
 #include "../../library/glm.hpp"
 
@@ -21,6 +21,7 @@ namespace hyengine::graphics {
         ~frame_buffer();
 
         void allocate();
+        void free();
 
         void attach_texture(const texture_buffer& texture, const GLenum attachment_binding);
         void attach_texture(const texture_buffer& texture, const GLenum attachment_binding, const GLint mipmap_level);
@@ -29,12 +30,10 @@ namespace hyengine::graphics {
 
         bool validate();
 
-        void copy_data(frame_buffer& source, glm::uvec2 pos, glm::uvec2 size) const;
-        void copy_data(frame_buffer& source, glm::uvec2 pos, glm::uvec2 size, GLenum filter) const;
-        void copy_data(frame_buffer& source, glm::uvec2 pos, glm::uvec2 size, GLbitfield mask, GLenum filter) const;
-        void copy_data(frame_buffer& source, glm::uvec2 source_pos, glm::uvec2 source_size, glm::uvec2 to_pos, glm::uvec2 to_size, GLbitfield mask, GLenum filter) const;
-
-        void free();
+        void copy_data(frame_buffer& source, glm::uvec4 rect) const;
+        void copy_data(frame_buffer& source, glm::uvec4 rect, GLenum filter) const;
+        void copy_data(frame_buffer& source, glm::uvec4 rect, GLbitfield mask, GLenum filter) const;
+        void copy_data(frame_buffer& source, glm::uvec4 source_rect, glm::uvec4 dest_rect, GLbitfield mask, GLenum filter) const;
 
         void bind_to_draw() const;
         void bind_to_read() const;

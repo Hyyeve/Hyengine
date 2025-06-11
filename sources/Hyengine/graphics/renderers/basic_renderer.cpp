@@ -1,4 +1,4 @@
-#include "basic_immediate_renderer.hpp"
+#include "basic_renderer.hpp"
 
 #include "../../common/colors.hpp"
 #include "../../core/logger.hpp"
@@ -10,16 +10,16 @@ namespace hyengine::graphics {
 
     static shader debug_shader = shader("shader:basic_pos_col");
 
-    basic_immediate_renderer::basic_immediate_renderer(): draw_count(0), write_index(0)
+    basic_renderer::basic_renderer(): draw_count(0), write_index(0)
     {
     }
 
-    basic_immediate_renderer::~basic_immediate_renderer()
+    basic_renderer::~basic_renderer()
     {
         free();
     }
 
-    void basic_immediate_renderer::allocate(const unsigned int memory_budget_mb)
+    void basic_renderer::allocate(const unsigned int memory_budget_mb)
     {
         if (is_allocated)
         {
@@ -39,7 +39,7 @@ namespace hyengine::graphics {
         logger::info(logger_tag, "Allocated debug renderer with ", logger::format_bytes(max_vertices * sizeof(debug_vertex)), " of vertex memory.");
     }
 
-    void basic_immediate_renderer::free()
+    void basic_renderer::free()
     {
         if (!is_allocated) return;
 
@@ -52,7 +52,7 @@ namespace hyengine::graphics {
         logger::info(logger_tag, "Freed debug renderer");
     }
 
-    void basic_immediate_renderer::vertex(glm::vec3 pos, glm::vec4 color)
+    void basic_renderer::vertex(glm::vec3 pos, glm::vec4 color)
     {
         if (!is_allocated)
         {
@@ -65,25 +65,25 @@ namespace hyengine::graphics {
         write_index++;
     }
 
-    void basic_immediate_renderer::triangle(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec4 color)
+    void basic_renderer::triangle(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec4 color)
     {
         vertex(a, color);
         vertex(b, color);
         vertex(c, color);
     }
 
-    void basic_immediate_renderer::quad(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 d, glm::vec4 color)
+    void basic_renderer::quad(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 d, glm::vec4 color)
     {
         triangle(a, b, c, color);
         triangle(d, c, b, color);
     }
 
-    void basic_immediate_renderer::rect(glm::vec2 a, glm::vec2 b, glm::vec4 color)
+    void basic_renderer::rect(glm::vec2 a, glm::vec2 b, glm::vec4 color)
     {
         quad({a.x, a.y, 0}, {b.x, a.y, 0}, {a.x, b.y, 0}, {b.x, b.y, 0}, color);
     }
 
-    void basic_immediate_renderer::line(glm::vec3 start, glm::vec3 end, glm::vec4 color, float thickness)
+    void basic_renderer::line(glm::vec3 start, glm::vec3 end, glm::vec4 color, float thickness)
     {
         const glm::vec3 axis = glm::normalize(end - start);
         const glm::vec3 tangent = glm::normalize(glm::cross(axis, glm::normalize(glm::vec3(1e-3, 1e-2, 1e-4))));
@@ -105,37 +105,37 @@ namespace hyengine::graphics {
         quad(end + offset_2, end + offset_3, end + offset_0, end + offset_1, color);
     }
 
-    void basic_immediate_renderer::submit_geometry()
+    void basic_renderer::submit_geometry()
     {
         draw_count = write_index;
         vertex_buffer.flush_and_fence();
         write_index = 0;
     }
 
-    void basic_immediate_renderer::prepare_buffers()
+    void basic_renderer::prepare_buffers()
     {
         vertex_buffer.increment_slice();
     }
 
-    void basic_immediate_renderer::update_shader_uniforms(const float interpolation_delta, const graphics::camera& cam)
+    void basic_renderer::update_shader_uniforms(const float interpolation_delta, const graphics::camera& cam)
     {
         debug_shader.set_uniform("u_projection_mat", cam.get_projection());
         debug_shader.set_uniform("u_view_mat", cam.get_view());
         debug_shader.set_uniform("u_camera_pos", cam.get_position(interpolation_delta));
     }
 
-    void basic_immediate_renderer::reload_shaders()
+    void basic_renderer::reload_shaders()
     {
         debug_shader.reload();
     }
 
-    void basic_immediate_renderer::bind() const
+    void basic_renderer::bind() const
     {
         vertex_format_buffer.bind_state();
         debug_shader.use();
     }
 
-    void basic_immediate_renderer::draw() const
+    void basic_renderer::draw() const
     {
         glDrawArrays(GL_TRIANGLES, vertex_buffer.get_slice_first_element(), draw_count);
     }

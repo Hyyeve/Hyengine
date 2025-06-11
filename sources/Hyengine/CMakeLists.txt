@@ -18,16 +18,18 @@ target_sources(Hyengine PRIVATE
         graphics/shader.cpp
         graphics/camera.cpp
 
+        graphics/textures/texture_set.cpp
+        graphics/textures/texture_sampler_state.cpp
+        graphics/textures/render_texture.cpp
+        graphics/textures/texture_buffer.cpp
 
         graphics/buffers/basic_framebuffer.cpp
         graphics/buffers/frame_buffer.cpp
         graphics/buffers/pool_data_buffer.cpp
-        graphics/buffers/render_texture.cpp
         graphics/buffers/standard_data_buffer.cpp
-        graphics/buffers/texture_buffer.cpp
         graphics/buffers/vertex_format_buffer.cpp
 
-        graphics/renderers/basic_immediate_renderer.cpp
+        graphics/renderers/basic_renderer.cpp
 
         input/input.cpp
         $<$<PLATFORM_ID:Windows>: input/native_input_windows.cpp >
@@ -63,17 +65,20 @@ target_sources(Hyengine PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILE
         graphics/camera.hpp
         graphics/vertex_formats.hpp
 
+        graphics/textures/texture_set.hpp
+        graphics/textures/texture_sampler_state.hpp
+        graphics/textures/render_texture.hpp
+        graphics/textures/texture_buffer.hpp
+
         graphics/buffers/basic_framebuffer.hpp
         graphics/buffers/frame_buffer.hpp
         graphics/buffers/pool_data_buffer.hpp
-        graphics/buffers/render_texture.hpp
         graphics/buffers/standard_data_buffer.hpp
-        graphics/buffers/texture_buffer.hpp
         graphics/buffers/vertex_format_buffer.hpp
         graphics/buffers/typed_data_buffer.hpp
         graphics/buffers/typed_pool_buffer.hpp
 
-        graphics/renderers/basic_immediate_renderer.hpp
+        graphics/renderers/basic_renderer.hpp
 
         input/input.hpp
         input/native_input.hpp

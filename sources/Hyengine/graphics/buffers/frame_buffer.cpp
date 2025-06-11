@@ -132,22 +132,22 @@ namespace hyengine::graphics {
         return false;
     }
 
-    void frame_buffer::copy_data(frame_buffer& source, glm::uvec2 pos, glm::uvec2 size) const
+    void frame_buffer::copy_data(frame_buffer& source, glm::uvec4 rect) const
     {
-        copy_data(source, pos, size, GL_LINEAR);
+        copy_data(source, rect, GL_LINEAR);
     }
 
-    void frame_buffer::copy_data(frame_buffer& source, glm::uvec2 pos, glm::uvec2 size, GLenum filter) const
+    void frame_buffer::copy_data(frame_buffer& source, glm::uvec4 rect, GLenum filter) const
     {
-        copy_data(source, pos, size, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, filter);
+        copy_data(source, rect, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, filter);
     }
 
-    void frame_buffer::copy_data(frame_buffer& source, glm::uvec2 pos, glm::uvec2 size, GLbitfield mask, GLenum filter) const
+    void frame_buffer::copy_data(frame_buffer& source, glm::uvec4 rect, GLbitfield mask, GLenum filter) const
     {
-        copy_data(source, pos, size, pos, size, mask, filter);
+        copy_data(source, rect, rect, mask, filter);
     }
 
-    void frame_buffer::copy_data(frame_buffer& source, glm::uvec2 source_pos, glm::uvec2 source_size, glm::uvec2 to_pos, glm::uvec2 to_size, GLbitfield mask, GLenum filter) const
+    void frame_buffer::copy_data(frame_buffer& source, glm::uvec4 source_rect, glm::uvec4 dest_rect, GLbitfield mask, GLenum filter) const
     {
         if(buffer_id <= 0 || !is_valid)
         {
@@ -155,8 +155,8 @@ namespace hyengine::graphics {
             return;
         }
 
-        glBlitNamedFramebuffer(source.get_id(), buffer_id, source_pos.x, source_pos.y, source_pos.x + source_size.x, source_pos.y + source_size.y,
-                               to_pos.x, to_pos.y, to_pos.x + to_size.x, to_pos.y + to_size.y, mask, filter);
+        glBlitNamedFramebuffer(source.get_id(), buffer_id, source_rect.x, source_rect.y, source_rect.z, source_rect.w, // NOLINT(*-narrowing-conversions)
+                               dest_rect.x, dest_rect.y, dest_rect.z, dest_rect.w, mask, filter); // NOLINT(*-narrowing-conversions)
     }
 
     void frame_buffer::free()

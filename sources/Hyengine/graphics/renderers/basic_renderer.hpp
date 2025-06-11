@@ -7,16 +7,16 @@ namespace hyengine::graphics {
 
     using namespace hyengine;
 
-    class basic_immediate_renderer {
+    class basic_renderer {
     public:
-        explicit basic_immediate_renderer();
+        explicit basic_renderer();
 
-        basic_immediate_renderer(const basic_immediate_renderer& other) = delete; //COPY CONSTRUCTOR
-        basic_immediate_renderer(basic_immediate_renderer&& other) = delete; //MOVE CONSTRUCTOR
-        basic_immediate_renderer& operator=(const basic_immediate_renderer& other) = delete; //COPY ASSIGNMENT
-        basic_immediate_renderer& operator=(basic_immediate_renderer&& other) noexcept = delete; //MOVE ASSIGNMENT
+        basic_renderer(const basic_renderer& other) = delete; //COPY CONSTRUCTOR
+        basic_renderer(basic_renderer&& other) = delete; //MOVE CONSTRUCTOR
+        basic_renderer& operator=(const basic_renderer& other) = delete; //COPY ASSIGNMENT
+        basic_renderer& operator=(basic_renderer&& other) noexcept = delete; //MOVE ASSIGNMENT
 
-        ~basic_immediate_renderer();
+        ~basic_renderer();
 
         void allocate(const unsigned int memory_budget_mb);
         void free();
@@ -44,7 +44,7 @@ namespace hyengine::graphics {
         };
 
         const vertex_format<2> debug_vertex_format = vertex_format<2>({graphics::vertex_element_types::VEC3, graphics::vertex_element_types::UBYTE_NVEC4});
-        const std::string logger_tag = "Debug Renderer";
+        const std::string logger_tag = "Basic Renderer";
 
         graphics::typed_data_buffer<debug_vertex> vertex_buffer;
         graphics::vertex_format_buffer vertex_format_buffer;

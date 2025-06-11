@@ -33,7 +33,7 @@ namespace hyengine::graphics {
     private:
         const std::string logger_tag = "GPU Render Texture";
 
-        GLuint buffer_id = 0;
+        GLuint gl_id = 0;
         glm::ivec2 internal_size = {0, 0};
         int internal_samples = 0;
         GLenum internal_format = 0;

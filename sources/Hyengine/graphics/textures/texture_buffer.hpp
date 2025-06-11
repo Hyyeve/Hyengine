@@ -43,7 +43,7 @@ namespace hyengine::graphics {
         void generate_mipmaps() const;
         void set_depth_stencil_mode(const GLenum mode) const;
 
-        void set_mipmap_first_level(const int level) const;
+        void set_mipmap_min_level(const int level) const;
         void set_mipmap_max_level(const int level) const;
 
         void set_border_color(const glm::vec4 col) const;

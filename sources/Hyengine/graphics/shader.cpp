@@ -32,7 +32,7 @@ namespace hyengine::graphics {
         return current_program == program_id;
     }
 
-    void shader::use() const
+    void shader::use()
     {
         glUseProgram(program_id);
     }
@@ -288,99 +288,99 @@ namespace hyengine::graphics {
 
 #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(name); location != uniform_locations.end()) { setter; } else logger::message_warn("Failed to set uniform '" + name + "'", logger_tag);
 
-    void shader::set_uniform(const std::string& name, const bool value) const {
+    void shader::set_uniform(const std::string& name, const bool value) {
         TRY_SET_UNIFORM(glProgramUniform1i(program_id, location->second, value))
     }
 
-    void shader::set_uniform(const std::string& name, const bvec2 value) const {
+    void shader::set_uniform(const std::string& name, const bvec2 value) {
         TRY_SET_UNIFORM(glProgramUniform2i(program_id, location->second, value.x, value.y))
     }
 
-    void shader::set_uniform(const std::string& name, const bvec3 value) const {
+    void shader::set_uniform(const std::string& name, const bvec3 value) {
         TRY_SET_UNIFORM(glProgramUniform3i(program_id, location->second, value.x, value.y, value.z))
     }
 
-    void shader::set_uniform(const std::string& name, const bvec4 value) const {
+    void shader::set_uniform(const std::string& name, const bvec4 value) {
         TRY_SET_UNIFORM(glProgramUniform4i(program_id, location->second, value.x, value.y, value.z, value.w))
     }
 
-    void shader::set_uniform(const std::string& name, const float value) const {
+    void shader::set_uniform(const std::string& name, const float value) {
         TRY_SET_UNIFORM(glProgramUniform1f(program_id, location->second, value))
     }
 
-    void shader::set_uniform(const std::string& name, const vec2 value) const {
+    void shader::set_uniform(const std::string& name, const vec2 value) {
         TRY_SET_UNIFORM(glProgramUniform2f(program_id, location->second, value.x, value.y))
     }
 
-    void shader::set_uniform(const std::string& name, const vec3 value) const {
+    void shader::set_uniform(const std::string& name, const vec3 value) {
         TRY_SET_UNIFORM(glProgramUniform3f(program_id, location->second, value.x, value.y, value.z))
     }
 
-    void shader::set_uniform(const std::string& name, const vec4 value) const {
+    void shader::set_uniform(const std::string& name, const vec4 value) {
         TRY_SET_UNIFORM(glProgramUniform4f(program_id, location->second, value.x, value.y, value.z, value.w))
     }
 
-    void shader::set_uniform(const std::string& name, const double value) const {
+    void shader::set_uniform(const std::string& name, const double value) {
         TRY_SET_UNIFORM(glProgramUniform1d(program_id, location->second, value))
     }
 
-    void shader::set_uniform(const std::string& name, const dvec2 value) const {
+    void shader::set_uniform(const std::string& name, const dvec2 value) {
         TRY_SET_UNIFORM(glProgramUniform2d(program_id, location->second, value.x, value.y))
     }
 
-    void shader::set_uniform(const std::string& name, const dvec3& value) const {
+    void shader::set_uniform(const std::string& name, const dvec3& value) {
         TRY_SET_UNIFORM(glProgramUniform3d(program_id, location->second, value.x, value.y, value.z))
     }
 
-    void shader::set_uniform(const std::string& name, const dvec4& value) const {
+    void shader::set_uniform(const std::string& name, const dvec4& value) {
         TRY_SET_UNIFORM(glProgramUniform4d(program_id, location->second, value.x, value.y, value.z, value.w))
     }
 
-    void shader::set_uniform(const std::string& name, const int value) const {
+    void shader::set_uniform(const std::string& name, const int value) {
         TRY_SET_UNIFORM(glProgramUniform1i(program_id, location->second, value))
     }
 
-    void shader::set_uniform(const std::string& name, const ivec2 value) const {
+    void shader::set_uniform(const std::string& name, const ivec2 value) {
         TRY_SET_UNIFORM(glProgramUniform2i(program_id, location->second, value.x, value.y))
     }
 
-    void shader::set_uniform(const std::string& name, const ivec3 value) const {
+    void shader::set_uniform(const std::string& name, const ivec3 value) {
         TRY_SET_UNIFORM(glProgramUniform3i(program_id, location->second, value.x, value.y, value.z))
     }
 
-    void shader::set_uniform(const std::string& name, const ivec4 value) const {
+    void shader::set_uniform(const std::string& name, const ivec4 value) {
         TRY_SET_UNIFORM(glProgramUniform4i(program_id, location->second, value.x, value.y, value.z, value.w))
     }
 
-    void shader::set_uniform(const std::string& name, const unsigned int value) const {
+    void shader::set_uniform(const std::string& name, const unsigned int value) {
         TRY_SET_UNIFORM(glProgramUniform1ui(program_id, location->second, value))
     }
 
-    void shader::set_uniform(const std::string& name, const uvec2 value) const {
+    void shader::set_uniform(const std::string& name, const uvec2 value) {
         TRY_SET_UNIFORM(glProgramUniform2ui(program_id, location->second, value.x, value.y))
     }
 
-    void shader::set_uniform(const std::string& name, const uvec3 value) const {
+    void shader::set_uniform(const std::string& name, const uvec3 value) {
         TRY_SET_UNIFORM(glProgramUniform3ui(program_id, location->second, value.x, value.y, value.z))
     }
 
-    void shader::set_uniform(const std::string& name, const uvec4 value) const {
+    void shader::set_uniform(const std::string& name, const uvec4 value) {
         TRY_SET_UNIFORM(glProgramUniform4ui(program_id, location->second, value.x, value.y, value.z, value.w))
     }
 
-    void shader::set_uniform(const std::string& name, mat2 value) const {
+    void shader::set_uniform(const std::string& name, mat2 value) {
         TRY_SET_UNIFORM(glProgramUniformMatrix2fv(program_id, location->second, 1, GL_FALSE, glm::value_ptr(value)))
     }
 
-    void shader::set_uniform(const std::string& name, mat3 value) const {
+    void shader::set_uniform(const std::string& name, mat3 value) {
         TRY_SET_UNIFORM(glProgramUniformMatrix3fv(program_id, location->second, 1, GL_FALSE, glm::value_ptr(value)))
     }
 
-    void shader::set_uniform(const std::string& name, mat4 value) const {
+    void shader::set_uniform(const std::string& name, mat4 value) {
         TRY_SET_UNIFORM(glProgramUniformMatrix4fv(program_id, location->second, 1, GL_FALSE, glm::value_ptr(value)))
     }
 
-    void shader::set_sampler_slot(const std::string& name, const int slot) const {
+    void shader::set_sampler_slot(const std::string& name, const int slot) {
         TRY_SET_UNIFORM(glProgramUniform1i(program_id, location->second, slot));
     }
 }

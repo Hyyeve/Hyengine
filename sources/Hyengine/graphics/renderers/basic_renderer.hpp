@@ -2,6 +2,7 @@
 #include "../camera.hpp"
 #include "../buffers/vertex_format_buffer.hpp"
 #include "../buffers/typed_data_buffer.hpp"
+#include "Hyengine/graphics/shader.hpp"
 
 namespace hyengine::graphics {
 
@@ -27,13 +28,15 @@ namespace hyengine::graphics {
         void rect(glm::vec2 a, glm::vec2 b, glm::vec4 color);
         void line(glm::vec3 start, glm::vec3 end, glm::vec4 color, float thickness);
 
+        void texture(bool enable, unsigned int texture_slot = 0);
+
         void submit_geometry();
         void prepare_buffers();
 
-        static void update_shader_uniforms(const float interpolation_delta, const graphics::camera& cam);
-        static void reload_shaders();
+        void update_shader_uniforms(const float interpolation_delta, const graphics::camera& cam);
+        void reload_shaders();
 
-        void bind() const;
+        void bind();
         void draw() const;
 
     private:
@@ -42,6 +45,9 @@ namespace hyengine::graphics {
             glm::vec3 position;
             unsigned int color;
         };
+
+        graphics::shader basic_shader = shader("shader:basic_pos_col");
+        graphics::shader texture_shader = shader("shader:basic_pos_col_tex");
 
         const vertex_format<2> debug_vertex_format = vertex_format<2>({graphics::vertex_element_types::VEC3, graphics::vertex_element_types::UBYTE_NVEC4});
         const std::string logger_tag = "Basic Renderer";
@@ -52,6 +58,8 @@ namespace hyengine::graphics {
         bool is_allocated = false;
         unsigned int draw_count;
         unsigned int write_index;
+
+        bool use_texture = false;
     };
 }
 

@@ -8,8 +8,6 @@ namespace hyengine::graphics {
 
     using namespace hyengine;
 
-    static shader debug_shader = shader("shader:basic_pos_col");
-
     basic_renderer::basic_renderer(): draw_count(0), write_index(0)
     {
     }
@@ -105,6 +103,12 @@ namespace hyengine::graphics {
         quad(end + offset_2, end + offset_3, end + offset_0, end + offset_1, color);
     }
 
+    void basic_renderer::texture(const bool enable, const unsigned int texture_slot)
+    {
+        use_texture = enable;
+        texture_shader.set_sampler_slot("u_texture", texture_slot);
+    }
+
     void basic_renderer::submit_geometry()
     {
         draw_count = write_index;
@@ -119,20 +123,24 @@ namespace hyengine::graphics {
 
     void basic_renderer::update_shader_uniforms(const float interpolation_delta, const graphics::camera& cam)
     {
-        debug_shader.set_uniform("u_projection_mat", cam.get_projection());
-        debug_shader.set_uniform("u_view_mat", cam.get_view());
-        debug_shader.set_uniform("u_camera_pos", cam.get_position(interpolation_delta));
+        shader& current_shader = use_texture ? texture_shader : basic_shader;
+
+        current_shader.set_uniform("u_projection_mat", cam.get_projection());
+        current_shader.set_uniform("u_view_mat", cam.get_view());
+        current_shader.set_uniform("u_camera_pos", cam.get_position(interpolation_delta));
     }
 
     void basic_renderer::reload_shaders()
     {
-        debug_shader.reload();
+        basic_shader.reload();
+        texture_shader.reload();
     }
 
-    void basic_renderer::bind() const
+    void basic_renderer::bind()
     {
         vertex_format_buffer.bind_state();
-        debug_shader.use();
+        if (use_texture) texture_shader.use();
+        else basic_shader.use();
     }
 
     void basic_renderer::draw() const

@@ -24,8 +24,8 @@ namespace hyengine::common::math
         return value < 0.5 ? 4 * value * value * value : 1 - glm::pow(-2 * value + 2, 3) / 2;
     }
 
-    inline glm::quat euler_rotation_yxz(glm::vec3 euler, glm::vec3 y_axis = glm::vec3(0, 1, 0), glm::vec3 x_axis = glm::vec3(1, 0, 0))
+    inline glm::quat euler_rotation_zxy(glm::vec3 euler, glm::vec3 y_axis = glm::vec3(0, 1, 0), glm::vec3 x_axis = glm::vec3(1, 0, 0))
     {
-        return glm::angleAxis(euler.y, y_axis) * glm::angleAxis(euler.x, x_axis) * glm::angleAxis(euler.z, glm::cross(y_axis, x_axis));
+        return glm::angleAxis(euler.z, glm::cross(y_axis, x_axis)) * glm::angleAxis(euler.x, x_axis) * glm::angleAxis(euler.y, y_axis);
     }
 }

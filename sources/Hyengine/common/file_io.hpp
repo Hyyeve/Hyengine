@@ -4,10 +4,20 @@
 
 namespace hyengine::common::file_io {
 
+    struct image_data
+    {
+        void* data;
+        unsigned int width;
+        unsigned int height;
+        unsigned int num_channels;
+    };
+
     std::string read_asset_text(const std::string& id);
     std::string read_raw_asset_text(const std::string& id);
     std::string read_preprocessed_asset_text(const std::string& id);
-    std::vector<unsigned char> read_raw_asset_bytes(const std::string& id);
+    std::vector<unsigned char> read_asset_bytes(const std::string& id);
+
+    image_data read_asset_image(const std::string& id);
 
     bool save_raw_asset(const std::string& id, const std::vector<unsigned char>& data);
     bool save_asset_text(const std::string& id, const std::string_view& text);
@@ -17,7 +27,6 @@ namespace hyengine::common::file_io {
 
 
     std::string inject_text_includes(const std::string_view text);
-
     std::string asset_id_to_relative_path(std::string asset_id);
 
     std::string get_asset_type(const std::string& asset_id);

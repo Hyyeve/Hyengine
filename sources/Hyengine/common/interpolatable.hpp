@@ -32,6 +32,16 @@ namespace hyengine::common {
         }
     };
 
+    template<>
+    struct interpolator<glm::quat>
+    {
+        template<typename P>
+        [[nodiscard]] static glm::quat interpolate(const glm::quat& a, const glm::quat& b, P percent)
+        {
+            return glm::slerp(a, b, percent);
+        }
+    };
+
     template<class T, class I = interpolator<T>>
     class interpolatable {
     public:

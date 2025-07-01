@@ -25,6 +25,9 @@ namespace hyengine::graphics {
             return;
         }
 
+        basic_shader.load();
+        texture_shader.load();
+
         const unsigned int max_vertices = ((1024 * 1024) / sizeof(debug_vertex)) * memory_budget_mb;
 
         vertex_buffer.allocate_for_continual_writes(GL_ARRAY_BUFFER, max_vertices);

@@ -5,7 +5,7 @@ namespace hyengine::graphics {
     using namespace hyengine;
     using namespace glm;
 
-    camera::camera(const vec3& position, const vec3& rotation) : position(position), rotation_degrees(rotation) {
+    camera::camera(const vec3& position, const vec3& rotation) : position(position), rotation(rotation) {
         refresh(0.0);
     }
 
@@ -26,7 +26,7 @@ namespace hyengine::graphics {
     }
 
     void camera::move_relative(const vec3& delta) {
-        position += vec3(delta.x * right.x + delta.y * up.x + delta.z * look.x, delta.x * right.y + delta.y * up.y + delta.z * look.y, delta.x * right.z + delta.y * up.z + delta.z * look.z);
+        position += vec3(delta.x * right.x + delta.y * up.x + delta.z * forward.x, delta.x * right.y + delta.y * up.y + delta.z * forward.y, delta.x * right.z + delta.y * up.z + delta.z * forward.z);
     }
 
     void camera::move_planar(const vec3& delta) {
@@ -34,27 +34,21 @@ namespace hyengine::graphics {
     }
 
     void camera::move_relative(const float deltaHorizontal, const float deltaVertical, const float deltaAxial) {
-        position += vec3(deltaHorizontal * right.x + deltaVertical * up.x + deltaAxial * look.x, deltaHorizontal * right.y + deltaVertical * up.y + deltaAxial * look.y, deltaHorizontal * right.z + deltaVertical * up.z + deltaAxial * look.z);
+        position += vec3(deltaHorizontal * right.x + deltaVertical * up.x + deltaAxial * forward.x, deltaHorizontal * right.y + deltaVertical * up.y + deltaAxial * forward.y, deltaHorizontal * right.z + deltaVertical * up.z + deltaAxial * forward.z);
     }
 
     void camera::move_planar(const float deltaHorizontal, const float deltaVertical, const float deltaAxial) {
         position += vec3(deltaHorizontal * right.x + deltaVertical * up.x + deltaAxial * forward.x, deltaHorizontal * right.y + deltaVertical * up.y + deltaAxial * forward.y, deltaHorizontal * right.z + deltaVertical * up.z + deltaAxial * forward.z);
     }
 
-    void camera::rotate_to(const vec3& to) {
-        rotation_degrees = to;
+    void camera::rotate_to(const glm::quat& to)
+    {
+        rotation = glm::quat(to);
     }
 
-    void camera::rotate_to(const vec2 to) {
-        rotation_degrees = vec3(to.x, to.y, 0);
-    }
-
-    void camera::rotate_by(const vec3& delta) {
-        rotation_degrees += delta;
-    }
-
-    void camera::rotate_by(const vec2 delta) {
-        rotation_degrees += vec3(delta.x, delta.y, 0);
+    void camera::rotate_by(const glm::quat& delta)
+    {
+        rotation *= delta;
     }
 
     void camera::zoom_by(const float percent) {
@@ -86,35 +80,29 @@ namespace hyengine::graphics {
 
     void camera::refresh(const float interpolation) {
 
-        vec3 interpolatedRotation = rotation_degrees.interpolated(interpolation);
-        const float interpolatedZoomPercent = zoom_percent.interpolated(interpolation);
-        const vec3 interpolatedZoomTarget = zoom_target.interpolated(interpolation);
+        glm::quat interpolated_rotation = rotation.interpolated(interpolation);
+        const float interpolated_zoom_percent = zoom_percent.interpolated(interpolation);
+        const vec3 relative_zoom_target = zoom_target.interpolated<double>(interpolation) - get_position(interpolation);
 
-        interpolatedRotation = vec3(fmod(interpolatedRotation.x, 360.0f), fmod(interpolatedRotation.y, 360.0f), fmod(interpolatedRotation.z, 360.0f));
-        interpolatedRotation.x = max(min(interpolatedRotation.x, 89.0f), -89.0f);
-        rotation_radians = radians(interpolatedRotation);
+        forward = glm::vec3(0, 0, 1) * interpolated_rotation;
+        up = glm::vec3(0, 1, 0) * interpolated_rotation;
+        right = glm::vec3(1, 0, 0) * interpolated_rotation;
 
-        look = vec3(cos(rotation_radians.y) * cos(rotation_radians.x), sin(rotation_radians.x), sin(rotation_radians.y) * cos(rotation_radians.x));
-        look = normalize(look);
-        right = normalize(cross(look, up));
-        forward = -normalize(cross(right, up));
-        view_matrix = lookAt(vec3(0), look, up);
+        view_matrix = toMat4(interpolated_rotation);
 
-        if(interpolatedZoomPercent != 1.0f) { //zoom is probably going to be 1.0 a lot of the time
-            const vec3 zoomTranslation = interpolatedZoomTarget;
-            view_matrix = translate(view_matrix, zoomTranslation);
-            view_matrix = scale(view_matrix, vec3(interpolatedZoomPercent));
-            view_matrix = translate(view_matrix, -zoomTranslation);
+        if(interpolated_zoom_percent != 1.0f) { //zoom is probably going to be 1.0 a lot of the time
+            const vec3 zoom_translation = relative_zoom_target;
+            view_matrix = translate(view_matrix, zoom_translation);
+            view_matrix = scale(view_matrix, vec3(interpolated_zoom_percent));
+            view_matrix = translate(view_matrix, -zoom_translation);
         }
 
         update_frustum(interpolation);
     }
 
-
-
     void camera::start_update() {
         position.stabilize();
-        rotation_degrees.stabilize();
+        rotation.stabilize();
         zoom_percent.stabilize();
         zoom_target.stabilize();
     }
@@ -131,16 +119,14 @@ namespace hyengine::graphics {
         return position.interpolated<double>(interpolation);
     }
 
-    vec3 camera::get_rotation_degrees(const float interpolation) const {
-        return rotation_degrees.interpolated(interpolation);
+    glm::quat camera::get_rotation(const float interpolation) const
+    {
+        return rotation.interpolated(interpolation);
     }
 
-    vec3 camera::get_rotation_radians() const {
-        return rotation_radians;
-    }
-
-    vec3 camera::get_look_dir() const {
-        return look;
+    glm::vec3 camera::get_rotation_radians(const float interpolation) const
+    {
+        return eulerAngles(rotation.interpolated(interpolation));
     }
 
     vec3 camera::get_forward_dir() const{
@@ -155,11 +141,12 @@ namespace hyengine::graphics {
         return right;
     }
 
-    bool camera::frustum_visible(glm::vec3 sphere_pos, float sphere_radius) const
+    bool camera::frustum_visible(glm::dvec3 sphere_pos, float sphere_radius) const
     {
+        const glm::vec3 relative_pos = sphere_pos - frustum.offset;
         for (int i = 0; i < 6; i++)
         {
-            if (glm::dot(sphere_pos, frustum.normals[i]) + frustum.distances[i] + sphere_radius <= 0)
+            if (glm::dot(relative_pos, frustum.normals[i]) + frustum.distances[i] + sphere_radius <= 0)
             {
                 return false;
             }
@@ -168,9 +155,9 @@ namespace hyengine::graphics {
         return true;
     }
 
-    void camera::update_frustum(const double interpolation)
+    void camera::update_frustum(const float interpolation)
     {
-        const glm::mat4x4 mat = projection_matrix * translate(view_matrix, -static_cast<vec3>(get_position(interpolation)));
+        const glm::mat4x4 mat = projection_matrix * view_matrix;
 
         //Near plane
         frustum.normals[0].x = mat[0][3];
@@ -214,6 +201,8 @@ namespace hyengine::graphics {
             frustum.normals[i] /= length;
             frustum.distances[i] /= length;
         }
+
+        frustum.offset = get_position(interpolation);
     }
 
     vec3 camera::screen_to_world(const vec3& point, const viewport screen) const {

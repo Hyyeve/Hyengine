@@ -231,7 +231,7 @@ namespace hyengine::graphics {
     GLuint shader::load_binary_program(const std::string& asset_id)
     {
         if (!common::file_io::asset_exists(asset_id)) return 0;
-        const std::vector<unsigned char> binary_data = common::file_io::read_raw_asset_bytes(asset_id);
+        const std::vector<unsigned char> binary_data = common::file_io::read_asset_bytes(asset_id);
 
         const void* header_pointer = binary_data.data();
         const void* data_pointer = static_cast<const unsigned char*>(header_pointer) + sizeof(GLenum);

@@ -7,6 +7,7 @@
 
 #include "../core/logger.hpp"
 #include "portability.hpp"
+#include "stblib/include/stb_image.hpp"
 
 namespace hyengine::common::file_io {
 
@@ -34,6 +35,7 @@ namespace hyengine::common::file_io {
    {
       if (type == "shader")  return "glsl";
       if (type == "shader.bin") return "bin";
+      if (type == "png") return "png";
       return "hy";
    }
 
@@ -156,7 +158,7 @@ namespace hyengine::common::file_io {
       return inject_text_includes(text);
    }
 
-   std::vector<unsigned char> read_raw_asset_bytes(const std::string& id)
+   std::vector<unsigned char> read_asset_bytes(const std::string& id)
    {
       if (!asset_exists(id))
       {
@@ -190,6 +192,33 @@ namespace hyengine::common::file_io {
       return data;
    }
 
+
+   image_data read_asset_image(const std::string& id)
+   {
+      if (!asset_exists(id))
+      {
+         logger::message_error(logger::format("Could not read asset \'", id, "\' !"), logger_tag);
+         return { nullptr, 0, 0, 0 };
+      }
+
+      image_data result;
+      int temp_width;
+      int temp_height;
+      int temp_channels;
+
+      result.data = stbi_load(get_asset_path(id).string().c_str(), &temp_width, &temp_height, &temp_channels, 0);
+      if (result.data == nullptr)
+      {
+         logger::error(logger_tag, "Couldn't load asset - bad file");
+         return { nullptr, 0, 0, 0 };
+      }
+
+      result.width = temp_width;
+      result.height = temp_height;
+      result.num_channels = temp_channels;
+      return result;
+   }
+
    bool save_raw_asset(const std::string& id, const std::vector<unsigned char>& data)
    {
       const std::filesystem::path directory = get_asset_directory(id);
@@ -204,7 +233,7 @@ namespace hyengine::common::file_io {
       std::ofstream file(path, std::ios::binary | std::ios::out | std::ios::trunc);
       if (!file.is_open() || file.bad())
       {
-         logger::error(logger_tag, "Couldn't save asset - bad file");
+          logger::error(logger_tag, "Couldn't save asset - bad file");
          return false;
       }
 

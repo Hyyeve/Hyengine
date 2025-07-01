@@ -26,12 +26,12 @@ namespace hyengine::common {
                 return;
             }
 
-            node_data* left = data_map.contains(position + glm::ivec3(-1, 0, 0)) ? &data_map[position + glm::ivec3(-1, 0, 0)] : nullptr;
-            node_data* right = data_map.contains(position + glm::ivec3(1, 0, 0)) ? &data_map[position + glm::ivec3(1, 0, 0)] : nullptr;
-            node_data* down = data_map.contains(position + glm::ivec3(0, -1, 0)) ? &data_map[position + glm::ivec3(0, -1, 0)] : nullptr;
-            node_data* up = data_map.contains(position + glm::ivec3(0, 1, 0)) ? &data_map[position + glm::ivec3(0, 1, 0)] : nullptr;
-            node_data* back = data_map.contains(position + glm::ivec3(0, 0, -1)) ? &data_map[position + glm::ivec3(0, 0, -1)] : nullptr;
-            node_data* front = data_map.contains(position + glm::ivec3(0, 0, 1)) ? &data_map[position + glm::ivec3(0, 0, 1)] : nullptr;
+            node_data* left = lookup(position + glm::ivec3(-1, 0, 0));
+            node_data* right = lookup(position + glm::ivec3(1, 0, 0));
+            node_data* down = lookup(position + glm::ivec3(0, -1, 0));
+            node_data* up = lookup(position + glm::ivec3(0, 1, 0));
+            node_data* back = lookup(position + glm::ivec3(0, 0, -1));
+            node_data* front = lookup(position + glm::ivec3(0, 0, 1));
 
             node_data node = {
                 data,
@@ -67,6 +67,11 @@ namespace hyengine::common {
                 if (data.z_back != nullptr) data.z_back->z_front = nullptr;
                 data_map.erase(position);
             }
+        }
+
+        bool contains(glm::ivec3 position)
+        {
+            return data_map.contains(position);
         }
 
         node_data* lookup(glm::ivec3 position)

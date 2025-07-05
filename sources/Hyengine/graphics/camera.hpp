@@ -3,6 +3,7 @@
 
 #include "graphics.hpp"
 #include "../common/interpolatable.hpp"
+#include "Hyengine/common/math/frustum.hpp"
 
 
 namespace hyengine::graphics {
@@ -58,17 +59,10 @@ namespace hyengine::graphics {
         [[nodiscard]] glm::vec3 get_right_dir() const;
 
         [[nodiscard]] bool frustum_visible(glm::dvec3 sphere_pos, float sphere_radius) const;
+        [[nodiscard]] common::frustum get_frustum() const;
 
 
     private:
-        struct frustum_planes
-        {
-            std::array<glm::vec3, 6> normals;
-            std::array<float, 6> distances;
-            glm::dvec3 offset;
-        };
-
-        void update_frustum(float interpolation);
 
         common::interpolatable<glm::dvec3> position = glm::dvec3(0);
         common::interpolatable<glm::quat> rotation = glm::quat();
@@ -82,7 +76,7 @@ namespace hyengine::graphics {
 
         glm::mat4 view_matrix = glm::mat4();
         glm::mat4 projection_matrix = glm::mat4();
-        frustum_planes frustum {};
+        common::frustum frustum = common::frustum();
     };
 
 }

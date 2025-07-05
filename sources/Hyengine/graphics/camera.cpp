@@ -97,7 +97,7 @@ namespace hyengine::graphics {
             view_matrix = translate(view_matrix, -zoom_translation);
         }
 
-        update_frustum(interpolation);
+        frustum.set_from_matrices(projection_matrix, view_matrix, get_position(interpolation));
     }
 
     void camera::start_update() {
@@ -143,66 +143,12 @@ namespace hyengine::graphics {
 
     bool camera::frustum_visible(glm::dvec3 sphere_pos, float sphere_radius) const
     {
-        const glm::vec3 relative_pos = sphere_pos - frustum.offset;
-        for (int i = 0; i < 6; i++)
-        {
-            if (glm::dot(relative_pos, frustum.normals[i]) + frustum.distances[i] + sphere_radius <= 0)
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return frustum.visible(sphere_pos, sphere_radius);
     }
 
-    void camera::update_frustum(const float interpolation)
+    common::frustum camera::get_frustum() const
     {
-        const glm::mat4x4 mat = projection_matrix * view_matrix;
-
-        //Near plane
-        frustum.normals[0].x = mat[0][3];
-        frustum.normals[0].y = mat[1][3];
-        frustum.normals[0].z = mat[2][3];
-        frustum.distances[0] = mat[3][3];
-
-        //Down plane
-        frustum.normals[1].x = mat[0][3] + mat[0][1];
-        frustum.normals[1].y = mat[1][3] + mat[1][1];
-        frustum.normals[1].z = mat[2][3] + mat[2][1];
-        frustum.distances[1] = mat[3][3] + mat[3][1];
-
-        //Left plane
-        frustum.normals[2].x = mat[0][3] + mat[0][0];
-        frustum.normals[2].y = mat[1][3] + mat[1][0];
-        frustum.normals[2].z = mat[2][3] + mat[2][0];
-        frustum.distances[2] = mat[3][3] + mat[3][0];
-
-        //Right plane
-        frustum.normals[3].x = mat[0][3] - mat[0][0];
-        frustum.normals[3].y = mat[1][3] - mat[1][0];
-        frustum.normals[3].z = mat[2][3] - mat[2][0];
-        frustum.distances[3] = mat[3][3] - mat[3][0];
-
-        //Up plane
-        frustum.normals[4].x = mat[0][3] - mat[0][1];
-        frustum.normals[4].y = mat[1][3] - mat[1][1];
-        frustum.normals[4].z = mat[2][3] - mat[2][1];
-        frustum.distances[4] = mat[3][3] - mat[3][1];
-
-        //Far plane
-        frustum.normals[5].x = mat[0][3] - mat[0][2];
-        frustum.normals[5].y = mat[1][3] - mat[1][2];
-        frustum.normals[5].z = mat[2][3] - mat[2][2];
-        frustum.distances[5] = mat[3][3] - mat[3][2];
-
-        for(int i = 0; i < 6; i++)
-        {
-            const float length = glm::length(frustum.normals[i]);
-            frustum.normals[i] /= length;
-            frustum.distances[i] /= length;
-        }
-
-        frustum.offset = get_position(interpolation);
+        return frustum;
     }
 
     vec3 camera::screen_to_world(const vec3& point, const viewport screen) const {

@@ -4,14 +4,16 @@ target_sources(Hyengine PRIVATE
 
         common/math/line.cpp
         common/math/rectangle.cpp
+        common/math/frustum.cpp
 
         common/pool_allocation_tracker.cpp
         common/portability.cpp
 
+        common/file_io.cpp
+
         core/hyengine.cpp
         core/logger.cpp
         core/profiler.cpp
-        common/file_io.cpp
 
         graphics/graphics.cpp
         graphics/native_window.cpp
@@ -46,6 +48,7 @@ target_sources(Hyengine PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILE
         common/math/nodes3d.hpp
         common/math/line.hpp
         common/math/rectangle.hpp
+        common/math/frustum.hpp
 
         common/colors.hpp
         common/id_generator.hpp

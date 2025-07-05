@@ -69,8 +69,8 @@ namespace hyengine::graphics {
     void basic_renderer::triangle(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec4 color)
     {
         vertex(a, color);
-        vertex(b, color);
         vertex(c, color);
+        vertex(b, color);
     }
 
     void basic_renderer::quad(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 d, glm::vec4 color)

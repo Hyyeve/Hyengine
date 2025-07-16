@@ -1,5 +1,7 @@
 #include "line.hpp"
 
+#include <tracy/Tracy.hpp>
+
 namespace hyengine::common {
 
     using namespace glm;
@@ -47,10 +49,12 @@ namespace hyengine::common {
     #undef OP
 
     vec2 line::point_at(const float percent) const {
+        ZoneScoped;
         return mix(start, end, percent);
     }
 
     float distance_of(const vec2 point) {
+        ZoneScoped;
         vec2 start;
         vec2 end;
         vec2 delta_line = end - start;
@@ -61,6 +65,7 @@ namespace hyengine::common {
 
     //Note: 0 < interpolation_percent < 1 only guarantees that the point is within the bounding box of the line segment.
     float line::percent_of(const vec2 point) const {
+        ZoneScoped;
         vec2 delta = end - start;
         vec2 point_delta = point - start;
         if(length2(point_delta) < 1e-7) return 0;
@@ -68,6 +73,7 @@ namespace hyengine::common {
     }
 
     float line::sdf(const vec2 point) const {
+        ZoneScoped;
         const vec2 point_start = point - start;
         const vec2 start_end = end - start;
         float h = clamp(dot(point_start,start_end) / dot(start_end,start_end), 0.0f, 1.0f);
@@ -75,27 +81,33 @@ namespace hyengine::common {
     }
 
     float line::length() const {
+        ZoneScoped;
         return glm::length(end - start);
     }
 
     float line::left() const {
+        ZoneScoped;
         return min(start.x, end.x);
     }
 
     float line::right() const {
+        ZoneScoped;
         return max(start.x, end.x);
     }
 
     float line::up() const {
+        ZoneScoped;
         return max(start.y, end.y);
     }
 
     float line::down() const {
+        ZoneScoped;
         return min(start.y, end.y);
     }
 
     //Treats the lines as infinitely long - must be checked to see if it's on the line segments.
     vec2 line::intersection_with(const line& other) const {
+        ZoneScoped;
 
         float delta_ax = start.x - end.x;
         float delta_ay = end.y - start.y;
@@ -118,16 +130,19 @@ namespace hyengine::common {
     }
 
     vec2 line::direction() const {
+        ZoneScoped;
         vec2 ex = vector();
         if(glm::length(ex) == 0) return vec2(0);
         return normalize(ex);
     }
 
     vec2 line::vector() const {
+        ZoneScoped;
         return end - start;
     }
 
     vec2 line::normal() const {
+        ZoneScoped;
         vec2 dir = direction();
         return {dir.y, -dir.x};
     }

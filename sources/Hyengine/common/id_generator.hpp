@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <tracy/Tracy.hpp>
 
 namespace hyengine::common {
 
@@ -8,6 +9,7 @@ namespace hyengine::common {
     public:
         ID_TYPE assign()
         {
+            ZoneScoped;
             if(!freed_ids.empty())
             {
                 ID_TYPE id = freed_ids.back();
@@ -22,11 +24,13 @@ namespace hyengine::common {
 
         void free(ID_TYPE id)
         {
+            ZoneScoped;
             freed_ids.push_back(id);
         }
 
         void clear()
         {
+            ZoneScoped;
             next_id = {};
             freed_ids.clear();
         }

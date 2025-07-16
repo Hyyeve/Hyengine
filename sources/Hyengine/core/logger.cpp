@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <iostream>
 #include <mutex>
+#include <tracy/Tracy.hpp>
 
 #include "../threading/threading.hpp"
 
@@ -18,6 +19,7 @@ namespace hyengine::logger {
     static std::stringstream message_buffer;
 
     std::string format_duration(const std::chrono::microseconds duration) {
+        ZoneScoped;
 
         const auto us = duration;
         const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
@@ -42,15 +44,18 @@ namespace hyengine::logger {
     }
 
     std::string format_secs(const double seconds) {
+        ZoneScoped;
         return format_millis(seconds * 1000);
     }
 
     std::string format_millis(const double millis) {
+        ZoneScoped;
         return format_duration(std::chrono::microseconds {static_cast<long>(millis * 1000)});
     }
 
     std::string format_bytes(const unsigned long bytes)
     {
+        ZoneScoped;
         std::stringstream result;
         result << std::fixed << std::setprecision(2);
         double bytes_fractional = bytes;
@@ -71,6 +76,7 @@ namespace hyengine::logger {
 
     std::string format_count(const unsigned long count_num, std::string_view count_of)
     {
+        ZoneScoped;
         std::stringstream result;
         result << count_num << " " << count_of;
         if (count_num != 1) result << "s";
@@ -80,11 +86,13 @@ namespace hyengine::logger {
 
     void set_log_level(const log_level level)
     {
+        ZoneScoped;
         logging_level = level;
     }
 
     void output_timestamp()
     {
+        ZoneScoped;
         constexpr std::string_view TIME_FORMAT = std::string_view("\u001B[36m\u001B[1m");
         const std::time_t t = std::time(nullptr);
         std::cout << '[' << TIME_FORMAT;
@@ -93,6 +101,7 @@ namespace hyengine::logger {
     }
 
     void message(const std::string_view type, const std::string_view msg, const std::string_view color_code, const std::string_view id) {
+        ZoneScoped;
 
         logging_lock.lock();
 
@@ -123,31 +132,38 @@ namespace hyengine::logger {
     }
 
     void message_debug(const std::string_view msg, const std::string_view id) {
+        ZoneScoped;
         if (logging_level > log_level::NORMAL) message("DEBG", msg, ANSI_GREEN, id);
     }
 
     void message_info(const std::string_view msg, const std::string_view id) {
+        ZoneScoped;
         if (logging_level > log_level::REDUCED) message("INFO", msg, ANSI_BLUE, id);
     }
 
     void message_performance(const std::string_view msg, const std::string_view id) {
+        ZoneScoped;
         if (logging_level > log_level::REDUCED) message("PERF", msg, ANSI_CYAN, id);
     }
 
     void message_warn(const std::string_view msg, const std::string_view id) {
+        ZoneScoped;
         if (logging_level > log_level::NONE) message("WARN", msg, ANSI_BRIGHT_YELLOW, id);
     }
 
     void message_error(const std::string_view msg, const std::string_view id) {
+        ZoneScoped;
         if (logging_level > log_level::NONE) message("ERRR", msg, ANSI_RED, id);
     }
 
     void message_fatal(const std::string_view msg, const std::string_view id) {
+        ZoneScoped;
         constexpr std::string_view FATAL_FORMAT = std::string_view("\u001B[91m\u001B[1m\u001B[4m");
         message("FATL", msg, FATAL_FORMAT, id);
     }
 
     void message_secret(const std::string_view msg, const std::string_view id) {
+        ZoneScoped;
         message("SECRET", msg, ANSI_BRIGHT_YELLOW, id);
     }
 }

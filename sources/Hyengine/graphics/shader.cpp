@@ -5,28 +5,34 @@
 #include <sstream>
 #include <utility>
 #include <vector>
+#include <tracy/Tracy.hpp>
 
 #include "../common/file_io.hpp"
 
-namespace hyengine::graphics {
-
+namespace hyengine::graphics
+{
     using namespace hyengine;
     using namespace glm;
 
-    shader::shader(std::string asset_id) noexcept : asset_id(std::move(asset_id)), binary_asset_id(get_binary_asset_id(this->asset_id)) {}
+    shader::shader(std::string asset_id) noexcept : asset_id(std::move(asset_id)), binary_asset_id(get_binary_asset_id(this->asset_id))
+    {
+    }
 
     shader::~shader()
     {
+        ZoneScoped;
         unload();
     }
 
     bool shader::valid() const
     {
+        ZoneScoped;
         return program_id != 0;
     }
 
     bool shader::active() const
     {
+        ZoneScoped;
         int current_program = 0;
         glGetIntegerv(GL_CURRENT_PROGRAM, &current_program);
         return current_program == program_id;
@@ -34,12 +40,14 @@ namespace hyengine::graphics {
 
     void shader::use()
     {
+        ZoneScoped;
         glUseProgram(program_id);
     }
 
     void shader::load()
     {
-        if(program_id != 0)
+        ZoneScoped;
+        if (program_id != 0)
         {
             logger::warn(logger_tag, "Shader ", asset_id, " already loaded!");
             return;
@@ -47,7 +55,7 @@ namespace hyengine::graphics {
 
         program_id = load_program(asset_id, binary_asset_id);
 
-        if(program_id != 0)
+        if (program_id != 0)
         {
             load_uniform_locations();
             logger::message_info(logger::format("Loaded shader ", asset_id, " and located ", uniform_locations.size(), " uniforms"), logger_tag);
@@ -58,8 +66,10 @@ namespace hyengine::graphics {
         }
     }
 
-    void shader::unload() {
-        if(program_id == 0) return;
+    void shader::unload()
+    {
+        ZoneScoped;
+        if (program_id == 0) return;
 
         glDeleteProgram(program_id);
 
@@ -69,19 +79,22 @@ namespace hyengine::graphics {
 
     void shader::reload()
     {
+        ZoneScoped;
         const bool in_use = active();
         unload();
         load();
-        if(in_use) use();
+        if (in_use) use();
     }
 
     void shader::clear_binary_cache()
     {
+        ZoneScoped;
         common::file_io::delete_asset_directory(get_binary_asset_id("shader:dummy"));
     }
 
     static GLuint compile_shader(const std::string& share, const std::string& source, const GLuint type)
     {
+        ZoneScoped;
         const std::string combined = share + "\n" + source;
         const char* c_source = combined.c_str();
 
@@ -114,6 +127,7 @@ namespace hyengine::graphics {
 
     void log_program_info(const std::string_view header, const GLuint program)
     {
+        ZoneScoped;
         int log_length = 0;
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &log_length);
 
@@ -130,6 +144,7 @@ namespace hyengine::graphics {
 
     bool validate_program(const GLuint program)
     {
+        ZoneScoped;
         GLint success = GL_TRUE;
         glValidateProgram(program);
         glGetProgramiv(program, GL_VALIDATE_STATUS, &success);
@@ -143,10 +158,12 @@ namespace hyengine::graphics {
 
     GLuint shader::link_program(const std::vector<GLuint>& shaders)
     {
+        ZoneScoped;
         const GLuint program = glCreateProgram();
         for (const GLuint shader : shaders)
         {
-            if(shader != 0) glAttachShader(program, shader);
+            if (shader != 0)
+                glAttachShader(program, shader);
         }
 
         glLinkProgram(program);
@@ -165,16 +182,19 @@ namespace hyengine::graphics {
 
     std::string shader::get_binary_asset_id(const std::string& normal_asset_id)
     {
+        ZoneScoped;
         return logger::format(cache_directory, ":", common::file_io::get_asset_name(normal_asset_id));
     }
 
     static bool line_contains(const std::string_view line, const std::string_view str)
     {
+        ZoneScoped;
         return line.find(str) != std::string::npos;
     }
 
-    GLuint shader::load_program(const std::string& asset_id, const std::string& binary_asset_id) {
-
+    GLuint shader::load_program(const std::string& asset_id, const std::string& binary_asset_id)
+    {
+        ZoneScoped;
         if (!common::file_io::asset_exists(asset_id)) return 0;
 
         const GLuint binary_program = load_binary_program(binary_asset_id);
@@ -184,21 +204,22 @@ namespace hyengine::graphics {
         std::istringstream text(raw_text);
 
         std::string line;
-        std::array<std::stringstream, 7> stage_sources {};
+        std::array<std::stringstream, 7> stage_sources{};
 
         int current_line_type = -1;
         int previous_line_type = current_line_type;
         while (getline(text, line))
         {
-            if (line_contains(line,"#SHADER|VERTEX")) current_line_type = 0;
-            else if (line_contains(line,"#SHADER|FRAGMENT")) current_line_type = 1;
-            else if (line_contains(line,"#SHADER|COMPUTE")) current_line_type = 2;
-            else if (line_contains(line,"#SHADER|GEOMETRY")) current_line_type = 3;
-            else if (line_contains(line,"#SHADER|TESS_CONTROL")) current_line_type = 4;
-            else if (line_contains(line,"#SHADER|TESS_EVAL")) current_line_type = 5;
-            else if (line_contains(line,"#SHADER|SHARED")) current_line_type = 6;
+            if (line_contains(line, "#SHADER|VERTEX")) current_line_type = 0;
+            else if (line_contains(line, "#SHADER|FRAGMENT")) current_line_type = 1;
+            else if (line_contains(line, "#SHADER|COMPUTE")) current_line_type = 2;
+            else if (line_contains(line, "#SHADER|GEOMETRY")) current_line_type = 3;
+            else if (line_contains(line, "#SHADER|TESS_CONTROL")) current_line_type = 4;
+            else if (line_contains(line, "#SHADER|TESS_EVAL")) current_line_type = 5;
+            else if (line_contains(line, "#SHADER|SHARED")) current_line_type = 6;
 
-            if(current_line_type == -1 || current_line_type != previous_line_type) {
+            if (current_line_type == -1 || current_line_type != previous_line_type)
+            {
                 previous_line_type = current_line_type;
                 continue; //Skip including the type define lines
             }
@@ -209,18 +230,19 @@ namespace hyengine::graphics {
         const std::string share = stage_sources[6].str();
 
         std::vector<GLuint> shaders;
-        if(!stage_sources[0].str().empty()) shaders.push_back(compile_shader(share, stage_sources[0].str(), GL_VERTEX_SHADER));
-        if(!stage_sources[1].str().empty()) shaders.push_back(compile_shader(share, stage_sources[1].str(), GL_FRAGMENT_SHADER));
-        if(!stage_sources[2].str().empty()) shaders.push_back(compile_shader(share, stage_sources[2].str(), GL_COMPUTE_SHADER));
-        if(!stage_sources[3].str().empty()) shaders.push_back(compile_shader(share, stage_sources[3].str(), GL_GEOMETRY_SHADER));
-        if(!stage_sources[4].str().empty()) shaders.push_back(compile_shader(share, stage_sources[4].str(), GL_TESS_CONTROL_SHADER));
-        if(!stage_sources[5].str().empty()) shaders.push_back(compile_shader(share, stage_sources[5].str(), GL_TESS_EVALUATION_SHADER));
+        if (!stage_sources[0].str().empty()) shaders.push_back(compile_shader(share, stage_sources[0].str(), GL_VERTEX_SHADER));
+        if (!stage_sources[1].str().empty()) shaders.push_back(compile_shader(share, stage_sources[1].str(), GL_FRAGMENT_SHADER));
+        if (!stage_sources[2].str().empty()) shaders.push_back(compile_shader(share, stage_sources[2].str(), GL_COMPUTE_SHADER));
+        if (!stage_sources[3].str().empty()) shaders.push_back(compile_shader(share, stage_sources[3].str(), GL_GEOMETRY_SHADER));
+        if (!stage_sources[4].str().empty()) shaders.push_back(compile_shader(share, stage_sources[4].str(), GL_TESS_CONTROL_SHADER));
+        if (!stage_sources[5].str().empty()) shaders.push_back(compile_shader(share, stage_sources[5].str(), GL_TESS_EVALUATION_SHADER));
 
         const GLuint program = link_program(shaders);
 
-        for(const GLuint shader : shaders)
+        for (const GLuint shader : shaders)
         {
-            if(shader != 0) glDeleteShader(shader);
+            if (shader != 0)
+                glDeleteShader(shader);
         }
 
         save_binary_program(binary_asset_id, program);
@@ -230,6 +252,7 @@ namespace hyengine::graphics {
 
     GLuint shader::load_binary_program(const std::string& asset_id)
     {
+        ZoneScoped;
         if (!common::file_io::asset_exists(asset_id)) return 0;
         const std::vector<unsigned char> binary_data = common::file_io::read_asset_bytes(asset_id);
 
@@ -245,6 +268,7 @@ namespace hyengine::graphics {
 
     void shader::save_binary_program(const std::string& asset_id, const GLuint program)
     {
+        ZoneScoped;
         if (program == 0) return;
 
         GLint buffer_size = 0;
@@ -269,6 +293,7 @@ namespace hyengine::graphics {
 
     void shader::load_uniform_locations()
     {
+        ZoneScoped;
         int count = 0;
         constexpr std::array<GLenum, 1> properties = {GL_NAME_LENGTH};
         std::array<GLint, 1> name_length{};
@@ -276,7 +301,7 @@ namespace hyengine::graphics {
 
         glGetProgramiv(program_id, GL_ACTIVE_UNIFORMS, &count);
 
-        for(int i = 0; i < count; i++)
+        for (int i = 0; i < count; i++)
         {
             glGetProgramResourceiv(program_id, GL_UNIFORM, i, 1, properties.data(), 1, nullptr, name_length.data());
             name_buf.resize(name_length[0] - 1);
@@ -288,99 +313,147 @@ namespace hyengine::graphics {
 
 #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(name); location != uniform_locations.end()) { setter; } else logger::message_warn("Failed to set uniform '" + name + "'", logger_tag);
 
-    void shader::set_uniform(const std::string& name, const bool value) {
+    void shader::set_uniform(const std::string& name, const bool value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform1i(program_id, location->second, value))
     }
 
-    void shader::set_uniform(const std::string& name, const bvec2 value) {
+    void shader::set_uniform(const std::string& name, const bvec2 value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform2i(program_id, location->second, value.x, value.y))
     }
 
-    void shader::set_uniform(const std::string& name, const bvec3 value) {
+    void shader::set_uniform(const std::string& name, const bvec3 value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform3i(program_id, location->second, value.x, value.y, value.z))
     }
 
-    void shader::set_uniform(const std::string& name, const bvec4 value) {
+    void shader::set_uniform(const std::string& name, const bvec4 value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform4i(program_id, location->second, value.x, value.y, value.z, value.w))
     }
 
-    void shader::set_uniform(const std::string& name, const float value) {
+    void shader::set_uniform(const std::string& name, const float value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform1f(program_id, location->second, value))
     }
 
-    void shader::set_uniform(const std::string& name, const vec2 value) {
+    void shader::set_uniform(const std::string& name, const vec2 value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform2f(program_id, location->second, value.x, value.y))
     }
 
-    void shader::set_uniform(const std::string& name, const vec3 value) {
+    void shader::set_uniform(const std::string& name, const vec3 value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform3f(program_id, location->second, value.x, value.y, value.z))
     }
 
-    void shader::set_uniform(const std::string& name, const vec4 value) {
+    void shader::set_uniform(const std::string& name, const vec4 value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform4f(program_id, location->second, value.x, value.y, value.z, value.w))
     }
 
-    void shader::set_uniform(const std::string& name, const double value) {
+    void shader::set_uniform(const std::string& name, const double value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform1d(program_id, location->second, value))
     }
 
-    void shader::set_uniform(const std::string& name, const dvec2 value) {
+    void shader::set_uniform(const std::string& name, const dvec2 value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform2d(program_id, location->second, value.x, value.y))
     }
 
-    void shader::set_uniform(const std::string& name, const dvec3& value) {
+    void shader::set_uniform(const std::string& name, const dvec3& value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform3d(program_id, location->second, value.x, value.y, value.z))
     }
 
-    void shader::set_uniform(const std::string& name, const dvec4& value) {
+    void shader::set_uniform(const std::string& name, const dvec4& value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform4d(program_id, location->second, value.x, value.y, value.z, value.w))
     }
 
-    void shader::set_uniform(const std::string& name, const int value) {
+    void shader::set_uniform(const std::string& name, const int value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform1i(program_id, location->second, value))
     }
 
-    void shader::set_uniform(const std::string& name, const ivec2 value) {
+    void shader::set_uniform(const std::string& name, const ivec2 value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform2i(program_id, location->second, value.x, value.y))
     }
 
-    void shader::set_uniform(const std::string& name, const ivec3 value) {
+    void shader::set_uniform(const std::string& name, const ivec3 value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform3i(program_id, location->second, value.x, value.y, value.z))
     }
 
-    void shader::set_uniform(const std::string& name, const ivec4 value) {
+    void shader::set_uniform(const std::string& name, const ivec4 value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform4i(program_id, location->second, value.x, value.y, value.z, value.w))
     }
 
-    void shader::set_uniform(const std::string& name, const unsigned int value) {
+    void shader::set_uniform(const std::string& name, const unsigned int value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform1ui(program_id, location->second, value))
     }
 
-    void shader::set_uniform(const std::string& name, const uvec2 value) {
+    void shader::set_uniform(const std::string& name, const uvec2 value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform2ui(program_id, location->second, value.x, value.y))
     }
 
-    void shader::set_uniform(const std::string& name, const uvec3 value) {
+    void shader::set_uniform(const std::string& name, const uvec3 value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform3ui(program_id, location->second, value.x, value.y, value.z))
     }
 
-    void shader::set_uniform(const std::string& name, const uvec4 value) {
+    void shader::set_uniform(const std::string& name, const uvec4 value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform4ui(program_id, location->second, value.x, value.y, value.z, value.w))
     }
 
-    void shader::set_uniform(const std::string& name, mat2 value) {
+    void shader::set_uniform(const std::string& name, mat2 value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniformMatrix2fv(program_id, location->second, 1, GL_FALSE, glm::value_ptr(value)))
     }
 
-    void shader::set_uniform(const std::string& name, mat3 value) {
+    void shader::set_uniform(const std::string& name, mat3 value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniformMatrix3fv(program_id, location->second, 1, GL_FALSE, glm::value_ptr(value)))
     }
 
-    void shader::set_uniform(const std::string& name, mat4 value) {
+    void shader::set_uniform(const std::string& name, mat4 value)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniformMatrix4fv(program_id, location->second, 1, GL_FALSE, glm::value_ptr(value)))
     }
 
-    void shader::set_sampler_slot(const std::string& name, const int slot) {
+    void shader::set_sampler_slot(const std::string& name, const int slot)
+    {
+        ZoneScoped;
         TRY_SET_UNIFORM(glProgramUniform1i(program_id, location->second, slot));
     }
 }

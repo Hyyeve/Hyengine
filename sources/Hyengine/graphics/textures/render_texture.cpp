@@ -1,5 +1,7 @@
 #include "render_texture.hpp"
 
+#include <tracy/Tracy.hpp>
+
 #include "../../core/logger.hpp"
 
 namespace hyengine::graphics {
@@ -8,6 +10,7 @@ namespace hyengine::graphics {
 
     render_texture::~render_texture()
     {
+        ZoneScoped;
         if (gl_id > 0)
         {
             free();
@@ -16,6 +19,7 @@ namespace hyengine::graphics {
 
     void render_texture::allocate(const GLenum format, const glm::uvec2 size, const int multisample_count)
     {
+        ZoneScoped;
         if(gl_id > 0) {
             logger::message_warn(logger::format("Attempted to initialize already initialized buffer!", " (buffer ", gl_id, ")"), logger_tag);
             return;
@@ -33,6 +37,7 @@ namespace hyengine::graphics {
 
     void render_texture::free()
     {
+        ZoneScoped;
         glDeleteRenderbuffers(1, &gl_id);
         logger::message_info(logger::format("Freed render texture ", gl_id, "."), logger_tag);
         gl_id = 0;
@@ -40,31 +45,37 @@ namespace hyengine::graphics {
 
     void render_texture::copy_data(const render_texture& source) const
     {
+        ZoneScoped;
         copy_data_partial(source, {0, 0}, {0, 0}, {internal_size.x, internal_size.y});
     }
 
     void render_texture::copy_data_partial(const render_texture& source, const glm::uvec2 from_pos, const glm::uvec2 to_pos, const glm::uvec2 size) const
     {
+        ZoneScoped;
         glCopyImageSubData(source.get_id(), GL_RENDERBUFFER, 0, from_pos.x, from_pos.y, 0, gl_id, GL_RENDERBUFFER, 0, to_pos.x, to_pos.y, 0, size.x, size.y, 0);
     }
 
     GLuint render_texture::get_id() const
     {
+        ZoneScoped;
         return gl_id;
     }
 
     glm::uvec2 render_texture::get_size() const
     {
+        ZoneScoped;
         return internal_size;
     }
 
     GLenum render_texture::get_format() const
     {
+        ZoneScoped;
         return internal_format;
     }
 
     int render_texture::get_multisample_count() const
     {
+        ZoneScoped;
         return internal_samples;
     }
 }

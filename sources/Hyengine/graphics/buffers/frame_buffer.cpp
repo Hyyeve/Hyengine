@@ -1,5 +1,7 @@
 #include "frame_buffer.hpp"
 
+#include <tracy/Tracy.hpp>
+
 #include "../../core/logger.hpp"
 
 namespace hyengine::graphics {
@@ -11,11 +13,13 @@ namespace hyengine::graphics {
 
     frame_buffer::~frame_buffer()
     {
+        ZoneScoped;
         if (buffer_id > 0) free();
     }
 
     void frame_buffer::allocate()
     {
+        ZoneScoped;
         if(buffer_id > 0) {
             logger::message_warn(logger::format("Attempted to initialize already initialized framebuffer!", " (buffer ", buffer_id, ")"), logger_tag);
             return;
@@ -30,11 +34,13 @@ namespace hyengine::graphics {
 
     void frame_buffer::attach_texture(const texture_buffer& texture, const GLenum attachment_binding)
     {
+        ZoneScoped;
         attach_texture(texture, attachment_binding, 0);
     }
 
     void frame_buffer::attach_texture(const texture_buffer& texture, const GLenum attachment_binding, const GLint mipmap_level)
     {
+        ZoneScoped;
         if(buffer_id <= 0) {
             logger::message_warn(logger::format("Can't attach texture to framebuffer ", buffer_id, " - not initialized!"), logger_tag);
             return;
@@ -47,6 +53,7 @@ namespace hyengine::graphics {
 
     void frame_buffer::attach_texture(const texture_buffer& texture, const GLenum attachment_binding, const GLint mipmap_level, const GLint layer)
     {
+        ZoneScoped;
         if(buffer_id <= 0) {
             logger::message_warn(logger::format("Can't attach texture to framebuffer ", buffer_id, " - not initialized!"), logger_tag);
             return;
@@ -59,6 +66,7 @@ namespace hyengine::graphics {
 
     void frame_buffer::attach_render_texture(const render_texture& render_texture, const GLenum attachment_binding)
     {
+        ZoneScoped;
         if(buffer_id <= 0) {
             logger::message_warn(logger::format("Can't attach texture to framebuffer ", buffer_id, " - not initialized!"), logger_tag);
             return;
@@ -71,6 +79,7 @@ namespace hyengine::graphics {
 
     bool frame_buffer::validate()
     {
+        ZoneScoped;
         if (is_valid)
         {
             return true;
@@ -134,21 +143,25 @@ namespace hyengine::graphics {
 
     void frame_buffer::copy_data(frame_buffer& source, glm::uvec4 rect) const
     {
+        ZoneScoped;
         copy_data(source, rect, GL_LINEAR);
     }
 
     void frame_buffer::copy_data(frame_buffer& source, glm::uvec4 rect, GLenum filter) const
     {
+        ZoneScoped;
         copy_data(source, rect, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, filter);
     }
 
     void frame_buffer::copy_data(frame_buffer& source, glm::uvec4 rect, GLbitfield mask, GLenum filter) const
     {
+        ZoneScoped;
         copy_data(source, rect, rect, mask, filter);
     }
 
     void frame_buffer::copy_data(frame_buffer& source, glm::uvec4 source_rect, glm::uvec4 dest_rect, GLbitfield mask, GLenum filter) const
     {
+        ZoneScoped;
         if(buffer_id <= 0 || !is_valid)
         {
             logger::message_warn(logger::format("Can't copy into framebuffer ", buffer_id, " - not initialized!"), logger_tag);
@@ -161,6 +174,7 @@ namespace hyengine::graphics {
 
     void frame_buffer::free()
     {
+        ZoneScoped;
         glDeleteFramebuffers(1, &buffer_id);
         logger::message_info(logger::format("Freed framebuffer ", buffer_id, "."), logger_tag);
         buffer_id = 0;
@@ -169,6 +183,7 @@ namespace hyengine::graphics {
 
     void frame_buffer::bind_to_draw() const
     {
+        ZoneScoped;
         if(buffer_id <= 0 || !is_valid)
         {
             logger::message_warn(logger::format("Can't bind framebuffer ", buffer_id, " - not initialized!"), logger_tag);
@@ -180,6 +195,7 @@ namespace hyengine::graphics {
 
     void frame_buffer::bind_to_read() const
     {
+        ZoneScoped;
         if(buffer_id <= 0 || !is_valid)
         {
             logger::message_warn(logger::format("Can't bind framebuffer ", buffer_id, " - not initialized!"), logger_tag);
@@ -191,6 +207,7 @@ namespace hyengine::graphics {
 
     GLuint frame_buffer::get_id() const
     {
+        ZoneScoped;
         return buffer_id;
     }
 }

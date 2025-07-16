@@ -1,6 +1,9 @@
 #include <functional>
 
 #include "hyengine.hpp"
+
+#include <tracy/Tracy.hpp>
+
 #include "logger.hpp"
 #include "profiler.hpp"
 #include "../input/input.hpp"
@@ -12,11 +15,13 @@ namespace hyengine {
     const std::string logger_tag = "Hyengine";
 
     double time() {
+        ZoneScoped;
         return glfwGetTime();
     }
 
     graphics::native_window* initialize_graphics(const graphics::window_config& main_window_config)
     {
+        ZoneScopedC(0x0077FF);
         if(!graphics::try_init_glfw()) {
             logger::error(logger_tag, "Failed to initialize glfw");
             return nullptr;
@@ -50,6 +55,7 @@ namespace hyengine {
 
     void run_frame_loop(const frame_loop::config& config)
     {
+        ZoneScopedNC("Hyengine Game Loop", 0x7700FF);
         profiler::start_section(config.name);
         profiler::start_section("Launch");
 
@@ -76,6 +82,7 @@ namespace hyengine {
         logger::info(config.name, "Starting updates / rendering");
 
         while(true) {
+
             const double new_time = time();
             double frame_time = new_time - current_time;
             const double ups_last_frame = updates_last_frame / frame_time;
@@ -99,9 +106,12 @@ namespace hyengine {
             bool should_continue = true;
 
             while(accumulator >= update_step_time) {
+                ZoneScopedNC("Update", 0xFF0077);
+                FrameMarkStart("Update");
                 should_continue = config.update({runtime, update_step_time, 0});
-                if (!should_continue) break;
+                FrameMarkEnd("Update");
 
+                if (!should_continue) break;
 
                 runtime += update_step_time;
                 accumulator -= update_step_time;
@@ -111,9 +121,17 @@ namespace hyengine {
 
             if (!should_continue) break;
 
-            const double interpolation_delta = accumulator / update_step_time;
-            config.render({runtime + frame_time * interpolation_delta, frame_time, interpolation_delta});
-            frame_count++;
+
+            {
+                FrameMarkStart("Render");
+                ZoneScopedNC("Render", 0x0077FF);
+                const double interpolation_delta = accumulator / update_step_time;
+                config.render({runtime + frame_time * interpolation_delta, frame_time, interpolation_delta});
+                frame_count++;
+                FrameMarkEnd("Render");
+            }
+
+            FrameMarkNamed("Hyengine Game Loop");
         }
 
         profiler::next_section("Exit", true);

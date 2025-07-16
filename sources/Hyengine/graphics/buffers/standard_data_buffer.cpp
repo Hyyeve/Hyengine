@@ -1,5 +1,7 @@
 #include "standard_data_buffer.hpp"
 #include <thread>
+#include <tracy/Tracy.hpp>
+
 #include "../../core/logger.hpp"
 
 namespace hyengine::graphics {
@@ -8,11 +10,13 @@ namespace hyengine::graphics {
 
     standard_data_buffer::~standard_data_buffer()
     {
+        ZoneScoped;
         free();
     }
 
     void standard_data_buffer::allocate_for_continual_writes(const GLenum target, const GLsizeiptr size)
     {
+        ZoneScoped;
         constexpr GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
         allocate(target, size, 3, nullptr, flags);
         map_storage(flags | GL_MAP_FLUSH_EXPLICIT_BIT);
@@ -20,6 +24,7 @@ namespace hyengine::graphics {
 
     void standard_data_buffer::allocate_for_staging_writes(const GLenum target, const GLsizeiptr size)
     {
+        ZoneScoped;
         constexpr GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT;
         allocate(target, size, 3, nullptr, flags);
         map_storage(flags | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
@@ -27,11 +32,13 @@ namespace hyengine::graphics {
 
     void standard_data_buffer::allocate_for_gpu_only(const GLenum target, const GLsizeiptr size)
     {
+        ZoneScoped;
         allocate(target, size, 1, nullptr, 0);
     }
 
     void standard_data_buffer::allocate(const GLenum target, const GLsizeiptr size, const unsigned int slices, const void* const data, const GLbitfield storage_flags)
     {
+        ZoneScoped;
         if (buffer_id != 0) {
             logger::error(logger_tag, "Couldn't allocate - already allocated with ID ", buffer_id);
             return;
@@ -63,6 +70,7 @@ namespace hyengine::graphics {
 
     void standard_data_buffer::free()
     {
+        ZoneScoped;
         unmap_storage();
         if (buffer_id == 0) return;
 
@@ -77,12 +85,14 @@ namespace hyengine::graphics {
 
     void standard_data_buffer::map_storage(const GLbitfield mapping_flags)
     {
+        ZoneScoped;
         if (mapped_pointer != nullptr) return;
         mapped_pointer = glMapNamedBufferRange(buffer_id, 0, total_size, mapping_flags);
     }
 
     void standard_data_buffer::unmap_storage()
     {
+        ZoneScoped;
         if (mapped_pointer == nullptr) return;
         glUnmapNamedBuffer(buffer_id);
         mapped_pointer = nullptr;
@@ -90,6 +100,7 @@ namespace hyengine::graphics {
 
     void standard_data_buffer::flush_writes() const
     {
+        ZoneScoped;
         if (mapped_pointer == nullptr) return;
         glFlushMappedNamedBufferRange(buffer_id, 0, total_size);
         glWaitSync(glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0), 0, GL_TIMEOUT_IGNORED);
@@ -97,6 +108,7 @@ namespace hyengine::graphics {
 
     void standard_data_buffer::sync_fence()
     {
+        ZoneScoped;
         GLsync& sync = buffer_slices[current_slice_index].fence;
         if (sync != nullptr) glDeleteSync(sync);
         sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -105,6 +117,7 @@ namespace hyengine::graphics {
 
     bool standard_data_buffer::sync_await(const unsigned long timeout_nanos) const
     {
+        ZoneScoped;
         const GLsync& sync = buffer_slices[current_slice_index].fence;
         if (sync == nullptr) return true;
         const GLenum waitReturn = glClientWaitSync(sync, 0, timeout_nanos);
@@ -115,6 +128,7 @@ namespace hyengine::graphics {
 
     void standard_data_buffer::sync_blocking() const
     {
+        ZoneScoped;
         while (!sync_await(GL_TIMEOUT_IGNORED))
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -123,79 +137,94 @@ namespace hyengine::graphics {
 
     void standard_data_buffer::increment_slice()
     {
+        ZoneScoped;
         current_slice_index++;
         current_slice_index %= slice_count;
     }
 
     void standard_data_buffer::flush_and_fence()
     {
+        ZoneScoped;
         flush_writes();
         sync_fence();
     }
 
     unsigned int standard_data_buffer::get_slice_offset() const
     {
+        ZoneScoped;
         return buffer_slices[current_slice_index].start_address;
     }
 
     void* standard_data_buffer::get_mapped_pointer() const
     {
+        ZoneScoped;
         return mapped_pointer;
     }
 
     void* standard_data_buffer::get_mapped_slice_pointer() const
     {
+        ZoneScoped;
         if (mapped_pointer == nullptr) return nullptr;
         return static_cast<GLbyte*>(mapped_pointer) + get_slice_offset();
     }
 
     GLuint standard_data_buffer::get_buffer_id() const
     {
+        ZoneScoped;
         return buffer_id;
     }
 
     GLenum standard_data_buffer::get_target() const
     {
+        ZoneScoped;
         return buffer_target;
     }
 
     GLsizeiptr standard_data_buffer::get_size() const
     {
+        ZoneScoped;
         return total_size;
     }
 
     GLsizeiptr standard_data_buffer::get_slice_size() const
     {
+        ZoneScoped;
         return slice_size;
     }
 
     void standard_data_buffer::bind_state() const
     {
+        ZoneScoped;
         glBindBuffer(buffer_target, buffer_id);
     }
 
     void standard_data_buffer::unbind_state() const
     {
+        ZoneScoped;
         glBindBuffer(buffer_target, 0);
     }
 
     void standard_data_buffer::bind_slice_base(const int binding) const
     {
+        ZoneScoped;
         bind_slice_range(binding, 0, slice_size);
     }
 
     void standard_data_buffer::bind_slice_range(const int binding, const GLintptr offset, const GLsizeiptr bytes) const
     {
+        ZoneScoped;
         bind_buffer_range(binding, get_slice_offset() + offset, bytes);
     }
 
     void standard_data_buffer::bind_buffer_base(const int binding) const
     {
+        ZoneScoped;
         glBindBufferBase(buffer_target, binding, buffer_id);
     }
 
     void standard_data_buffer::bind_buffer_range(const int binding, const GLintptr offset, const GLsizeiptr bytes) const
     {
+        ZoneScoped;
         if (offset + bytes > total_size)
         {
             logger::message_warn(logger::format("Can't bind range - requested start and size would overflow", " (buffer ", buffer_id, ")"), logger_tag);
@@ -207,21 +236,25 @@ namespace hyengine::graphics {
 
     void standard_data_buffer::copy_slice_data(const GLuint source_buffer_id) const
     {
+        ZoneScoped;
         copy_slice_range(source_buffer_id, 0, 0, slice_size);
     }
 
     void standard_data_buffer::copy_slice_range(const GLuint source_buffer_id, const GLintptr read_offset, const GLintptr write_offset, const GLsizeiptr bytes) const
     {
+        ZoneScoped;
         copy_buffer_range(source_buffer_id, read_offset, get_slice_offset() + write_offset, bytes);
     }
 
     void standard_data_buffer::copy_buffer_data(const GLuint source_buffer_id) const
     {
+        ZoneScoped;
         copy_buffer_range(source_buffer_id, 0, 0, total_size);
     }
 
     void standard_data_buffer::copy_buffer_range(const GLuint source_buffer_id, const GLintptr read_offset, const GLintptr write_offset, const GLsizeiptr bytes) const
     {
+        ZoneScoped;
         if (write_offset + bytes > total_size)
         {
             logger::message_warn(logger::format("Can't copy range - requested start and size would overflow", " (buffer ", buffer_id, ")"), logger_tag);

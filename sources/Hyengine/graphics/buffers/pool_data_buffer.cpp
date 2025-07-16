@@ -1,5 +1,7 @@
 #include "pool_data_buffer.hpp"
 
+#include <tracy/Tracy.hpp>
+
 #include "../../core/logger.hpp"
 
 
@@ -13,11 +15,13 @@ namespace hyengine::graphics {
 
     pool_data_buffer::~pool_data_buffer()
     {
+        ZoneScoped;
         free();
     }
 
     void pool_data_buffer::allocate(const GLenum target, const GLsizeiptr size)
     {
+        ZoneScoped;
         pool_buffer.allocate_for_gpu_only(target, size);
         pool_allocator = common::pool_allocation_tracker(size);
         //We don't know how much we'll need to upload at once, so don't allocate the upload buffer yet
@@ -26,32 +30,38 @@ namespace hyengine::graphics {
 
     void pool_data_buffer::free()
     {
+        ZoneScoped;
         pool_buffer.free();
         staging_buffer.free();
     }
 
     void pool_data_buffer::shrink_staging_buffer()
     {
+        ZoneScoped;
         force_reallocate_staging_buffer = true;
     }
 
     bool pool_data_buffer::try_allocate_space(const unsigned int size, unsigned int& address)
     {
+        ZoneScoped;
         return pool_allocator.try_allocate(size, address);
     }
 
     void pool_data_buffer::deallocate_space(const unsigned int address)
     {
+        ZoneScoped;
         pool_allocator.deallocate(address);
     }
 
     unsigned int pool_data_buffer::get_last_allocated_address() const
     {
+        ZoneScoped;
         return pool_allocator.get_last_used_address();
     }
 
     void pool_data_buffer::queue_upload(const unsigned int& address, const void* const data, const unsigned int size)
     {
+        ZoneScoped;
         const unsigned int temp_address = temp_upload_buffer_offset;
         const bool has_temp_space = temp_upload_buffer_offset + size <= temp_upload_buffer_size;
 
@@ -78,46 +88,55 @@ namespace hyengine::graphics {
 
     void pool_data_buffer::bind_state() const
     {
+        ZoneScoped;
         pool_buffer.bind_state();
     }
 
     void pool_data_buffer::unbind_state() const
     {
+        ZoneScoped;
         pool_buffer.unbind_state();
     }
 
     void pool_data_buffer::bind_buffer_base(const int binding) const
     {
+        ZoneScoped;
         pool_buffer.bind_buffer_base(binding);
     }
 
     void pool_data_buffer::bind_buffer_range(const int binding, const GLintptr offset, const GLsizeiptr size) const
     {
+        ZoneScoped;
         pool_buffer.bind_buffer_range(binding, offset, size);
     }
 
     GLsizeiptr pool_data_buffer::get_size() const
     {
+        ZoneScoped;
         return pool_buffer.get_size();
     }
 
     GLuint pool_data_buffer::get_buffer_id() const
     {
+        ZoneScoped;
         return pool_buffer.get_buffer_id();
     }
 
     GLenum pool_data_buffer::get_target() const
     {
+        ZoneScoped;
         return pool_buffer.get_target();
     }
 
     unsigned int pool_data_buffer::get_pending_upload_count() const
     {
+        ZoneScoped;
         return pending_uploads.size();
     }
 
     void pool_data_buffer::submit_uploads()
     {
+        ZoneScoped;
         if (pending_uploads.empty())
         {
             return;
@@ -162,6 +181,7 @@ namespace hyengine::graphics {
 
     void pool_data_buffer::reallocate_staging_buffer(const GLsizeiptr size)
     {
+        ZoneScoped;
         logger::info(logger_tag, " No space in pool staging buffer, reallocating.");
         staging_buffer.free();
         staging_buffer.allocate_for_staging_writes(pool_buffer.get_target(), size);

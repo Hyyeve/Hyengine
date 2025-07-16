@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <tracy/Tracy.hpp>
 
 namespace hyengine::common
 {
@@ -7,6 +8,7 @@ namespace hyengine::common
 class ring_buffer {
     public:
         void push(T value) {
+            ZoneScoped;
             elements[write_index] = value;
             write_index++;
             write_index %= capacity;
@@ -14,6 +16,7 @@ class ring_buffer {
         }
 
         [[nodiscard]] T read() {
+            ZoneScoped;
             T elem = elements[read_index];
             read_index++;
             read_index %= capacity;
@@ -21,14 +24,17 @@ class ring_buffer {
         }
 
         [[nodiscard]] T operator[](const size_t index) const {
+            ZoneScoped;
             return elements[index % capacity];
         }
 
         [[nodiscard]] static int size() {
+            ZoneScoped;
             return capacity;
         }
 
         [[nodiscard]] int max_index() const {
+            ZoneScoped;
             return max_read_index >= capacity ? capacity - 1 : max_read_index;
         }
 

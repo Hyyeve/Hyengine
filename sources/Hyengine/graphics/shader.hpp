@@ -3,17 +3,19 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <tracy/Tracy.hpp>
 
 #include "../library/gl.hpp"
 #include "../library/glm.hpp"
 #include "../core/logger.hpp"
 
 
-namespace hyengine::graphics {
-
+namespace hyengine::graphics
+{
     using namespace hyengine;
 
-    class shader {
+    class shader
+    {
     public:
         explicit shader(std::string asset_id) noexcept;
 
@@ -70,125 +72,170 @@ namespace hyengine::graphics {
 #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(name); location != uniform_locations.end()) { setter; } else logger::message_warn(logger::format("Failed to set uniform array '" + name + "'"), logger_tag);
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<bool, size> values) {
+        void set_uniform(const std::string& name, std::array<bool, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform1iv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::bvec2, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::bvec2, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform2iv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::bvec3, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::bvec3, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform3iv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::bvec4, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::bvec4, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform4iv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<float, size> values) {
+        void set_uniform(const std::string& name, std::array<float, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform1fv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::vec2, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::vec2, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform2fv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::vec3, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::vec3, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform3fv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::vec4, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::vec4, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform4fv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<double, size> values) {
+        void set_uniform(const std::string& name, std::array<double, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform1dv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::dvec2, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::dvec2, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform2dv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::dvec3, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::dvec3, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform3dv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::dvec4, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::dvec4, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform4dv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<int, size> values) {
+        void set_uniform(const std::string& name, std::array<int, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform1iv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::ivec2, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::ivec2, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform2iv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::ivec3, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::ivec3, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform3iv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::ivec4, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::ivec4, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform4iv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<unsigned int, size> values) {
+        void set_uniform(const std::string& name, std::array<unsigned int, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform1uiv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::uvec2, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::uvec2, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform2uiv(program_id, location->second, values.size(), values.data()))
         }
 
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::uvec3, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::uvec3, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform3uiv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::uvec4, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::uvec4, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform4uiv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::mat2, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::mat2, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniformMatrix2fv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::mat3, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::mat3, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniformMatrix3fv(program_id, location->second, values.size(), values.data()))
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<glm::mat4, size> values) {
+        void set_uniform(const std::string& name, std::array<glm::mat4, size> values)
+        {
+            ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniformMatrix4fv(program_id, location->second, values.size(), values.data()))
         }
 
 #undef TRY_SET_UNIFORM
 
     private:
-
         static GLuint load_program(const std::string& asset_id, const std::string& binary_asset_id);
         static GLuint link_program(const std::vector<GLuint>& shaders);
         static std::string get_binary_asset_id(const std::string& normal_asset_id);

@@ -1,5 +1,7 @@
 #include "basic_framebuffer.hpp"
 
+#include <tracy/Tracy.hpp>
+
 #include "../../core/logger.hpp"
 
 namespace hyengine::graphics {
@@ -13,6 +15,7 @@ namespace hyengine::graphics {
 
     basic_framebuffer::~basic_framebuffer()
     {
+        ZoneScoped;
         free();
 
         delete depth_stencil_attachment;
@@ -24,6 +27,7 @@ namespace hyengine::graphics {
 
     void basic_framebuffer::allocate(GLenum color_format, glm::uvec2 size, int multisample_count)
     {
+        ZoneScoped;
         if(valid) {
             logger::message_warn(logger::format("Attempted to allocate already allocated standard framebuffer! (framebuffer ", buffer->get_id(), ")"), logger_tag);
             return;
@@ -43,6 +47,7 @@ namespace hyengine::graphics {
 
     void basic_framebuffer::free()
     {
+        ZoneScoped;
         if(valid)
         {
             const int prev_id = buffer->get_id();
@@ -57,11 +62,13 @@ namespace hyengine::graphics {
 
     void basic_framebuffer::bind_to_draw() const
     {
+        ZoneScoped;
         buffer->bind_to_draw();
     }
 
     void basic_framebuffer::bind_to_read() const
     {
+        ZoneScoped;
         buffer->bind_to_read();
     }
 }

@@ -1,8 +1,10 @@
 #include "frustum.hpp"
+#include <tracy/Tracy.hpp>
 namespace hyengine::common
 {
     void frustum::set_from_matrices(glm::mat4 projection, glm::mat4 view, glm::dvec3 position)
     {
+        ZoneScoped;
         const glm::mat4x4 mat = projection * view;
 
         //Near plane
@@ -53,6 +55,7 @@ namespace hyengine::common
 
     void frustum::set_from_origin_and_window(glm::dvec3 origin, glm::vec3 forward, std::array<glm::dvec3, 4> window, float near, float far)
     {
+        ZoneScoped;
         glm::vec3 top_left_dir = glm::normalize(origin - window[0]);
         glm::vec3 bottom_left_dir = glm::normalize(origin - window[1]);
         glm::vec3 bottom_right_dir = glm::normalize(origin - window[2]);
@@ -87,6 +90,7 @@ namespace hyengine::common
 
     bool frustum::visible(glm::dvec3 sphere_pos, float sphere_radius) const
     {
+        ZoneScoped;
         const glm::vec3 relative_pos = sphere_pos - offset;
         for (int i = 0; i < 6; i++)
         {

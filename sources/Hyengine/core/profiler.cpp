@@ -38,6 +38,7 @@ namespace hyengine::profiler {
 
     thread_local_data& get_local_data()
     {
+        ZoneScoped;
         unsigned int id = threading::current_thread_id();
         if (thread_datasets.contains(id))
         {
@@ -50,16 +51,19 @@ namespace hyengine::profiler {
     }
 
     time_point get_time() {
+        ZoneScoped;
         return std::chrono::high_resolution_clock::now();
     }
 
     void log_sample(const std::string& base_message, const std::string& section_string, const section_time& sample) {
+        ZoneScoped;
         const std::string time_string = logger::format_duration(sample.total);
         const std::string subtime_string = sample.has_sub ? " (" + logger::format_duration(sample.sub) + " in subsections)" : "";
         logger::performance(logger_tag, "[", section_string, "] ", base_message + time_string + subtime_string);
     }
 
     void record_sample(const std::string& section_string, const section_time& sample) {
+        ZoneScoped;
         thread_local_data& data = get_local_data();
 
         const auto recorder = data.recorded_times.find(section_string);
@@ -74,6 +78,7 @@ namespace hyengine::profiler {
     }
 
     void start_section(const std::string &id) {
+        ZoneScoped;
         thread_local_data& data = get_local_data();
 
         const std::string current_section = data.section_stack.empty() ? id : data.section_stack.top() + " > " + id;
@@ -82,6 +87,7 @@ namespace hyengine::profiler {
     }
 
     void end_section(const bool log_now, const bool record_section) {
+        ZoneScoped;
         thread_local_data& data = get_local_data();
         const auto time_now = get_time();
 
@@ -114,6 +120,7 @@ namespace hyengine::profiler {
 
     void start_timer(const std::string& id)
     {
+        ZoneScoped;
         thread_local_data& data = get_local_data();
         const auto time_now = get_time();
         data.standalone_timers[id].start = time_now;
@@ -121,6 +128,7 @@ namespace hyengine::profiler {
 
     unsigned long long end_timer(const std::string& id, const bool log_now)
     {
+        ZoneScoped;
         thread_local_data& data = get_local_data();
         const auto time_now = get_time();
 
@@ -142,11 +150,13 @@ namespace hyengine::profiler {
     }
 
     void next_section(const std::string& id, const bool log_now, const bool record_section) {
+        ZoneScoped;
         end_section(log_now, record_section);
         start_section(id);
     }
 
     section_time get_average(const std::string& id) {
+        ZoneScoped;
         thread_local_data& data = get_local_data();
         sample_buffer buff;
         bool got_sample = false;
@@ -191,6 +201,7 @@ namespace hyengine::profiler {
     }
 
     std::vector<std::string> get_recorded_section_ids() {
+        ZoneScoped;
         thread_local_data& data = get_local_data();
         std::vector<std::string> ids;
         for(const auto& key: data.recorded_times | std::views::keys) {
@@ -200,22 +211,26 @@ namespace hyengine::profiler {
     }
 
     void log_average(const std::string& id) {
+        ZoneScoped;
         const section_time average = get_average(id);
         log_sample("Section averaged ", id, average);
     }
 
     void log_average() {
+        ZoneScoped;
         thread_local_data& data = get_local_data();
         log_average(data.section_stack.top());
     }
 
     void log_all_sections() {
+        ZoneScoped;
         for (const std::string& id: get_recorded_section_ids()) {
             log_average(id);
         }
     }
 
     void clear_samples(const std::string &id) {
+        ZoneScoped;
         thread_local_data& data = get_local_data();
         data.recorded_times.erase(id);
     }

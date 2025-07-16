@@ -6,6 +6,7 @@
 #include <thread>
 #include <unordered_set>
 #include <list>
+#include <tracy/Tracy.hpp>
 
 #include "../core/logger.hpp"
 
@@ -29,6 +30,7 @@ namespace hyengine::threading {
 
     unsigned int next_task_id()
     {
+        ZoneScoped;
         static std::atomic_uint next_task_id = 0;
         next_task_id += 1;
         if (next_task_id == 0) next_task_id = 1; //Could overflow, but zero is our "invalid task" value
@@ -37,6 +39,7 @@ namespace hyengine::threading {
 
     async_task* next_task()
     {
+        ZoneScoped;
         async_task* task = nullptr;
         task_lock.lock();
 
@@ -72,6 +75,7 @@ namespace hyengine::threading {
 
     void mark_finished(async_task* task)
     {
+        ZoneScoped;
         task_lock.lock();
         pending_task_ids.erase(task->id());
         task_lock.unlock();
@@ -80,6 +84,7 @@ namespace hyengine::threading {
     //We do actually return when the threads are freed, but we never want to call this and block the main thread indefinitely.
     void process_tasks()
     {
+        ZoneScoped;
         while(threads_active) {
 
             async_task* task = next_task();
@@ -96,6 +101,7 @@ namespace hyengine::threading {
 
     void release_threads()
     {
+        ZoneScoped;
         threads_active = false;
 
         for (std::thread& thread : threads)
@@ -108,6 +114,7 @@ namespace hyengine::threading {
 
     void create_threads()
     {
+        ZoneScoped;
         if (!threads.empty())
         {
             return;
@@ -129,6 +136,7 @@ namespace hyengine::threading {
 
     unsigned int current_thread_id()
     {
+        ZoneScoped;
         thread_id_lock.lock();
         unsigned int id = 0;
         unsigned int hash = std::hash<std::thread::id>{}(std::this_thread::get_id());
@@ -149,6 +157,7 @@ namespace hyengine::threading {
 
     void queue_task(async_task* task)
     {
+        ZoneScoped;
         task_lock.lock();
         tasks.push_front(task);
         pending_task_ids.insert(task->id());
@@ -158,6 +167,7 @@ namespace hyengine::threading {
 
     void async_task::enqueue(unsigned int depends_on_id)
     {
+        ZoneScoped;
         if (is_running)
         {
             logger::message_debug("Can't queue; this task object is already running!", logger_tag);
@@ -174,6 +184,7 @@ namespace hyengine::threading {
 
     bool async_task::await(unsigned long timeout)
     {
+        ZoneScoped;
         if (!is_running)
         {
             return false;
@@ -191,11 +202,13 @@ namespace hyengine::threading {
 
     bool async_task::finished()
     {
+        ZoneScoped;
         return is_finished;
     }
 
     void async_task::run_now()
     {
+        ZoneScoped;
         is_running = true;
         execute();
         is_running = false;
@@ -204,11 +217,13 @@ namespace hyengine::threading {
 
     unsigned int async_task::id()
     {
+        ZoneScoped;
         return task_id;
     }
 
     unsigned int async_task::dependency()
     {
+        ZoneScoped;
         return depends_on;
     }
 }

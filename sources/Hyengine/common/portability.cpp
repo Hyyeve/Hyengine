@@ -1,7 +1,11 @@
 #include "portability.hpp"
+
+#include <tracy/Tracy.hpp>
+
 namespace hyengine::common::portability {
     void string_replace(std::string& str, const char from, const char to)
     {
+        ZoneScoped;
         for (char & idx : str)
         {
             if (idx == from) idx = to;
@@ -10,6 +14,7 @@ namespace hyengine::common::portability {
 
     std::string utf32_stringify(const unsigned int codepoint)
     {
+        ZoneScoped;
         std::string result;
         if (codepoint < 0x80)
         {

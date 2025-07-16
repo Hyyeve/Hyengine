@@ -1,4 +1,6 @@
 #pragma once
+#include <tracy/Tracy.hpp>
+
 #include "../../library/glm.hpp"
 
 namespace hyengine::common {
@@ -15,6 +17,7 @@ namespace hyengine::common {
 
         void insert(glm::ivec3 position, data_type data)
         {
+            ZoneScoped;
             if (data_map.contains(position))
             {
                 data_map[position].data = data;
@@ -47,6 +50,7 @@ namespace hyengine::common {
 
         void erase(glm::ivec3 position)
         {
+            ZoneScoped;
             if (data_map.contains(position))
             {
                 node_data& data = data_map[position];
@@ -62,11 +66,13 @@ namespace hyengine::common {
 
         bool contains(glm::ivec3 position)
         {
+            ZoneScoped;
             return data_map.contains(position);
         }
 
         node_data* lookup(glm::ivec3 position)
         {
+            ZoneScoped;
             if (data_map.contains(position))
             {
                 return &data_map[position];
@@ -77,6 +83,7 @@ namespace hyengine::common {
 
         void clear()
         {
+            ZoneScoped;
             data_map.clear();
         }
 

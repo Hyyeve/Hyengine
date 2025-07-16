@@ -1,4 +1,5 @@
 #include <set>
+#include <tracy/Tracy.hpp>
 
 #include "windows.h"
 #include "../graphics/native_window.hpp"
@@ -13,6 +14,7 @@ namespace hyengine::input::native {
 
     unsigned int glfw_to_native_modifiers(const unsigned int mods)
     {
+        ZoneScoped;
         unsigned int result = 0;
         if (mods & GLFW_MOD_SHIFT) result |= MOD_SHIFT;
         if (mods & GLFW_MOD_CONTROL) result |= MOD_CONTROL;
@@ -22,6 +24,7 @@ namespace hyengine::input::native {
 
     unsigned int glfw_to_native_key(const unsigned int key)
     {
+        ZoneScoped;
         if (key == GLFW_KEY_SPACE) return key; //space matches
         if (key <= GLFW_KEY_SLASH) return key + 149; //apostrophe through slash are same order at a much higher windows code
         if (key == GLFW_KEY_SEMICOLON) return VK_OEM_1;
@@ -79,6 +82,7 @@ namespace hyengine::input::native {
     }
 
     unsigned int set_global_hotkey(const unsigned int key, const unsigned int mods) {
+        ZoneScoped;
         const unsigned int id = global_hotkey_id;
 
         const unsigned int vk_mods = glfw_to_native_modifiers(mods);
@@ -96,6 +100,7 @@ namespace hyengine::input::native {
 
     void clear_global_hotkey(const unsigned int id)
     {
+        ZoneScoped;
         UnregisterHotKey(nullptr, id);
     }
 
@@ -106,6 +111,7 @@ namespace hyengine::input::native {
 
     void process_native_input()
     {
+        ZoneScoped;
         pressed_hotkeys.clear();
         MSG msg;
         while (PeekMessage(&msg, nullptr, WM_HOTKEY, WM_HOTKEY, PM_REMOVE))
@@ -116,6 +122,7 @@ namespace hyengine::input::native {
 
     bool global_hotkey_pressed_this_frame(const unsigned int id)
     {
+        ZoneScoped;
         return pressed_hotkeys.contains(id);
     }
 }

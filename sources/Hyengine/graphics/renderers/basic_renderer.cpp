@@ -14,11 +14,13 @@ namespace hyengine::graphics {
 
     basic_renderer::~basic_renderer()
     {
+        ZoneScoped;
         free();
     }
 
     void basic_renderer::allocate(const unsigned int memory_budget_mb)
     {
+        ZoneScoped;
         if (is_allocated)
         {
             logger::warn(logger_tag, "Attempted to allocate already allocated debug renderer!");
@@ -42,6 +44,7 @@ namespace hyengine::graphics {
 
     void basic_renderer::free()
     {
+        ZoneScoped;
         if (!is_allocated) return;
 
         vertex_format_buffer.free();
@@ -55,6 +58,7 @@ namespace hyengine::graphics {
 
     void basic_renderer::vertex(glm::vec3 pos, glm::vec4 color)
     {
+        ZoneScoped;
         if (!is_allocated)
         {
             logger::warn(logger_tag, "Can't add triangle; renderer not allocated!");
@@ -68,6 +72,7 @@ namespace hyengine::graphics {
 
     void basic_renderer::triangle(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec4 color)
     {
+        ZoneScoped;
         vertex(a, color);
         vertex(c, color);
         vertex(b, color);
@@ -75,17 +80,20 @@ namespace hyengine::graphics {
 
     void basic_renderer::quad(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 d, glm::vec4 color)
     {
+        ZoneScoped;
         triangle(a, b, c, color);
         triangle(d, c, b, color);
     }
 
     void basic_renderer::rect(glm::vec2 a, glm::vec2 b, glm::vec4 color)
     {
+        ZoneScoped;
         quad({a.x, a.y, 0}, {b.x, a.y, 0}, {a.x, b.y, 0}, {b.x, b.y, 0}, color);
     }
 
     void basic_renderer::line(glm::vec3 start, glm::vec3 end, glm::vec4 color, float thickness)
     {
+        ZoneScoped;
         const glm::vec3 axis = glm::normalize(end - start);
         const glm::vec3 tangent = glm::normalize(glm::cross(axis, glm::normalize(glm::vec3(1e-3, 1e-2, 1e-4))));
         const glm::vec3 bitangent = glm::normalize(glm::cross(axis, tangent));
@@ -108,12 +116,14 @@ namespace hyengine::graphics {
 
     void basic_renderer::texture(const bool enable, const unsigned int texture_slot)
     {
+        ZoneScoped;
         use_texture = enable;
         texture_shader.set_sampler_slot("u_texture", texture_slot);
     }
 
     void basic_renderer::submit_geometry()
     {
+        ZoneScoped;
         draw_count = write_index;
         vertex_buffer.flush_and_fence();
         write_index = 0;
@@ -121,11 +131,13 @@ namespace hyengine::graphics {
 
     void basic_renderer::prepare_buffers()
     {
+        ZoneScoped;
         vertex_buffer.increment_slice();
     }
 
     void basic_renderer::update_shader_uniforms(const float interpolation_delta, const graphics::camera& cam)
     {
+        ZoneScoped;
         shader& current_shader = use_texture ? texture_shader : basic_shader;
 
         current_shader.set_uniform("u_projection_mat", cam.get_projection());
@@ -135,12 +147,14 @@ namespace hyengine::graphics {
 
     void basic_renderer::reload_shaders()
     {
+        ZoneScoped;
         basic_shader.reload();
         texture_shader.reload();
     }
 
     void basic_renderer::bind()
     {
+        ZoneScoped;
         vertex_format_buffer.bind_state();
         if (use_texture) texture_shader.use();
         else basic_shader.use();
@@ -148,6 +162,7 @@ namespace hyengine::graphics {
 
     void basic_renderer::draw() const
     {
+        ZoneScoped;
         glDrawArrays(GL_TRIANGLES, vertex_buffer.get_slice_first_element(), draw_count);
     }
 }

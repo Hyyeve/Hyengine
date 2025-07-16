@@ -1,12 +1,17 @@
 #include "hyui.hpp"
+
+#include <tracy/Tracy.hpp>
+
 namespace hyui {
     unsigned int content_adjusted_min(const ui_object& object, const int axis)
     {
+        ZoneScoped;
         return std::max(object.transform[axis].sizing.min, object.transform[axis].content_size_min);
     }
 
     void constrain_size(ui_object& object, const int axis)
     {
+        ZoneScoped;
         const unsigned int min = content_adjusted_min(object, axis);
         const unsigned int max = object.transform[axis].sizing.max;
         const unsigned int current = object.transform[axis].sizing.current;
@@ -15,6 +20,7 @@ namespace hyui {
 
     void constrain_offset(ui_object& object, const int axis)
     {
+        ZoneScoped;
         const unsigned int min = object.transform[axis].positioning.min;
         const unsigned int max = object.transform[axis].positioning.max;
         const unsigned int current = object.transform[axis].positioning.current;
@@ -23,6 +29,7 @@ namespace hyui {
 
     bool is_fixed_size(const ui_object& object, const int axis)
     {
+        ZoneScoped;
         const unsigned int min = content_adjusted_min(object, axis);
         const unsigned int max = object.transform[axis].sizing.max;
         return min >= max;
@@ -30,6 +37,7 @@ namespace hyui {
 
     bool can_shrink(const ui_object& object, const int axis)
     {
+        ZoneScoped;
         const unsigned int min = content_adjusted_min(object, axis);
         const unsigned int current = object.transform[axis].sizing.current;
         return current > min;
@@ -37,6 +45,7 @@ namespace hyui {
 
     bool can_expand(const ui_object& object, const int axis)
     {
+        ZoneScoped;
         const unsigned int max = object.transform[axis].sizing.max;
         const unsigned int current = object.transform[axis].sizing.current;
         return current < max;
@@ -44,11 +53,13 @@ namespace hyui {
 
     bool can_resize(const ui_object& object, const int axis, const int direction)
     {
+        ZoneScoped;
         return direction > 0 ? can_expand(object, axis) : can_shrink(object, axis);
     }
 
     int constrained_resize_amount(const ui_object& object, const int axis, const int amount)
     {
+        ZoneScoped;
         if (amount == 0 || is_fixed_size(object, axis)) return 0;
         const unsigned int min = content_adjusted_min(object, axis);
         const unsigned int max = object.transform[axis].sizing.max;
@@ -72,6 +83,7 @@ namespace hyui {
 
     void fit_to_content(ui_object& container)
     {
+        ZoneScoped;
         const std::vector<ui_object>& content = container.content;
 
         if (content.empty())
@@ -121,6 +133,7 @@ namespace hyui {
 
     void fit_to_container(ui_object& container)
     {
+        ZoneScoped;
         std::vector<ui_object>& content = container.content;
 
         if (content.empty()) return;
@@ -188,6 +201,7 @@ namespace hyui {
 
     void position_elements(ui_object& container)
     {
+        ZoneScoped;
         std::vector<ui_object>& content = container.content;
         if (content.empty()) return;
 
@@ -234,6 +248,7 @@ namespace hyui {
 
     void fit_tree_containers(ui_object& root)
     {
+        ZoneScoped;
         for (ui_object& content : root.content)
         {
             fit_tree_containers(content);
@@ -244,6 +259,7 @@ namespace hyui {
 
     void fit_tree_contents(ui_object& root)
     {
+        ZoneScoped;
         fit_to_container(root);
 
         for (ui_object& content : root.content)
@@ -254,12 +270,14 @@ namespace hyui {
 
     void size_tree(ui_object& root)
     {
+        ZoneScoped;
         fit_tree_containers(root);
         fit_tree_contents(root);
     }
 
     void position_tree(ui_object& root)
     {
+        ZoneScoped;
         for (axis_transform& axis : root.transform) axis.absolute_position = axis.positioning.current;
 
         position_elements(root);
@@ -272,6 +290,7 @@ namespace hyui {
 
     void layout_tree(ui_object& root)
     {
+        ZoneScoped;
         size_tree(root);
         position_tree(root);
     }

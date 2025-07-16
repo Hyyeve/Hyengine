@@ -4,6 +4,7 @@
 #include <fstream>
 #include <regex>
 #include <string>
+#include <tracy/Tracy.hpp>
 
 #include "../core/logger.hpp"
 #include "portability.hpp"
@@ -16,6 +17,7 @@ namespace hyengine::common::file_io {
 
    std::string asset_id_to_relative_path(std::string asset_id)
    {
+      ZoneScoped;
       common::portability::string_replace(asset_id, ':', std::filesystem::path::preferred_separator);
       common::portability::string_replace(asset_id, '.', std::filesystem::path::preferred_separator);
       return asset_id;
@@ -23,16 +25,19 @@ namespace hyengine::common::file_io {
 
    std::string get_asset_type(const std::string& asset_id)
    {
+      ZoneScoped;
       return asset_id.substr(0, asset_id.find(':'));
    }
 
    std::string get_asset_name(const std::string& asset_id)
    {
+      ZoneScoped;
       return asset_id.substr(asset_id.find(':') + 1);
    }
 
    std::string_view get_asset_extension(const std::string_view type)
    {
+      ZoneScoped;
       if (type == "shader")  return "glsl";
       if (type == "shader.bin") return "bin";
       if (type == "png") return "png";
@@ -41,18 +46,21 @@ namespace hyengine::common::file_io {
 
    bool should_preprocess(const std::string_view type)
    {
+      ZoneScoped;
       if (type == "shader")  return true;
       return false;
    }
 
    std::regex directive_data_pattern(const std::string& directive)
    {
+      ZoneScoped;
       const std::string pattern = "<" + directive + "=([^>]+)>";
       return std::regex(pattern);
    }
 
    std::regex directive_line_pattern(const std::string& directive)
    {
+      ZoneScoped;
       const std::string pattern ="\\n?.*<" + directive + "=.+>\\n?";
       return std::regex(pattern);
    }
@@ -69,18 +77,21 @@ namespace hyengine::common::file_io {
 
    std::filesystem::path get_asset_path(const std::string& asset_id)
    {
+      ZoneScoped;
       const std::string relative_path = asset_id_to_relative_path(asset_id);
       return std::filesystem::path(get_primary_asset_directory()).append(relative_path).replace_extension(get_asset_extension(get_asset_type(asset_id)));
    }
 
    std::filesystem::path get_asset_directory(const std::string& asset_id)
    {
+      ZoneScoped;
       const std::string relative_path = asset_id_to_relative_path(get_asset_type(asset_id));
       return std::filesystem::path(get_primary_asset_directory()).append(relative_path);
    }
 
    std::string read_raw_asset_text(const std::string& id)
    {
+      ZoneScoped;
       if (!asset_exists(id))
       {
          logger::message_error(logger::format("Could not read asset \'", id, "\' !"), logger_tag);
@@ -106,6 +117,7 @@ namespace hyengine::common::file_io {
 
    std::string find_directive(const std::string& text, const std::string& directive)
    {
+      ZoneScoped;
       std::smatch regex_match;
       if (std::regex_search(text.cbegin(), text.cend(), regex_match, directive_data_pattern(directive)))
       {
@@ -117,6 +129,7 @@ namespace hyengine::common::file_io {
 
    void replace_directive(std::string& text, const std::string& directive, const std::string& replacement)
    {
+      ZoneScoped;
       std::smatch regex_match;
       if (std::regex_search(text.cbegin(), text.cend(), regex_match, directive_line_pattern(directive)))
       {
@@ -128,11 +141,13 @@ namespace hyengine::common::file_io {
 
    bool asset_exists(const std::string& asset_id)
    {
+      ZoneScoped;
       return std::filesystem::exists(get_asset_path(asset_id));
    }
 
    std::string inject_text_includes(const std::string_view text)
    {
+      ZoneScoped;
       std::smatch include_match;
       std::string new_text(text);
 
@@ -154,12 +169,14 @@ namespace hyengine::common::file_io {
 
    std::string read_preprocessed_asset_text(const std::string& id)
    {
+      ZoneScoped;
       const std::string text = read_raw_asset_text(id);
       return inject_text_includes(text);
    }
 
    std::vector<unsigned char> read_asset_bytes(const std::string& id)
    {
+      ZoneScoped;
       if (!asset_exists(id))
       {
          logger::message_error(logger::format("Could not read asset \'", id, "\' !"), logger_tag);
@@ -195,6 +212,7 @@ namespace hyengine::common::file_io {
 
    image_data read_asset_image(const std::string& id)
    {
+      ZoneScoped;
       if (!asset_exists(id))
       {
          logger::message_error(logger::format("Could not read asset \'", id, "\' !"), logger_tag);
@@ -221,6 +239,7 @@ namespace hyengine::common::file_io {
 
    bool save_raw_asset(const std::string& id, const std::vector<unsigned char>& data)
    {
+      ZoneScoped;
       const std::filesystem::path directory = get_asset_directory(id);
       const std::filesystem::path path = get_asset_path(id);
 
@@ -247,6 +266,7 @@ namespace hyengine::common::file_io {
 
    bool save_asset_text(const std::string& id, const std::string_view& text)
    {
+      ZoneScoped;
       const std::filesystem::path directory = get_asset_directory(id);
       const std::filesystem::path path = get_asset_path(id);
 
@@ -273,6 +293,7 @@ namespace hyengine::common::file_io {
 
    void delete_asset(const std::string& asset_id)
    {
+      ZoneScoped;
       const std::filesystem::path path = get_asset_path(asset_id);
       if (!std::filesystem::exists(path))
       {
@@ -286,6 +307,7 @@ namespace hyengine::common::file_io {
 
    void delete_asset_directory(const std::string& asset_id)
    {
+      ZoneScoped;
       const std::filesystem::path directory = get_asset_directory(asset_id);
       if (!std::filesystem::exists(directory))
       {
@@ -299,6 +321,7 @@ namespace hyengine::common::file_io {
 
    std::string read_asset_text(const std::string& id)
    {
+      ZoneScoped;
       if (should_preprocess(get_asset_type(id)))
       {
          return read_preprocessed_asset_text(id);

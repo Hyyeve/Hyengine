@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 #include <string_view>
+#include <tracy/Tracy.hpp>
+
 #include "glm/glm.hpp"
 
 namespace hyengine::common::colors {
@@ -82,6 +84,7 @@ namespace hyengine::common::colors {
 
     [[nodiscard]] inline glm::vec4 random()
     {
+        ZoneScoped;
         return bits_to_float(rand());
     }
 

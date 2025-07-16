@@ -16,11 +16,13 @@ namespace hyengine::graphics {
 
     bool try_load_glad()
     {
+        ZoneScoped;
         return gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)) != 0;
     }
 
     bool try_init_glfw()
     {
+        ZoneScoped;
         return glfwInit() == GLFW_TRUE;
     }
 
@@ -29,6 +31,7 @@ namespace hyengine::graphics {
     #pragma region Debug
 
     static void handle_gl_error(GLenum source, GLenum type, GLuint  /*id*/, GLenum severity, GLsizei  /*length*/, const GLchar* message, const void*  /*userParam*/) {
+        ZoneScoped;
         std::string source_str;
         std::string type_str;
         bool should_display = true;
@@ -115,6 +118,7 @@ namespace hyengine::graphics {
     }
 
     void enable_gl_debug() {
+        ZoneScoped;
         glEnable(GL_DEBUG_OUTPUT);
         glDebugMessageCallback(handle_gl_error, nullptr);
     }
@@ -124,23 +128,28 @@ namespace hyengine::graphics {
     #pragma region Scissor
 
     void set_scissor(const rectangle& rect) {
+        ZoneScoped;
         set_scissor(rect.position, rect.size);
     }
 
     void set_scissor(const int x, const int y, const int width, const int height) {
+        ZoneScoped;
         glScissor(x, y, width, height);
     }
 
     void set_scissor(ivec2 position, ivec2 size) {
+        ZoneScoped;
         set_scissor(position.x, position.y, size.x, size.y);
     }
 
 
     void enable_scissor_test() {
+        ZoneScoped;
         glEnable(GL_SCISSOR_TEST);
     }
 
     void disable_scissor_test() {
+        ZoneScoped;
         glDisable(GL_SCISSOR_TEST);
     }
 
@@ -151,15 +160,18 @@ namespace hyengine::graphics {
     static viewport current_viewport{};
 
     void set_viewport(const viewport& viewport) {
+        ZoneScoped;
         current_viewport = viewport;
         glViewport(viewport.x_offset, viewport.y_offset, viewport.width, viewport.height);
     }
 
     const viewport& get_viewport() {
+        ZoneScoped;
         return current_viewport;
     }
 
     viewport create_letterbox_viewport(const viewport& to_fit, const int target_width, const int target_height, const bool fill) {
+        ZoneScoped;
         const float aspectA = to_fit.height * target_width;
         const float aspectB = target_height * to_fit.width;
 
@@ -181,12 +193,14 @@ namespace hyengine::graphics {
 
     void set_gl_flag_enabled(const GLenum setting, const bool enable)
     {
+        ZoneScoped;
         if (enable) glEnable(setting);
         else glDisable(setting);
     }
 
     void set_blending_config(const blending_config& config, const unsigned int buffer_slot)
     {
+        ZoneScoped;
         glBlendColor(config.constant_blend_color.r, config.constant_blend_color.g, config.constant_blend_color.b, config.constant_blend_color.a);
         glBlendEquationSeparatei(buffer_slot, config.rgb_equation, config.alpha_equation);
         glBlendFuncSeparatei(buffer_slot, config.source_blend_rgb, config.dest_blend_rgb, config.source_blend_alpha, config.dest_blend_alpha);
@@ -194,11 +208,13 @@ namespace hyengine::graphics {
 
     void set_blending_enabled(const bool enable)
     {
+        ZoneScoped;
         set_gl_flag_enabled(GL_BLEND, enable);
     }
 
     void set_stencil_config(const stencil_config& config, const GLenum facing)
     {
+        ZoneScoped;
         glStencilFuncSeparate(facing, config.test_func, config.reference, config.test_mask);
         glStencilMaskSeparate(facing, config.write_mask);
         glStencilOpSeparate(facing, config.stencil_fail_op, config.depth_fail_op, config.pixel_pass_op);
@@ -206,51 +222,61 @@ namespace hyengine::graphics {
 
     void set_stencil_enabled(const bool enable)
     {
+        ZoneScoped;
         set_gl_flag_enabled(GL_STENCIL_TEST, enable);
     }
 
     void set_cull_face_enabled(const bool enable)
     {
+        ZoneScoped;
         set_gl_flag_enabled(GL_CULL_FACE, enable);
     }
 
     void set_cull_face_mode(const GLenum mode)
     {
+        ZoneScoped;
         glCullFace(mode);
     }
 
     void set_depth_test_enabled(const bool enable)
     {
+        ZoneScoped;
         set_gl_flag_enabled(GL_DEPTH_TEST, enable);
     }
 
     void set_cubemap_seamless_sampling(const bool enable)
     {
+        ZoneScoped;
         set_gl_flag_enabled(GL_TEXTURE_CUBE_MAP_SEAMLESS, enable);
     }
 
     void set_clear_color(const glm::vec4 color)
     {
+        ZoneScoped;
         glClearColor(color.r, color.g, color.b, color.a);
     }
 
     void set_clear_depth(const float depth)
     {
+        ZoneScoped;
         glClearDepthf(depth);
     }
 
     void set_clear_stencil(const int stencil)
     {
+        ZoneScoped;
         glClearStencil(stencil);
     }
 
     void clear_buffers(const GLbitfield mask)
     {
+        ZoneScoped;
         glClear(mask);
     }
 
     unsigned int get_max_texture_units()
     {
+        ZoneScoped;
         GLint result = 0;
         glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &result);
         return static_cast<unsigned int>(result);

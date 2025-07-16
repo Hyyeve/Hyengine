@@ -5,7 +5,6 @@
 #include <tracy/Tracy.hpp>
 
 #include "logger.hpp"
-#include "profiler.hpp"
 #include "../input/input.hpp"
 
 
@@ -56,14 +55,10 @@ namespace hyengine {
     void run_frame_loop(const frame_loop::config& config)
     {
         ZoneScopedNC("Hyengine Game Loop", 0x7700FF);
-        profiler::start_section(config.name);
-        profiler::start_section("Launch");
 
         logger::info(config.name, "Launching frame loop");
 
         config.launch();
-
-        profiler::next_section("Loop", true);
 
         const double update_step_time = 1.0 / config.target_ups;
         const double max_frame_time = config.max_frame_time;
@@ -134,18 +129,9 @@ namespace hyengine {
             FrameMarkNamed("Hyengine Game Loop");
         }
 
-        profiler::next_section("Exit", true);
-
         logger::info(config.name, "Exiting frame loop");
-
-        profiler::end_section(true);
-
         const double total_runtime = current_time - start_time;
 
         logger::info(config.name, "Total runtime: ", logger::format_secs(total_runtime));
-        profiler::end_section(true);
     }
-
-
-
 }

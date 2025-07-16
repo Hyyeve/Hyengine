@@ -127,7 +127,10 @@ namespace hyengine::threading {
         threads.reserve(thread_count);
         for (unsigned int i = 0; i < thread_count; ++i)
         {
-            threads.emplace_back([] {
+            threads.emplace_back([i] {
+                char* thread_name = new char [16];
+                snprintf(thread_name, 16 , " Worker %i ", i) ;
+                tracy::SetThreadName(thread_name);
                 process_tasks();
             });
         }

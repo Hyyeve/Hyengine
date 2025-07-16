@@ -13,7 +13,6 @@ target_sources(Hyengine PRIVATE
 
         core/hyengine.cpp
         core/logger.cpp
-        core/profiler.cpp
 
         graphics/graphics.cpp
         graphics/native_window.cpp
@@ -59,7 +58,6 @@ target_sources(Hyengine PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILE
 
         core/hyengine.hpp
         core/logger.hpp
-        core/profiler.hpp
         common/file_io.hpp
 
         graphics/graphics.hpp

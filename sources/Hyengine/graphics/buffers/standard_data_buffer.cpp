@@ -14,23 +14,15 @@ namespace hyengine::graphics {
         free();
     }
 
-    void standard_data_buffer::allocate_for_continual_writes(const GLenum target, const GLsizeiptr size)
+    void standard_data_buffer::allocate_for_cpu_writes(const GLenum target, const GLsizeiptr size)
     {
         ZoneScoped;
         constexpr GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
         allocate(target, size, 3, nullptr, flags);
-        map_storage(flags | GL_MAP_FLUSH_EXPLICIT_BIT);
+        map_storage(flags);
     }
 
-    void standard_data_buffer::allocate_for_staging_writes(const GLenum target, const GLsizeiptr size)
-    {
-        ZoneScoped;
-        constexpr GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT;
-        allocate(target, size, 3, nullptr, flags);
-        map_storage(flags | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
-    }
-
-    void standard_data_buffer::allocate_for_gpu_only(const GLenum target, const GLsizeiptr size)
+    void standard_data_buffer::allocate_for_gpu_writes(const GLenum target, const GLsizeiptr size)
     {
         ZoneScoped;
         allocate(target, size, 1, nullptr, 0);
@@ -98,21 +90,12 @@ namespace hyengine::graphics {
         mapped_pointer = nullptr;
     }
 
-    void standard_data_buffer::flush_writes() const
-    {
-        ZoneScoped;
-        if (mapped_pointer == nullptr) return;
-        glFlushMappedNamedBufferRange(buffer_id, 0, total_size);
-        glWaitSync(glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0), 0, GL_TIMEOUT_IGNORED);
-    }
-
     void standard_data_buffer::sync_fence()
     {
         ZoneScoped;
         GLsync& sync = buffer_slices[current_slice_index].fence;
         if (sync != nullptr) glDeleteSync(sync);
         sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-        //glClientWaitSync(sync, 0, GL_TIMEOUT_IGNORED);
     }
 
     bool standard_data_buffer::sync_await(const unsigned long timeout_nanos) const
@@ -126,7 +109,7 @@ namespace hyengine::graphics {
         return false;
     }
 
-    void standard_data_buffer::sync_blocking() const
+    void standard_data_buffer::sync_block() const
     {
         ZoneScoped;
         while (!sync_await(GL_TIMEOUT_IGNORED))
@@ -135,18 +118,34 @@ namespace hyengine::graphics {
         }
     }
 
+    void standard_data_buffer::block_ready()
+    {
+        ZoneScoped;
+        sync_fence(); //Set sync point for everything done with previous buffer slice data
+        increment_slice(); //Move to next buffer slice
+        sync_block(); //Wait for buffer slice to finish being used
+    }
+
+    bool standard_data_buffer::await_ready(const unsigned long timeout_nanos)
+    {
+        ZoneScoped;
+        sync_fence();
+        increment_slice();
+        const bool result = sync_await(timeout_nanos);
+        if (!result) decrement_slice(); //A failed await should leave us on the previous slice
+        return result;
+    }
+
     void standard_data_buffer::increment_slice()
     {
         ZoneScoped;
-        current_slice_index++;
-        current_slice_index %= slice_count;
+        current_slice_index = (current_slice_index + 1) % slice_count;
     }
 
-    void standard_data_buffer::flush_and_fence()
+    void standard_data_buffer::decrement_slice()
     {
         ZoneScoped;
-        flush_writes();
-        sync_fence();
+        current_slice_index = (static_cast<long>(current_slice_index) - 1) % slice_count;
     }
 
     unsigned int standard_data_buffer::get_slice_offset() const

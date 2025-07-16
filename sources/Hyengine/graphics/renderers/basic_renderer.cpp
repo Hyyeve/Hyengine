@@ -32,7 +32,7 @@ namespace hyengine::graphics {
 
         const unsigned int max_vertices = ((1024 * 1024) / sizeof(debug_vertex)) * memory_budget_mb;
 
-        vertex_buffer.allocate_for_continual_writes(GL_ARRAY_BUFFER, max_vertices);
+        vertex_buffer.allocate_for_cpu_writes(GL_ARRAY_BUFFER, max_vertices);
         vertex_format_buffer.allocate();
         vertex_format_buffer.attach_vertex_format(debug_vertex_format, 0);
         vertex_format_buffer.attach_vertex_buffer(0, vertex_buffer.get_buffer_id(), 0, vertex_buffer.get_element_size());
@@ -65,7 +65,6 @@ namespace hyengine::graphics {
             return;
         }
 
-        vertex_buffer.sync_blocking();
         vertex_buffer.get_mapped_slice_pointer()[write_index] = {pos, common::colors::float_to_bits(color)};
         write_index++;
     }
@@ -121,18 +120,17 @@ namespace hyengine::graphics {
         texture_shader.set_sampler_slot("u_texture", texture_slot);
     }
 
-    void basic_renderer::submit_geometry()
+    void basic_renderer::finish()
     {
         ZoneScoped;
         draw_count = write_index;
-        vertex_buffer.flush_and_fence();
         write_index = 0;
     }
 
-    void basic_renderer::prepare_buffers()
+    void basic_renderer::block_ready()
     {
         ZoneScoped;
-        vertex_buffer.increment_slice();
+        vertex_buffer.block_ready();
     }
 
     void basic_renderer::update_shader_uniforms(const float interpolation_delta, const graphics::camera& cam)

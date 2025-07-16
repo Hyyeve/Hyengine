@@ -30,8 +30,8 @@ namespace hyengine::graphics {
 
         void texture(bool enable, unsigned int texture_slot = 0);
 
-        void submit_geometry();
-        void prepare_buffers();
+        void finish();
+        void block_ready();
 
         void update_shader_uniforms(const float interpolation_delta, const graphics::camera& cam);
         void reload_shaders();

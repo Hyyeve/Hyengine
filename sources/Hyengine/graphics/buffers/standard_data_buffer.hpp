@@ -9,11 +9,11 @@ namespace hyengine::graphics {
 
     /* MULTIBUFFERING ORDER OF OPERATIONS
 
+    Sync fence current slice
     Increment to next slice
     Sync await / blocking until slice is ready
     Write data into slice
-    Flush & fence - inserts a gl-side sync point for writes to be flushed
-    Draw slice - as many times as wanted (using bind_state and get_slice_offset())
+    Issue commands using the buffer
     Repeat
 
     */
@@ -28,16 +28,14 @@ namespace hyengine::graphics {
         explicit standard_data_buffer() = default;
         ~standard_data_buffer();
 
-        void allocate_for_continual_writes(const GLenum target, const GLsizeiptr size);
-        void allocate_for_staging_writes(const GLenum target, const GLsizeiptr size);
-        void allocate_for_gpu_only(const GLenum target, const GLsizeiptr size);
+        void allocate_for_cpu_writes(const GLenum target, const GLsizeiptr size);
+        void allocate_for_gpu_writes(const GLenum target, const GLsizeiptr size);
 
         void allocate(const GLenum target, const GLsizeiptr size, const unsigned int slices, const void* const data, const GLbitfield storage_flags);
         void free();
 
         void map_storage(const GLbitfield mapping_flags);
         void unmap_storage();
-        void flush_writes() const;
 
         void bind_state() const;
         void unbind_state() const;
@@ -54,12 +52,8 @@ namespace hyengine::graphics {
         void copy_slice_data(const GLuint source_buffer_id) const;
         void copy_slice_range(const GLuint source_buffer_id, const GLintptr read_offset, const GLintptr write_offset, const GLintptr bytes) const;
 
-        void increment_slice();
-
-        void flush_and_fence();
-        void sync_fence();
-        [[nodiscard]] bool sync_await(const unsigned long timeout_nanos) const;
-        void sync_blocking() const;
+        void block_ready();
+        [[nodiscard]] bool await_ready(const unsigned long timeout_nanos);
 
         [[nodiscard]] unsigned int get_slice_offset() const;
 
@@ -85,6 +79,12 @@ namespace hyengine::graphics {
             GLsync fence = nullptr;
         };
 
+        void increment_slice();
+        void decrement_slice();
+
+        void sync_fence();
+        [[nodiscard]] bool sync_await(const unsigned long timeout_nanos) const;
+        void sync_block() const;
 
         unsigned int current_slice_index = 0;
         void* mapped_pointer = nullptr;

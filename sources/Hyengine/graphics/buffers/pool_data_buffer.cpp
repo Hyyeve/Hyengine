@@ -22,7 +22,7 @@ namespace hyengine::graphics {
     void pool_data_buffer::allocate(const GLenum target, const GLsizeiptr size)
     {
         ZoneScoped;
-        pool_buffer.allocate_for_gpu_only(target, size);
+        pool_buffer.allocate_for_gpu_writes(target, size);
         pool_allocator = common::pool_allocation_tracker(size);
         //We don't know how much we'll need to upload at once, so don't allocate the upload buffer yet
         logger::message_info(logger::format("Buffer ", pool_buffer.get_buffer_id(), " allocated as pool buffer."), logger_tag);
@@ -156,7 +156,7 @@ namespace hyengine::graphics {
             reallocate_staging_buffer(staging_buffer_location);
         }
 
-        staging_buffer.sync_blocking();
+        staging_buffer.block_ready();
 
         GLbyte* upload_buffer_pointer = static_cast<GLbyte*>(staging_buffer.get_mapped_slice_pointer());
 
@@ -167,7 +167,6 @@ namespace hyengine::graphics {
         }
 
         temp_upload_buffer_offset = 0;
-        staging_buffer.flush_writes();
 
         for (const upload_info& upload : pending_uploads)
         {
@@ -175,8 +174,6 @@ namespace hyengine::graphics {
         }
 
         pending_uploads.clear();
-        staging_buffer.sync_fence();
-        staging_buffer.increment_slice();
     }
 
     void pool_data_buffer::reallocate_staging_buffer(const GLsizeiptr size)
@@ -184,7 +181,7 @@ namespace hyengine::graphics {
         ZoneScoped;
         logger::info(logger_tag, " No space in pool staging buffer, reallocating.");
         staging_buffer.free();
-        staging_buffer.allocate_for_staging_writes(pool_buffer.get_target(), size);
+        staging_buffer.allocate_for_cpu_writes(pool_buffer.get_target(), size);
         force_reallocate_staging_buffer = false;
         logger::message_info(logger::format("Buffer ", staging_buffer.get_buffer_id(), " allocated as pool staging buffer."), logger_tag);
     }

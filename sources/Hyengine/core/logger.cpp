@@ -90,14 +90,14 @@ namespace hyengine::logger {
         logging_level = level;
     }
 
-    void output_timestamp()
+    void write_info_stamp()
     {
         ZoneScoped;
         constexpr std::string_view TIME_FORMAT = std::string_view("\u001B[36m\u001B[1m");
-        const std::time_t t = std::time(nullptr);
-        std::cout << '[' << TIME_FORMAT;
-        std::cout << std::put_time(std::localtime(&t), "%T") << ANSI_RESET << ']';
-        std::cout << '[' << ANSI_BOLD << ANSI_BRIGHT_BLUE << "T" << std::setfill('0') << std::setw(3) << threading::current_thread_id() << ANSI_RESET << ']';
+        const std::time_t current_time = std::time(nullptr);
+        const auto& now = std::localtime(&current_time);
+        std::cout << format('[', TIME_FORMAT, now->tm_hour, ":", now->tm_min, ":", now->tm_sec, ANSI_RESET, "][", ANSI_BOLD, ANSI_BRIGHT_BLUE, "T");
+        std::cout << std::setfill('0') << std::setw(3) << logger::format(threading::current_thread_id(), ANSI_RESET, ']');
     }
 
     void message(const std::string_view type, const std::string_view msg, const std::string_view color_code, const std::string_view id) {
@@ -115,14 +115,14 @@ namespace hyengine::logger {
         {
             log_repeat_count++;
             std::cout << ANSI_DELETE_LINE;
-            output_timestamp();
+            write_info_stamp();
             std::cout << formatted << ANSI_RESET << " [" << ANSI_BOLD << color_code << "+" << std::to_string(log_repeat_count) << ANSI_RESET << ']';
         }
         else
         {
             log_repeat_count = 0;
             last_log = formatted;
-            output_timestamp();
+            write_info_stamp();
             std::cout << formatted;
         }
 

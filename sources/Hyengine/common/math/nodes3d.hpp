@@ -3,8 +3,9 @@
 
 #include "../../library/glm.hpp"
 
-namespace hyengine::common {
-    template<typename data_type>
+namespace hyengine
+{
+    template <typename data_type>
     class nodes_3d
     {
     public:

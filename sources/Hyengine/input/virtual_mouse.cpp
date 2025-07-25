@@ -3,7 +3,7 @@
 #include <tracy/Tracy.hpp>
 
 
-namespace hyengine::input
+namespace hyengine
 {
     using namespace glm;
 

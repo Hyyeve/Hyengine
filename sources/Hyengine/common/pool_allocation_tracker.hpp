@@ -1,10 +1,10 @@
 #pragma once
 #include <list>
 
-namespace hyengine::common
+namespace hyengine
 {
-    class pool_allocation_tracker {
-
+    class pool_allocation_tracker
+    {
     public:
         explicit pool_allocation_tracker(const unsigned int size);
 
@@ -15,7 +15,6 @@ namespace hyengine::common
         void clear();
 
     private:
-
         [[nodiscard]] bool find_free(const unsigned int size, unsigned int& start, unsigned int& block_idx, bool& is_end_allocation) const;
 
         struct allocation_block
@@ -24,10 +23,8 @@ namespace hyengine::common
             unsigned int size;
         };
 
-        std::list<allocation_block> allocations {};
+        std::list<allocation_block> allocations{};
         unsigned int total_pool_size;
         unsigned int remaining_available_size;
     };
 }
-
-

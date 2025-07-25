@@ -6,15 +6,19 @@
 #include "Hyengine/common/math/frustum.hpp"
 
 
-namespace hyengine::graphics {
-
-    using namespace hyengine;
-
-    class camera {
+namespace hyengine
+{
+    class camera
+    {
     public:
-        explicit camera(glm::vec3 position) : camera(position, glm::vec3(0, -90, 0)) {}
-        camera() : camera(glm::vec3(0)) {};
-        camera(const glm::vec3 &position, const glm::vec3& rotation);
+        explicit camera(glm::vec3 position) : camera(position, glm::vec3(0, -90, 0))
+        {
+        }
+
+        camera() : camera(glm::vec3(0))
+        {
+        };
+        camera(const glm::vec3& position, const glm::vec3& rotation);
 
         void move_to(const glm::vec3& to);
         void move_to(float x, float y, float z);
@@ -39,13 +43,13 @@ namespace hyengine::graphics {
         void refresh(float interpolation);
         void start_update();
 
-        [[nodiscard]] glm::vec3 screen_to_world(const glm::vec3 &point, const viewport screen) const;
+        [[nodiscard]] glm::vec3 screen_to_world(const glm::vec3& point, const viewport screen) const;
         [[nodiscard]] glm::vec3 screen_to_world(const glm::vec2 point, const viewport screen) const;
-        [[nodiscard]] glm::vec3 world_to_screen(const glm::vec3 &point, const viewport screen) const;
+        [[nodiscard]] glm::vec3 world_to_screen(const glm::vec3& point, const viewport screen) const;
 
-        [[nodiscard]] glm::vec3 screen_to_world(const glm::vec3 &point) const;
+        [[nodiscard]] glm::vec3 screen_to_world(const glm::vec3& point) const;
         [[nodiscard]] glm::vec3 screen_to_world(glm::vec2 point) const;
-        [[nodiscard]] glm::vec3 world_to_screen(const glm::vec3 &point) const;
+        [[nodiscard]] glm::vec3 world_to_screen(const glm::vec3& point) const;
 
         [[nodiscard]] const glm::mat4& get_view() const;
         [[nodiscard]] const glm::mat4& get_projection() const;
@@ -59,24 +63,21 @@ namespace hyengine::graphics {
         [[nodiscard]] glm::vec3 get_right_dir() const;
 
         [[nodiscard]] bool frustum_visible(glm::dvec3 sphere_pos, float sphere_radius) const;
-        [[nodiscard]] common::frustum get_frustum() const;
-
+        [[nodiscard]] frustum get_frustum() const;
 
     private:
-
-        common::interpolatable<glm::dvec3> position = glm::dvec3(0);
-        common::interpolatable<glm::quat> rotation = glm::quat();
+        interpolatable<glm::dvec3> position = glm::dvec3(0);
+        interpolatable<glm::quat> rotation = glm::quat();
 
         glm::vec3 forward = glm::vec3(0);
         glm::vec3 up = glm::vec3(0, 0, 0);
         glm::vec3 right = glm::vec3(0);
 
-        common::interpolatable<glm::dvec3> zoom_target = glm::dvec3(0);
-        common::interpolatable<float> zoom_percent = 1.0f;
+        interpolatable<glm::dvec3> zoom_target = glm::dvec3(0);
+        interpolatable<float> zoom_percent = 1.0f;
 
         glm::mat4 view_matrix = glm::mat4();
         glm::mat4 projection_matrix = glm::mat4();
-        common::frustum frustum = common::frustum();
+        frustum cam_frustum = frustum();
     };
-
 }

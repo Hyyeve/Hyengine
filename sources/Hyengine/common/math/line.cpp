@@ -2,8 +2,8 @@
 
 #include <tracy/Tracy.hpp>
 
-namespace hyengine::common {
-
+namespace hyengine
+{
     using namespace glm;
 
     #define OP(half, full) \
@@ -39,8 +39,7 @@ namespace hyengine::common {
             start = start half other; \
             end = end half other; \
             return *this; \
-        } \
-
+        }
     OP(+, +=)
     OP(-, -=)
     OP(*, *=)
@@ -48,65 +47,75 @@ namespace hyengine::common {
 
     #undef OP
 
-    vec2 line::point_at(const float percent) const {
+    vec2 line::point_at(const float percent) const
+    {
         ZoneScoped;
         return mix(start, end, percent);
     }
 
-    float distance_of(const vec2 point) {
+    float distance_of(const vec2 point)
+    {
         ZoneScoped;
         vec2 start;
         vec2 end;
         vec2 delta_line = end - start;
         vec2 delta_point = point - start;
-        float h = dot(delta_point,delta_line) / dot(delta_line, delta_line);
+        float h = dot(delta_point, delta_line) / dot(delta_line, delta_line);
         return length(delta_point - h * delta_line);
     }
 
     //Note: 0 < interpolation_percent < 1 only guarantees that the point is within the bounding box of the line segment.
-    float line::percent_of(const vec2 point) const {
+    float line::percent_of(const vec2 point) const
+    {
         ZoneScoped;
         vec2 delta = end - start;
         vec2 point_delta = point - start;
-        if(length2(point_delta) < 1e-7) return 0;
+        if (length2(point_delta) < 1e-7) return 0;
         return dot(point_delta, delta) / dot(delta, delta);
     }
 
-    float line::sdf(const vec2 point) const {
+    float line::sdf(const vec2 point) const
+    {
         ZoneScoped;
         const vec2 point_start = point - start;
         const vec2 start_end = end - start;
-        float h = clamp(dot(point_start,start_end) / dot(start_end,start_end), 0.0f, 1.0f);
-        return glm::length( point_start - start_end * h);
+        float h = clamp(dot(point_start, start_end) / dot(start_end, start_end), 0.0f, 1.0f);
+        return glm::length(point_start - start_end * h);
     }
 
-    float line::length() const {
+    float line::length() const
+    {
         ZoneScoped;
         return glm::length(end - start);
     }
 
-    float line::left() const {
+    float line::left() const
+    {
         ZoneScoped;
         return min(start.x, end.x);
     }
 
-    float line::right() const {
+    float line::right() const
+    {
         ZoneScoped;
         return max(start.x, end.x);
     }
 
-    float line::up() const {
+    float line::up() const
+    {
         ZoneScoped;
         return max(start.y, end.y);
     }
 
-    float line::down() const {
+    float line::down() const
+    {
         ZoneScoped;
         return min(start.y, end.y);
     }
 
     //Treats the lines as infinitely long - must be checked to see if it's on the line segments.
-    vec2 line::intersection_with(const line& other) const {
+    vec2 line::intersection_with(const line& other) const
+    {
         ZoneScoped;
 
         float delta_ax = start.x - end.x;
@@ -118,7 +127,8 @@ namespace hyengine::common {
         float c2 = delta_by * (other.start.x) + delta_bx * (other.start.y);
         float det = delta_ay * delta_bx - delta_by * delta_ax;
 
-        if(det == 0) {
+        if (det == 0)
+        {
             //Parallel lines - no real intersection, but for physics purposes we still want to return a reasonable value.
             //This is the midpoint between the two closest points on the lines.
             vec2 greater_min = max(min(start, end), min(other.start, other.end));
@@ -129,19 +139,22 @@ namespace hyengine::common {
         return {(delta_bx * c1 - delta_ax * c2) / det, (delta_ay * c2 - delta_by * c1) / det};
     }
 
-    vec2 line::direction() const {
+    vec2 line::direction() const
+    {
         ZoneScoped;
         vec2 ex = vector();
-        if(glm::length(ex) == 0) return vec2(0);
+        if (glm::length(ex) == 0) return vec2(0);
         return normalize(ex);
     }
 
-    vec2 line::vector() const {
+    vec2 line::vector() const
+    {
         ZoneScoped;
         return end - start;
     }
 
-    vec2 line::normal() const {
+    vec2 line::normal() const
+    {
         ZoneScoped;
         vec2 dir = direction();
         return {dir.y, -dir.x};

@@ -1,6 +1,9 @@
 #include "texture_set.hpp"
 
-namespace hyengine::graphics {
+#include "Hyengine/graphics/graphics.hpp"
+
+namespace hyengine
+{
     unsigned int texture_set::allocate_slot(const unsigned int texture_id, const unsigned int sampler_state_id)
     {
         ZoneScoped;
@@ -8,7 +11,7 @@ namespace hyengine::graphics {
         if (slot_map.contains(texture_id)) return get_slot(texture_id);
 
         const unsigned int slot = slot_allocator.assign();
-        texture_slot_data slot_data = { slot, sampler_state_id };
+        texture_slot_data slot_data = {slot, sampler_state_id};
         slot_map.insert({texture_id, slot_data});
 
         return slot;
@@ -44,7 +47,7 @@ namespace hyengine::graphics {
     unsigned int texture_set::max_slots()
     {
         ZoneScoped;
-        return graphics::get_max_texture_units();
+        return get_max_texture_units();
     }
 
     void texture_set::clear()
@@ -62,7 +65,8 @@ namespace hyengine::graphics {
             glBindTextureUnit(slot_data.slot, texture);
 
             //Only overwrite sampler state if there is one specifically assigned
-            if (slot_data.sampler_id != 0) glBindSampler(slot_data.slot, slot_data.sampler_id);
+            if (slot_data.sampler_id != 0)
+                glBindSampler(slot_data.slot, slot_data.sampler_id);
         }
     }
 }

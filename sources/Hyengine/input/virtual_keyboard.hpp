@@ -1,12 +1,12 @@
 #pragma once
 
-#include <functional>
 #include <map>
 #include <string>
-#include <vector>
 
-namespace hyengine::input {
-    class virtual_keyboard {
+namespace hyengine
+{
+    class virtual_keyboard
+    {
     public:
         void type_character(unsigned int codepoint);
         void press_key(int key);
@@ -35,5 +35,3 @@ namespace hyengine::input {
         std::string current_text;
     };
 }
-
-

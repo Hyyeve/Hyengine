@@ -1,8 +1,8 @@
 #pragma once
 #include "frame_buffer.hpp"
 
-namespace hyengine::graphics {
-
+namespace hyengine
+{
     using namespace hyengine;
 
 
@@ -29,9 +29,7 @@ namespace hyengine::graphics {
         void bind_to_read() const;
 
     private:
-
         const std::string logger_tag = "GPU Framebuffer";
         bool valid;
     };
 }
-

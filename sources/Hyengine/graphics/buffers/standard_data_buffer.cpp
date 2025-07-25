@@ -4,10 +4,8 @@
 
 #include "../../core/logger.hpp"
 
-namespace hyengine::graphics {
-
-    using namespace hyengine;
-
+namespace hyengine
+{
     standard_data_buffer::~standard_data_buffer()
     {
         ZoneScoped;
@@ -31,14 +29,15 @@ namespace hyengine::graphics {
     void standard_data_buffer::allocate(const GLenum target, const GLsizeiptr size, const unsigned int slices, const void* const data, const GLbitfield storage_flags)
     {
         ZoneScoped;
-        if (buffer_id != 0) {
-            logger::error(logger_tag, "Couldn't allocate - already allocated with ID ", buffer_id);
+        if (buffer_id != 0)
+        {
+            log_error(logger_tag, "Couldn't allocate - already allocated with ID ", buffer_id);
             return;
         }
 
         if (slices < 1 || slices > 3)
         {
-            logger::message_error("Couldn't allocate - slices must be between 1 and 3.", logger_tag);
+            log_error("Couldn't allocate - slices must be between 1 and 3.", logger_tag);
             return;
         }
 
@@ -57,7 +56,7 @@ namespace hyengine::graphics {
         glCreateBuffers(1, &buffer_id);
         glNamedBufferStorage(buffer_id, total_size, data, storage_flags);
 
-        logger::message_info(logger::format("Allocated data buffer ", buffer_id, ". ", logger::format_count(slice_count, "Slice"), ", Total ", logger::format_bytes(total_size)), logger_tag);
+        log_info(logger_tag, "Allocated data buffer ", buffer_id, ". ", format_count(slice_count, "Slice"), ", Total ", format_bytes(total_size));
     }
 
     void standard_data_buffer::free()
@@ -66,7 +65,7 @@ namespace hyengine::graphics {
         unmap_storage();
         if (buffer_id == 0) return;
 
-        logger::message_info(logger::format("Freeing data buffer ", buffer_id, ". ", logger::format_count(slice_count, "Slice"), " total ", logger::format_bytes(total_size)), logger_tag);
+        log_info(logger_tag, "Freeing data buffer ", buffer_id, ". ", format_count(slice_count, "Slice"), " total ", format_bytes(total_size));
 
         glDeleteBuffers(1, &buffer_id);
 
@@ -226,7 +225,7 @@ namespace hyengine::graphics {
         ZoneScoped;
         if (offset + bytes > total_size)
         {
-            logger::message_warn(logger::format("Can't bind range - requested start and size would overflow", " (buffer ", buffer_id, ")"), logger_tag);
+            log_warn(logger_tag, "Can't bind range - requested start and size would overflow", " (buffer ", buffer_id, ")");
             return;
         }
 
@@ -256,7 +255,7 @@ namespace hyengine::graphics {
         ZoneScoped;
         if (write_offset + bytes > total_size)
         {
-            logger::message_warn(logger::format("Can't copy range - requested start and size would overflow", " (buffer ", buffer_id, ")"), logger_tag);
+            log_warn(logger_tag, "Can't copy range - requested start and size would overflow", " (buffer ", buffer_id, ")");
             return;
         }
 

@@ -6,8 +6,8 @@
 #include "../../common/pool_allocation_tracker.hpp"
 #include "../../library/gl.hpp"
 
-namespace hyengine::graphics {
-
+namespace hyengine
+{
     using namespace hyengine;
 
     class pool_data_buffer
@@ -46,7 +46,6 @@ namespace hyengine::graphics {
         [[nodiscard]] GLenum get_target() const;
         [[nodiscard]] unsigned int get_pending_upload_count() const;
 
-
     private:
         void reallocate_staging_buffer(const GLsizeiptr size);
 
@@ -61,7 +60,7 @@ namespace hyengine::graphics {
         const std::string logger_tag = "GPU Pool Buffer";
 
         standard_data_buffer pool_buffer;
-        common::pool_allocation_tracker pool_allocator;
+        pool_allocation_tracker pool_allocator;
 
         standard_data_buffer staging_buffer;
         std::vector<upload_info> pending_uploads;

@@ -6,10 +6,11 @@
 #include "virtual_keyboard.hpp"
 #include "virtual_mouse.hpp"
 
-namespace hyengine::input {
+namespace hyengine
+{
     using namespace hyengine;
 
-    void bind_callbacks(GLFWwindow* window);
+    void bind_input(GLFWwindow* window);
     void process_inputs();
 
     void set_keyboard_input(const virtual_keyboard& input);

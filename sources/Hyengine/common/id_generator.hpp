@@ -2,15 +2,16 @@
 #include <vector>
 #include <tracy/Tracy.hpp>
 
-namespace hyengine::common {
-
+namespace hyengine
+{
     template <typename ID_TYPE>
-    class id_generator {
+    class id_generator
+    {
     public:
         ID_TYPE assign()
         {
             ZoneScoped;
-            if(!freed_ids.empty())
+            if (!freed_ids.empty())
             {
                 ID_TYPE id = freed_ids.back();
                 freed_ids.pop_back();
@@ -39,5 +40,4 @@ namespace hyengine::common {
         std::vector<ID_TYPE> freed_ids = {};
         ID_TYPE next_id = {};
     };
-
 }

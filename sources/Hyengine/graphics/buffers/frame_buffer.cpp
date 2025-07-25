@@ -4,8 +4,8 @@
 
 #include "../../core/logger.hpp"
 
-namespace hyengine::graphics {
-
+namespace hyengine
+{
     using namespace hyengine;
 
 
@@ -20,8 +20,9 @@ namespace hyengine::graphics {
     void frame_buffer::allocate()
     {
         ZoneScoped;
-        if(buffer_id > 0) {
-            logger::message_warn(logger::format("Attempted to initialize already initialized framebuffer!", " (buffer ", buffer_id, ")"), logger_tag);
+        if (buffer_id > 0)
+        {
+            log_warn(logger_tag, "Attempted to initialize already initialized framebuffer!", " (buffer ", buffer_id, ")");
             return;
         }
 
@@ -29,7 +30,7 @@ namespace hyengine::graphics {
 
         is_valid = false;
 
-        logger::message_info(logger::format("Allocated framebuffer ", buffer_id, "."), logger_tag);
+        log_info(logger_tag, "Allocated framebuffer ", buffer_id, ".");
     }
 
     void frame_buffer::attach_texture(const texture_buffer& texture, const GLenum attachment_binding)
@@ -41,8 +42,9 @@ namespace hyengine::graphics {
     void frame_buffer::attach_texture(const texture_buffer& texture, const GLenum attachment_binding, const GLint mipmap_level)
     {
         ZoneScoped;
-        if(buffer_id <= 0) {
-            logger::message_warn(logger::format("Can't attach texture to framebuffer ", buffer_id, " - not initialized!"), logger_tag);
+        if (buffer_id <= 0)
+        {
+            log_warn(logger_tag, "Can't attach texture to framebuffer ", buffer_id, " - not initialized!");
             return;
         }
 
@@ -54,8 +56,9 @@ namespace hyengine::graphics {
     void frame_buffer::attach_texture(const texture_buffer& texture, const GLenum attachment_binding, const GLint mipmap_level, const GLint layer)
     {
         ZoneScoped;
-        if(buffer_id <= 0) {
-            logger::message_warn(logger::format("Can't attach texture to framebuffer ", buffer_id, " - not initialized!"), logger_tag);
+        if (buffer_id <= 0)
+        {
+            log_warn(logger_tag, "Can't attach texture to framebuffer ", buffer_id, " - not initialized!");
             return;
         }
 
@@ -67,8 +70,9 @@ namespace hyengine::graphics {
     void frame_buffer::attach_render_texture(const render_texture& render_texture, const GLenum attachment_binding)
     {
         ZoneScoped;
-        if(buffer_id <= 0) {
-            logger::message_warn(logger::format("Can't attach texture to framebuffer ", buffer_id, " - not initialized!"), logger_tag);
+        if (buffer_id <= 0)
+        {
+            log_warn(logger_tag, "Can't attach texture to framebuffer ", buffer_id, " - not initialized!");
             return;
         }
 
@@ -85,8 +89,9 @@ namespace hyengine::graphics {
             return true;
         }
 
-        if(buffer_id <= 0) {
-            logger::message_warn(logger::format("Framebuffer invalid ", buffer_id, " - not initialized!"), logger_tag);
+        if (buffer_id <= 0)
+        {
+            log_warn(logger_tag, "Framebuffer invalid ", buffer_id, " - not initialized!");
             return false;
         }
 
@@ -137,7 +142,7 @@ namespace hyengine::graphics {
             }
         }
 
-        logger::message_warn(logger::format("Framebuffer ", buffer_id, " is not valid - ", status_string), logger_tag);
+        log_warn(logger_tag, "Framebuffer ", buffer_id, " is not valid - ", status_string);
         return false;
     }
 
@@ -162,9 +167,9 @@ namespace hyengine::graphics {
     void frame_buffer::copy_data(frame_buffer& source, glm::uvec4 source_rect, glm::uvec4 dest_rect, GLbitfield mask, GLenum filter) const
     {
         ZoneScoped;
-        if(buffer_id <= 0 || !is_valid)
+        if (buffer_id <= 0 || !is_valid)
         {
-            logger::message_warn(logger::format("Can't copy into framebuffer ", buffer_id, " - not initialized!"), logger_tag);
+            log_warn(logger_tag, "Can't copy into framebuffer ", buffer_id, " - not initialized!");
             return;
         }
 
@@ -176,7 +181,7 @@ namespace hyengine::graphics {
     {
         ZoneScoped;
         glDeleteFramebuffers(1, &buffer_id);
-        logger::message_info(logger::format("Freed framebuffer ", buffer_id, "."), logger_tag);
+        log_info(logger_tag, "Freed framebuffer ", buffer_id, ".");
         buffer_id = 0;
         is_valid = false;
     }
@@ -184,9 +189,9 @@ namespace hyengine::graphics {
     void frame_buffer::bind_to_draw() const
     {
         ZoneScoped;
-        if(buffer_id <= 0 || !is_valid)
+        if (buffer_id <= 0 || !is_valid)
         {
-            logger::message_warn(logger::format("Can't bind framebuffer ", buffer_id, " - not initialized!"), logger_tag);
+            log_warn(logger_tag, "Can't bind framebuffer ", buffer_id, " - not initialized!");
             return;
         }
 
@@ -196,9 +201,9 @@ namespace hyengine::graphics {
     void frame_buffer::bind_to_read() const
     {
         ZoneScoped;
-        if(buffer_id <= 0 || !is_valid)
+        if (buffer_id <= 0 || !is_valid)
         {
-            logger::message_warn(logger::format("Can't bind framebuffer ", buffer_id, " - not initialized!"), logger_tag);
+            log_warn(logger_tag, "Can't bind framebuffer ", buffer_id, " - not initialized!");
             return;
         }
 

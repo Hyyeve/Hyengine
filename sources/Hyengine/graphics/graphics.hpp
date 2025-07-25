@@ -5,18 +5,18 @@
 
 #include "../common/math/rectangle.hpp"
 
-namespace hyengine::graphics {
-
-    using namespace hyengine;
-
-    struct gl_draw_indirect_cmd {
+namespace hyengine
+{
+    struct gl_draw_indirect_cmd
+    {
         unsigned int vertex_count;
         unsigned int instance_count;
         unsigned int vertex_begin;
         unsigned int instance_begin;
     };
 
-    struct viewport {
+    struct viewport
+    {
         int x_offset, y_offset;
         unsigned int width, height;
     };
@@ -50,10 +50,10 @@ namespace hyengine::graphics {
 
     namespace blending_configs
     {
-        constexpr blending_config alpha_blend = { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA };
-        constexpr blending_config additive_blend = { GL_ONE, GL_ONE, GL_ONE, GL_ONE };
-        constexpr blending_config subtractive_blend = { GL_ONE, GL_ONE, GL_ONE, GL_ONE, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT };
-        constexpr blending_config overwrite_blend = { GL_ONE, GL_ZERO, GL_ONE, GL_ZERO };
+        constexpr blending_config alpha_blend = {GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA};
+        constexpr blending_config additive_blend = {GL_ONE, GL_ONE, GL_ONE, GL_ONE};
+        constexpr blending_config subtractive_blend = {GL_ONE, GL_ONE, GL_ONE, GL_ONE, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT};
+        constexpr blending_config overwrite_blend = {GL_ONE, GL_ZERO, GL_ONE, GL_ZERO};
     }
 
     [[nodiscard]] bool try_init_glfw();
@@ -66,7 +66,7 @@ namespace hyengine::graphics {
 
     void set_scissor(const int x, const int y, const int width, const int height);
     void set_scissor(const glm::ivec2 position, const glm::ivec2 size);
-    void set_scissor(const common::rectangle& rect);
+    void set_scissor(const rectangle& rect);
 
     void set_viewport(const viewport& viewport);
     [[nodiscard]] const viewport& get_viewport();
@@ -94,4 +94,3 @@ namespace hyengine::graphics {
 
     [[nodiscard]] unsigned int get_max_texture_units();
 }
-

@@ -10,10 +10,8 @@
 #include "../core/logger.hpp"
 
 
-namespace hyengine::graphics
+namespace hyengine
 {
-    using namespace hyengine;
-
     class shader
     {
     public:
@@ -32,7 +30,7 @@ namespace hyengine::graphics
 
         static void clear_binary_cache();
 
-        void use();
+        void use() const;
 
         [[nodiscard]] bool valid() const;
         [[nodiscard]] bool active() const;
@@ -69,7 +67,7 @@ namespace hyengine::graphics
         void set_sampler_slot(const std::string& name, int slot);
 
 
-#define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(name); location != uniform_locations.end()) { setter; } else logger::message_warn(logger::format("Failed to set uniform array '" + name + "'"), logger_tag);
+        #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(name); location != uniform_locations.end()) { setter; } else warn(logger_tag, "Failed to set uniform array '", name, "'");
 
         template <std::size_t size>
         void set_uniform(const std::string& name, std::array<bool, size> values)
@@ -233,7 +231,7 @@ namespace hyengine::graphics
             TRY_SET_UNIFORM(glProgramUniformMatrix4fv(program_id, location->second, values.size(), values.data()))
         }
 
-#undef TRY_SET_UNIFORM
+        #undef TRY_SET_UNIFORM
 
     private:
         static GLuint load_program(const std::string& asset_id, const std::string& binary_asset_id);

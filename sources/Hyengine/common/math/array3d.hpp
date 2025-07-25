@@ -2,8 +2,9 @@
 #include <array>
 #include <cassert>
 
-namespace hyengine::common {
-    template<typename data_type, const unsigned int side_length>
+namespace hyengine
+{
+    template <typename data_type, const unsigned int side_length>
     class array_3d
     {
     public:
@@ -33,6 +34,6 @@ namespace hyengine::common {
             return data[idx];
         }
 
-        std::array<data_type, side_length*side_length*side_length> data {};
+        std::array<data_type, side_length * side_length * side_length> data{};
     };
 }

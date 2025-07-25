@@ -1,16 +1,17 @@
 #include "virtual_keyboard.hpp"
 
+#include <ranges>
 #include <tracy/Tracy.hpp>
 
 #include "../common/portability.hpp"
 #include "../library/gl.hpp"
 
-namespace hyengine::input
+namespace hyengine
 {
     void virtual_keyboard::type_character(const unsigned int codepoint)
     {
         ZoneScoped;
-        current_text += common::portability::utf32_stringify(codepoint);
+        current_text += utf32_stringify(codepoint);
     }
 
     void virtual_keyboard::press_key(const int key)
@@ -100,7 +101,7 @@ namespace hyengine::input
     void virtual_keyboard::process_inputs()
     {
         ZoneScoped;
-        for (auto& [key, value] : key_map)
+        for (int& value : key_map | std::views::values)
         {
             if (value > 0) value++;
             else if (value < 0) value--;

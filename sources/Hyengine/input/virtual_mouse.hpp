@@ -1,11 +1,11 @@
 #pragma once
 #include "../library/glm.hpp"
-#include <functional>
 #include <map>
-#include <vector>
-namespace hyengine::input {
 
-    class virtual_mouse {
+namespace hyengine
+{
+    class virtual_mouse
+    {
     public:
         void move_relative(glm::vec2 delta);
         void move_absolute(glm::vec2 position);
@@ -38,4 +38,3 @@ namespace hyengine::input {
         glm::vec2 scroll_delta = glm::vec2();
     };
 }
-

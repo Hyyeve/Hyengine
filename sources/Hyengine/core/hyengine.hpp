@@ -4,9 +4,9 @@
 
 #include "../graphics/native_window.hpp"
 
-namespace hyengine {
-
-    graphics::native_window* initialize_graphics(const graphics::window_config& main_window_config);
+namespace hyengine
+{
+    native_window* initialize_graphics(const window_config& main_window_config);
 
     namespace frame_loop
     {
@@ -26,19 +26,27 @@ namespace hyengine {
 
             std::string name = "Frame Loop";
 
-            std::function<void()> launch = [] {};
+            std::function<void()> launch = []
+            {
+            };
 
             //Time, delta
-            std::function<bool(loop_data)> update = [](loop_data){ return false; };
+            std::function<bool(loop_data)> update = [](loop_data)
+            {
+                return false;
+            };
 
             //Time, delta, interpolation
-            std::function<void(loop_data)> render = [](loop_data){};
-            std::function<void()> exit = [] {};
+            std::function<void(loop_data)> render = [](loop_data)
+            {
+            };
+            std::function<void()> exit = []
+            {
+            };
         };
     }
 
     double time();
 
     void run_frame_loop(const frame_loop::config& config);
-
 }

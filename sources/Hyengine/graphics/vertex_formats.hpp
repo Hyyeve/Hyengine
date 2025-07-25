@@ -2,12 +2,10 @@
 #include "../library/gl.hpp"
 #include <array>
 
-
-namespace hyengine::graphics {
-
-    using namespace hyengine;
-
-    struct vertex_element {
+namespace hyengine
+{
+    struct vertex_element
+    {
         GLboolean normalized = GL_FALSE;
         GLenum gl_type;
         int count;
@@ -16,16 +14,19 @@ namespace hyengine::graphics {
         int instance_divisor;
     };
 
-    template<size_t size>
-    class vertex_format {
+    template <size_t size>
+    class vertex_format
+    {
     public:
-        constexpr explicit vertex_format(const std::array<vertex_element, size> elements) noexcept : elements(elements) {
-            for(const vertex_element& element : elements) total_bytes += element.bytes;
+        constexpr explicit vertex_format(const std::array<vertex_element, size> elements) noexcept : elements(elements)
+        {
+            for (const vertex_element& element : elements) total_bytes += element.bytes;
         }
 
-        void apply(const GLuint vertex_format_buffer, const GLuint vertex_buffer_slot) const {
+        void apply(const GLuint vertex_format_buffer, const GLuint vertex_buffer_slot) const
+        {
             size_t offset = 0;
-            for(int i = 0; i < elements.size(); i++)
+            for (int i = 0; i < elements.size(); i++)
             {
                 const vertex_element& element = elements[i];
                 glEnableVertexArrayAttrib(vertex_format_buffer, i);
@@ -53,16 +54,17 @@ namespace hyengine::graphics {
                 offset += element.bytes;
             }
         }
+
     private:
         std::array<vertex_element, size> elements;
         int total_bytes = 0;
     };
 
-    namespace vertex_element_types {
-
+    namespace vertex_element_types
+    {
         constexpr vertex_element make_instanced(const vertex_element& element, const int instance_divisor)
         {
-            return vertex_element {element.normalized, element.gl_type, element.count, element.bytes, element.asInt, instance_divisor};
+            return vertex_element{element.normalized, element.gl_type, element.count, element.bytes, element.asInt, instance_divisor};
         }
 
         constexpr vertex_element UBYTE = {GL_FALSE, GL_UNSIGNED_BYTE, 1, 1, true, 0};

@@ -2,10 +2,8 @@
 
 #include "graphics.hpp"
 
-namespace hyengine::graphics {
-
-    using namespace hyengine;
-
+namespace hyengine
+{
     enum class window_mode
     {
         WINDOWED, FULLSCREEN, BORDERLESS
@@ -35,7 +33,8 @@ namespace hyengine::graphics {
         bool gl_profile_debug = false;
     };
 
-    class native_window {
+    class native_window
+    {
     public:
         explicit native_window(const window_config& config, const native_window* parent = nullptr);
 
@@ -91,7 +90,6 @@ namespace hyengine::graphics {
         [[nodiscard]] unsigned int get_frame_count() const;
 
         [[nodiscard]] bool has_size_changed() const;
-
 
     private:
         GLFWwindow* handle = nullptr;

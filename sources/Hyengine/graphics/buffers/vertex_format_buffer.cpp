@@ -4,10 +4,8 @@
 
 #include "../../core/logger.hpp"
 
-namespace hyengine::graphics {
-
-    using namespace hyengine;
-
+namespace hyengine
+{
     vertex_format_buffer::vertex_format_buffer() = default;
 
     void vertex_format_buffer::bind_state() const
@@ -51,7 +49,7 @@ namespace hyengine::graphics {
         ZoneScoped;
         if (buffer_id > 0)
         {
-            logger::message_warn(logger::format("Attempted to initialize already initialized format buffer!", " (buffer ", buffer_id, ")"), logger_tag);
+            log_warn(logger_tag, "Attempted to initialize already initialized format buffer!", " (buffer ", buffer_id, ")");
         }
         glCreateVertexArrays(1, &buffer_id);
     }

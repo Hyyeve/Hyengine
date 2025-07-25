@@ -1,12 +1,10 @@
 #pragma once
 
 #include <unordered_map>
-
 #include "../../common/id_generator.hpp"
-#include "../graphics.hpp"
 
-namespace hyengine::graphics {
-
+namespace hyengine
+{
     class texture_set
     {
     public:
@@ -30,8 +28,7 @@ namespace hyengine::graphics {
             unsigned int sampler_id;
         };
 
-        common::id_generator<unsigned int> slot_allocator;
+        id_generator<unsigned int> slot_allocator;
         std::unordered_map<unsigned int, texture_slot_data> slot_map;
     };
-
 }

@@ -6,13 +6,9 @@
 #include "../core/logger.hpp"
 #include "../library/gl.hpp"
 
-namespace hyengine::graphics {
-
-    using namespace hyengine;
-    using namespace hyengine::common;
-
+namespace hyengine
+{
     using namespace glm;
-    #pragma region Init
 
     bool try_load_glad()
     {
@@ -26,17 +22,15 @@ namespace hyengine::graphics {
         return glfwInit() == GLFW_TRUE;
     }
 
-    #pragma endregion
-
-    #pragma region Debug
-
-    static void handle_gl_error(GLenum source, GLenum type, GLuint  /*id*/, GLenum severity, GLsizei  /*length*/, const GLchar* message, const void*  /*userParam*/) {
+    static void handle_gl_error(GLenum source, GLenum type, GLuint /*id*/, GLenum severity, GLsizei /*length*/, const GLchar* message, const void* /*userParam*/)
+    {
         ZoneScoped;
         std::string source_str;
         std::string type_str;
         bool should_display = true;
 
-        switch(source) {
+        switch (source)
+        {
             case GL_DEBUG_SOURCE_API:
                 source_str = "API";
                 break;
@@ -59,7 +53,8 @@ namespace hyengine::graphics {
                 source_str = "Unknown";
                 break;
         }
-        switch(type) {
+        switch (type)
+        {
             case GL_DEBUG_TYPE_ERROR:
                 type_str = "Error";
                 break;
@@ -101,86 +96,91 @@ namespace hyengine::graphics {
         std::string id_str = "GL " + source_str + " > " + type_str;
         std::string msg_str = std::string(message);
 
-        switch(severity) {
+        switch (severity)
+        {
             case GL_DEBUG_SEVERITY_HIGH:
-                logger::message_error( msg_str, id_str);
+                log_error(msg_str, id_str);
                 break;
             case GL_DEBUG_SEVERITY_MEDIUM:
-                logger::message_warn(msg_str, id_str);
+                log_warn(msg_str, id_str);
                 break;
             case GL_DEBUG_SEVERITY_LOW:
-                logger::message_info(msg_str, id_str);
+                log_info(msg_str, id_str);
                 break;
             default:
-                logger::message_debug(msg_str, id_str);
+                log_debug(msg_str, id_str);
                 break;
         }
     }
 
-    void enable_gl_debug() {
+    void enable_gl_debug()
+    {
         ZoneScoped;
         glEnable(GL_DEBUG_OUTPUT);
         glDebugMessageCallback(handle_gl_error, nullptr);
     }
 
-    #pragma endregion
-
-    #pragma region Scissor
-
-    void set_scissor(const rectangle& rect) {
+    void set_scissor(const rectangle& rect)
+    {
         ZoneScoped;
         set_scissor(rect.position, rect.size);
     }
 
-    void set_scissor(const int x, const int y, const int width, const int height) {
+    void set_scissor(const int x, const int y, const int width, const int height)
+    {
         ZoneScoped;
         glScissor(x, y, width, height);
     }
 
-    void set_scissor(ivec2 position, ivec2 size) {
+    void set_scissor(ivec2 position, ivec2 size)
+    {
         ZoneScoped;
         set_scissor(position.x, position.y, size.x, size.y);
     }
 
 
-    void enable_scissor_test() {
+    void enable_scissor_test()
+    {
         ZoneScoped;
         glEnable(GL_SCISSOR_TEST);
     }
 
-    void disable_scissor_test() {
+    void disable_scissor_test()
+    {
         ZoneScoped;
         glDisable(GL_SCISSOR_TEST);
     }
 
-    #pragma endregion
-
-    #pragma region Viewport
-
     static viewport current_viewport{};
 
-    void set_viewport(const viewport& viewport) {
+    void set_viewport(const viewport& viewport)
+    {
         ZoneScoped;
         current_viewport = viewport;
         glViewport(viewport.x_offset, viewport.y_offset, viewport.width, viewport.height);
     }
 
-    const viewport& get_viewport() {
+    const viewport& get_viewport()
+    {
         ZoneScoped;
         return current_viewport;
     }
 
-    viewport create_letterbox_viewport(const viewport& to_fit, const int target_width, const int target_height, const bool fill) {
+    viewport create_letterbox_viewport(const viewport& to_fit, const int target_width, const int target_height, const bool fill)
+    {
         ZoneScoped;
         const float aspectA = to_fit.height * target_width;
         const float aspectB = target_height * to_fit.width;
 
         viewport result{};
 
-        if (aspectA > aspectB != fill) {
+        if (aspectA > aspectB != fill)
+        {
             result.width = to_fit.width;
             result.height = aspectB / target_width;
-        } else {
+        }
+        else
+        {
             result.width = aspectA / target_height;
             result.height = to_fit.height;
         }
@@ -194,8 +194,10 @@ namespace hyengine::graphics {
     void set_gl_flag_enabled(const GLenum setting, const bool enable)
     {
         ZoneScoped;
-        if (enable) glEnable(setting);
-        else glDisable(setting);
+        if (enable)
+            glEnable(setting);
+        else
+            glDisable(setting);
     }
 
     void set_blending_config(const blending_config& config, const unsigned int buffer_slot)
@@ -281,7 +283,4 @@ namespace hyengine::graphics {
         glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &result);
         return static_cast<unsigned int>(result);
     }
-
-#pragma endregion
-
 }

@@ -4,10 +4,8 @@
 #include "../../core/logger.hpp"
 #include "../shader.hpp"
 
-namespace hyengine::graphics {
-
-    using namespace hyengine;
-
+namespace hyengine
+{
     basic_renderer::basic_renderer(): draw_count(0), write_index(0)
     {
     }
@@ -23,7 +21,7 @@ namespace hyengine::graphics {
         ZoneScoped;
         if (is_allocated)
         {
-            logger::warn(logger_tag, "Attempted to allocate already allocated debug renderer!");
+            log_warn(logger_tag, "Attempted to allocate already allocated debug renderer!");
             return;
         }
 
@@ -39,7 +37,7 @@ namespace hyengine::graphics {
 
         is_allocated = true;
 
-        logger::info(logger_tag, "Allocated debug renderer with ", logger::format_bytes(max_vertices * sizeof(debug_vertex)), " of vertex memory.");
+        log_info(logger_tag, "Allocated debug renderer with ", format_bytes(max_vertices * sizeof(debug_vertex)), " of vertex memory.");
     }
 
     void basic_renderer::free()
@@ -53,7 +51,7 @@ namespace hyengine::graphics {
         write_index = 0;
         is_allocated = false;
 
-        logger::info(logger_tag, "Freed debug renderer");
+        log_info(logger_tag, "Freed debug renderer");
     }
 
     void basic_renderer::vertex(glm::vec3 pos, glm::vec4 color)
@@ -61,11 +59,11 @@ namespace hyengine::graphics {
         ZoneScoped;
         if (!is_allocated)
         {
-            logger::warn(logger_tag, "Can't add triangle; renderer not allocated!");
+            log_warn(logger_tag, "Can't add triangle; renderer not allocated!");
             return;
         }
 
-        vertex_buffer.get_mapped_slice_pointer()[write_index] = {pos, common::colors::float_to_bits(color)};
+        vertex_buffer.get_mapped_slice_pointer()[write_index] = {pos, color_to_bits(color)};
         write_index++;
     }
 
@@ -133,7 +131,7 @@ namespace hyengine::graphics {
         vertex_buffer.block_ready();
     }
 
-    void basic_renderer::update_shader_uniforms(const float interpolation_delta, const graphics::camera& cam)
+    void basic_renderer::update_shader_uniforms(const float interpolation_delta, const camera& cam)
     {
         ZoneScoped;
         shader& current_shader = use_texture ? texture_shader : basic_shader;

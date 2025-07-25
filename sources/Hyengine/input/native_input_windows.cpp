@@ -6,8 +6,8 @@
 #include "native_input.hpp"
 #include "../core/logger.hpp"
 
-namespace hyengine::input::native {
-
+namespace hyengine
+{
     unsigned int global_hotkey_id = 1;
 
     std::set<unsigned int> pressed_hotkeys;
@@ -81,7 +81,8 @@ namespace hyengine::input::native {
         return 0;
     }
 
-    unsigned int set_global_hotkey(const unsigned int key, const unsigned int mods) {
+    unsigned int set_global_hotkey(const unsigned int key, const unsigned int mods)
+    {
         ZoneScoped;
         const unsigned int id = global_hotkey_id;
 
@@ -106,7 +107,6 @@ namespace hyengine::input::native {
 
     void setup_event_hook()
     {
-
     }
 
     void process_native_input()

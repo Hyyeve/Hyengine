@@ -1,10 +1,11 @@
 #pragma once
 #include "../../library/glm.hpp"
 
-namespace hyengine::common {
-
-    class line {
-        public:
+namespace hyengine
+{
+    class line
+    {
+    public:
         glm::vec2 start, end;
 
         #define OP(half, full) \
@@ -13,8 +14,7 @@ namespace hyengine::common {
             line operator half(const float other) const; \
             line& operator full(const line& other); \
             line& operator full(const glm::vec2 other); \
-            line& operator full(const float other); \
-
+            line& operator full(const float other);
         OP(+, +=);
         OP(-, -=);
         OP(*, *=);
@@ -37,4 +37,3 @@ namespace hyengine::common {
         [[nodiscard]] glm::vec2 intersection_with(const line& other) const;
     };
 }
-

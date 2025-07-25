@@ -4,10 +4,8 @@
 #include "../../library/glm.hpp"
 
 
-namespace hyengine::graphics {
-
-    using namespace hyengine;
-
+namespace hyengine
+{
     class render_texture
     {
     public:

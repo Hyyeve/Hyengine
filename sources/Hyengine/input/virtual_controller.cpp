@@ -2,7 +2,7 @@
 
 #include <tracy/Tracy.hpp>
 
-namespace hyengine::input
+namespace hyengine
 {
     void virtual_controller::press_button(const int button)
     {

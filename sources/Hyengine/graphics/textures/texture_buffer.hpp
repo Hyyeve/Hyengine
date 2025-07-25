@@ -2,10 +2,8 @@
 #include "../../library/gl.hpp"
 #include "../../library/glm.hpp"
 
-namespace hyengine::graphics {
-
-    using namespace hyengine;
-
+namespace hyengine
+{
     class texture_buffer
     {
     public:

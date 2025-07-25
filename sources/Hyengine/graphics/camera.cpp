@@ -2,9 +2,8 @@
 
 #include <tracy/Tracy.hpp>
 
-namespace hyengine::graphics
+namespace hyengine
 {
-    using namespace hyengine;
     using namespace glm;
 
     camera::camera(const vec3& position, const vec3& rotation) : position(position), rotation(rotation)
@@ -135,7 +134,7 @@ namespace hyengine::graphics
             view_matrix = translate(view_matrix, -zoom_translation);
         }
 
-        frustum.set_from_matrices(projection_matrix, view_matrix, get_position(interpolation));
+        cam_frustum.set_from_matrices(projection_matrix, view_matrix, get_position(interpolation));
     }
 
     void camera::start_update()
@@ -198,13 +197,13 @@ namespace hyengine::graphics
     bool camera::frustum_visible(glm::dvec3 sphere_pos, float sphere_radius) const
     {
         ZoneScoped;
-        return frustum.visible(sphere_pos, sphere_radius);
+        return cam_frustum.visible(sphere_pos, sphere_radius);
     }
 
-    common::frustum camera::get_frustum() const
+    frustum camera::get_frustum() const
     {
         ZoneScoped;
-        return frustum;
+        return cam_frustum;
     }
 
     vec3 camera::screen_to_world(const vec3& point, const viewport screen) const

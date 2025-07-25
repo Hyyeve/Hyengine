@@ -5,10 +5,9 @@
 
 #include "../core/logger.hpp"
 
-namespace hyengine::input
+namespace hyengine
 {
     using namespace glm;
-    using namespace hyengine;
 
     const static std::string logger_tag = "Input";
 
@@ -42,10 +41,10 @@ namespace hyengine::input
         if (action == GLFW_RELEASE) mouse_hardware.release_button(button);
     }
 
-    void glfw_mouse_scroll_callback(GLFWwindow* /*window*/, const double xoffset, const double yoffset)
+    void glfw_mouse_scroll_callback(GLFWwindow* /*window*/, const double x_offset, const double y_offset)
     {
         ZoneScoped;
-        mouse_hardware.scroll({xoffset, yoffset});
+        mouse_hardware.scroll({x_offset, y_offset});
     }
 
     void glfw_mouse_position_callback(GLFWwindow* window, const double x, const double y)
@@ -93,7 +92,7 @@ namespace hyengine::input
         }
     }
 
-    void bind_callbacks(GLFWwindow* window)
+    void bind_input(GLFWwindow* window)
     {
         ZoneScoped;
         reset_controller_map();
@@ -105,7 +104,7 @@ namespace hyengine::input
         glfwSetCursorPosCallback(window, glfw_mouse_position_callback);
         glfwSetJoystickCallback(glfw_joystick_connection_callback);
 
-        logger::info(logger_tag, "Bound hardware input callbacks to window @", reinterpret_cast<size_t>(window));
+        log_info(logger_tag, "Bound hardware input callbacks to window @", reinterpret_cast<size_t>(window));
     }
 
     void poll_controllers()
@@ -143,16 +142,19 @@ namespace hyengine::input
                         {
                             dpad_direction = virtual_controller::dpad::RIGHT;
                             is_dpad = true;
+                            break;
                         }
                         case GLFW_GAMEPAD_BUTTON_DPAD_UP:
                         {
                             dpad_direction = virtual_controller::dpad::UP;
                             is_dpad = true;
+                            break;
                         }
                         case GLFW_GAMEPAD_BUTTON_DPAD_DOWN:
                         {
                             dpad_direction = virtual_controller::dpad::DOWN;
                             is_dpad = true;
+                            break;
                         }
                         default: break;
                     }

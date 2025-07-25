@@ -3,9 +3,10 @@
 #include "../../library/gl.hpp"
 #include "../../library/glm.hpp"
 
-namespace hyengine::graphics {
-
-    class texture_sampler_state {
+namespace hyengine
+{
+    class texture_sampler_state
+    {
     public:
         texture_sampler_state(const texture_sampler_state& other) = delete; //COPY CONSTRUCTOR
         texture_sampler_state(texture_sampler_state&& other) = delete; //MOVE CONSTRUCTOR

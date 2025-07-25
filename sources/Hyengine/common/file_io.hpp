@@ -2,8 +2,8 @@
 #include <string>
 #include <vector>
 
-namespace hyengine::common::file_io {
-
+namespace hyengine
+{
     struct image_data
     {
         void* data;
@@ -36,5 +36,4 @@ namespace hyengine::common::file_io {
     std::string find_directive(const std::string& text, const std::string& directive);
     void replace_directive(std::string& text, const std::string& directive, const std::string& replacement);
     bool asset_exists(const std::string& asset_id);
-
 }

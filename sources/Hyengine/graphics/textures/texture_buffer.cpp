@@ -5,10 +5,8 @@
 #include "../../core/logger.hpp"
 #include "../../library/gl.hpp"
 
-namespace hyengine::graphics
+namespace hyengine
 {
-    using namespace hyengine;
-
     texture_buffer::~texture_buffer()
     {
         ZoneScoped;
@@ -20,7 +18,7 @@ namespace hyengine::graphics
         ZoneScoped;
         if (buffer_id > 0)
         {
-            logger::message_warn(logger::format("Attempted to initialize already initialized texture buffer!", " (buffer ", buffer_id, ")"), logger_tag);
+            log_warn(logger_tag, "Attempted to initialize already initialized texture buffer!", " (buffer ", buffer_id, ")");
             return;
         }
 
@@ -39,7 +37,7 @@ namespace hyengine::graphics
             case GL_PROXY_TEXTURE_1D:
             {
                 glTextureStorage1D(buffer_id, internal_mipmaps, format, internal_size.x);
-                type_info = logger::format("1D, ", internal_size.x, " pixels, ", logger::format_count(internal_mipmaps, "Mipmap level"));
+                type_info = stringify("1D, ", internal_size.x, " pixels, ", format_count(internal_mipmaps, "Mipmap level"));
                 break;
             }
 
@@ -51,7 +49,7 @@ namespace hyengine::graphics
             case GL_PROXY_TEXTURE_CUBE_MAP_ARRAY:
             {
                 glTextureStorage3D(buffer_id, internal_mipmaps, format, internal_size.x, internal_size.y, internal_size.z);
-                type_info = logger::format("3D / 2D Array, ", internal_size.x, "x", internal_size.y, "x", internal_size.z, ". ", logger::format_count(internal_mipmaps, "Mipmap level"));
+                type_info = stringify("3D / 2D Array, ", internal_size.x, "x", internal_size.y, "x", internal_size.z, ". ", format_count(internal_mipmaps, "Mipmap level"));
                 break;
             }
 
@@ -60,7 +58,7 @@ namespace hyengine::graphics
             {
                 //It's unclear whether the last parameter (fixed sample locations) is actually used by any implementations, so for now I'm not supporting customizing it.
                 glTextureStorage2DMultisample(buffer_id, internal_multisample, format, internal_size.x, internal_size.y, GL_TRUE);
-                type_info = logger::format("2D multisample, ", internal_size.x, "x", internal_size.y, ". ", logger::format_count(internal_multisample, "MSAA sample"));
+                type_info = stringify("2D multisample, ", internal_size.x, "x", internal_size.y, ". ", format_count(internal_multisample, "MSAA sample"));
                 break;
             }
 
@@ -69,26 +67,26 @@ namespace hyengine::graphics
             {
                 //It's unclear whether the last parameter (fixed sample locations) is actually used by any implementations, so for now I'm not supporting customizing it.
                 glTextureStorage3DMultisample(buffer_id, internal_multisample, format, internal_size.x, internal_size.y, internal_size.z, GL_TRUE);
-                type_info = logger::format("2D multisample array, ", internal_size.x, "x", internal_size.y, "x", internal_size.z, ". ", logger::format_count(internal_multisample, "MSAA sample"));
+                type_info = stringify("2D multisample array, ", internal_size.x, "x", internal_size.y, "x", internal_size.z, ". ", format_count(internal_multisample, "MSAA sample"));
                 break;
             }
 
             default:
             {
                 glTextureStorage2D(buffer_id, internal_mipmaps, format, internal_size.x, internal_size.y);
-                type_info = logger::format("Default 2D, ", internal_size.x, "x", internal_size.y, ". ", logger::format_count(internal_mipmaps, "Mipmap level"));
+                type_info = stringify("Default 2D, ", internal_size.x, "x", internal_size.y, ". ", format_count(internal_mipmaps, "Mipmap level"));
                 break;
             }
         }
 
-        logger::message_info(logger::format("Allocated texture buffer ", buffer_id, ": ", type_info), logger_tag);
+        log_info(logger_tag, "Allocated texture buffer ", buffer_id, ": ", type_info);
     }
 
     void texture_buffer::free()
     {
         ZoneScoped;
         glDeleteTextures(1, &buffer_id);
-        logger::message_info(logger::format("Freed texture buffer ", buffer_id, "."), logger_tag);
+        log_info(logger_tag, "Freed texture buffer ", buffer_id, ".");
         buffer_id = 0;
     }
 
@@ -190,7 +188,7 @@ namespace hyengine::graphics
         ZoneScoped;
         if (buffer_id != 0)
         {
-            logger::message_warn(logger::format("Attempted to initialize already initialized texture buffer!", " (buffer ", buffer_id, ")"), logger_tag);
+            log_warn(logger_tag, "Attempted to initialize already initialized texture buffer!", " (buffer ", buffer_id, ")");
             return;
         }
 
@@ -199,7 +197,7 @@ namespace hyengine::graphics
 
         glGenTextures(1, &buffer_id);
         glTextureView(buffer_id, internal_texture_type, source_id, internal_format, first_mip, mipmap_count, first_layer, layer_count);
-        logger::message_debug(logger::format("Allocated texture view (", buffer_id, ") of texture ", source_id), logger_tag);
+        log_debug(logger_tag, "Allocated texture view (", buffer_id, ") of texture ", source_id);
     }
 
 

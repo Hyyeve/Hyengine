@@ -2,11 +2,11 @@
 #include <map>
 
 
-namespace hyengine::input
+namespace hyengine
 {
-    class virtual_controller {
+    class virtual_controller
+    {
     public:
-
         enum class dpad
         {
             LEFT, RIGHT, UP, DOWN

@@ -2,22 +2,23 @@
 #include <stack>
 #include "rectangle.hpp"
 
-namespace hyengine::common
+namespace hyengine
 {
-    class rectangle_stack {
+    class rectangle_stack
+    {
     public:
-        enum class stack_mode {
+        enum class stack_mode
+        {
             OVERWRITE, UNION, INTERSECTION
         };
 
-        void push(const common::rectangle& rect, stack_mode mode);
-        void swap(const common::rectangle& rect, stack_mode mode);
+        void push(const rectangle& rect, stack_mode mode);
+        void swap(const rectangle& rect, stack_mode mode);
         void pop();
 
-        [[nodiscard]] const common::rectangle& peek();
+        [[nodiscard]] const rectangle& peek();
+
     private:
         std::stack<rectangle> stack;
     };
 }
-
-

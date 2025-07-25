@@ -22,42 +22,52 @@
         current_value op rhs; \
         return *this; \
     }
+#include <tracy/Tracy.hpp>
 
-namespace hyengine::common {
-    template<class T>
-    struct interpolator {
-        template<typename P>
-        [[nodiscard]] static T interpolate(const T& a, const T& b, P percent) {
+namespace hyengine
+{
+    template <class T>
+    struct interpolator
+    {
+        template <typename P>
+        [[nodiscard]] static T interpolate(const T& a, const T& b, P percent)
+        {
+            ZoneScoped;
             return a + (b - a) * percent;
         }
     };
 
-    template<>
+    template <>
     struct interpolator<glm::quat>
     {
-        template<typename P>
+        template <typename P>
         [[nodiscard]] static glm::quat interpolate(const glm::quat& a, const glm::quat& b, P percent)
         {
+            ZoneScoped;
             return glm::slerp(a, b, percent);
         }
     };
 
-    template<class T, class I = interpolator<T>>
-    class interpolatable {
+    template <class T, class I = interpolator<T>>
+    class interpolatable
+    {
     public:
-
         T previous_value;
         T current_value;
 
         // ReSharper disable once CppNonExplicitConvertingConstructor
-        interpolatable(T value) : previous_value(value), current_value(value) {} // NOLINT(*-explicit-constructor, *-explicit-conversions)
+        interpolatable(T value) : previous_value(value), current_value(value)
+        {
+        } // NOLINT(*-explicit-constructor, *-explicit-conversions)
 
         // ReSharper disable once CppNonExplicitConversionOperator
-        operator T() { // NOLINT(*-explicit-constructor, *-explicit-conversions)
+        operator T()
+        { // NOLINT(*-explicit-constructor, *-explicit-conversions)
             return current_value;
         }
 
-        interpolatable& operator=(const T& rhs) {
+        interpolatable& operator=(const T& rhs)
+        {
             current_value = rhs;
             return *this;
         }
@@ -87,28 +97,38 @@ namespace hyengine::common {
         DEF_ASSIGN_OPERATOR(<<=)
         DEF_ASSIGN_OPERATOR(>>=)
 
-        template<typename P>
-        [[nodiscard]] T interpolated(const P percent) const {
+        template <typename P>
+        [[nodiscard]] T interpolated(const P percent) const
+        {
+            ZoneScoped;
             return I::interpolate(previous_value, current_value, percent);
         }
 
-        template<typename P>
-        void interpolate_previous_to(const P percent) {
+        template <typename P>
+        void interpolate_previous_to(const P percent)
+        {
+            ZoneScoped;
             previous_value = interpolated(percent);
         }
 
-        template<typename P>
-        void interpolate_current_to(const P percent) {
+        template <typename P>
+        void interpolate_current_to(const P percent)
+        {
+            ZoneScoped;
             current_value = interpolated(percent);
         }
 
-        template<typename P>
-        void stabilize_to(const P percent) {
+        template <typename P>
+        void stabilize_to(const P percent)
+        {
+            ZoneScoped;
             current_value = interpolated(percent);
             previous_value = current_value;
         }
 
-        void stabilize() {
+        void stabilize()
+        {
+            ZoneScoped;
             previous_value = current_value;
         }
     };

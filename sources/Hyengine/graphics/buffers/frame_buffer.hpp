@@ -4,8 +4,8 @@
 #include "../../library/gl.hpp"
 #include "../../library/glm.hpp"
 
-namespace hyengine::graphics {
-
+namespace hyengine
+{
     using namespace hyengine;
 
 

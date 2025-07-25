@@ -1,9 +1,10 @@
 #pragma once
 #include "../../library/glm.hpp"
 
-namespace hyengine::common {
-
-    class rectangle {
+namespace hyengine
+{
+    class rectangle
+    {
     public:
         glm::vec2 position, size;
 
@@ -36,9 +37,8 @@ namespace hyengine::common {
         [[nodiscard]] bool contains(glm::vec2 point) const;
         [[nodiscard]] bool intersects(const rectangle& other) const;
         [[nodiscard]] bool is_inside(const rectangle& other) const;
-        [[nodiscard]] bool is_smaller_than(const rectangle &other) const;
+        [[nodiscard]] bool is_smaller_than(const rectangle& other) const;
 
         void check_flipped();
     };
 }
-

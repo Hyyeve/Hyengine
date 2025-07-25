@@ -2,11 +2,8 @@
 
 #include "standard_data_buffer.hpp"
 
-namespace hyengine::graphics
+namespace hyengine
 {
-    using namespace hyengine;
-
-
     template <typename TYPE>
     class typed_data_buffer
     {

@@ -4,22 +4,25 @@
 
 #include "../../library/glm.hpp"
 
-namespace hyengine::common::math
+namespace hyengine
 {
-    template<typename number>
-    number lerp(number input_min, number input_max, number value) {
+    template <typename number>
+    number lerp(number input_min, number input_max, number value)
+    {
         ZoneScoped;
         return input_min + (input_max - input_min) * value;
     }
 
-    template<typename num>
-    num inverse_lerp(num input_min, num input_max, num value) {
+    template <typename num>
+    num inverse_lerp(num input_min, num input_max, num value)
+    {
         ZoneScoped;
         return (input_min - value) / (input_max - value);
     }
 
-    template<typename number>
-    number remap(number input_min, number input_max, number output_min, number output_max, number value) {
+    template <typename number>
+    number remap(number input_min, number input_max, number output_min, number output_max, number value)
+    {
         ZoneScoped;
         return lerp(output_min, output_max, inverse_lerp(input_min, input_max, value));
     }

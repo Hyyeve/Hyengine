@@ -1,6 +1,7 @@
 #include "frustum.hpp"
 #include <tracy/Tracy.hpp>
-namespace hyengine::common
+
+namespace hyengine
 {
     void frustum::set_from_matrices(glm::mat4 projection, glm::mat4 view, glm::dvec3 position)
     {
@@ -43,7 +44,7 @@ namespace hyengine::common
         normals[5].z = mat[2][3] - mat[2][2];
         distances[5] = mat[3][3] - mat[3][2];
 
-        for(int i = 0; i < 6; i++)
+        for (int i = 0; i < 6; i++)
         {
             const float length = glm::length(normals[i]);
             normals[i] /= length;

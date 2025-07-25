@@ -2,9 +2,10 @@
 
 #include <tracy/Tracy.hpp>
 
-namespace hyengine::common
+namespace hyengine
 {
-    void rectangle_stack::push(const rectangle& rect, const rectangle_stack::stack_mode mode) {
+    void rectangle_stack::push(const rectangle& rect, const rectangle_stack::stack_mode mode)
+    {
         ZoneScoped;
         rectangle scissor = rect;
         if (!stack.empty() && mode != rectangle_stack::stack_mode::OVERWRITE)

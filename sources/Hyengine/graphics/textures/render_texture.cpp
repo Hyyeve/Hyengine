@@ -4,10 +4,8 @@
 
 #include "../../core/logger.hpp"
 
-namespace hyengine::graphics {
-
-    using namespace hyengine;
-
+namespace hyengine
+{
     render_texture::~render_texture()
     {
         ZoneScoped;
@@ -20,8 +18,9 @@ namespace hyengine::graphics {
     void render_texture::allocate(const GLenum format, const glm::uvec2 size, const int multisample_count)
     {
         ZoneScoped;
-        if(gl_id > 0) {
-            logger::message_warn(logger::format("Attempted to initialize already initialized buffer!", " (buffer ", gl_id, ")"), logger_tag);
+        if (gl_id > 0)
+        {
+            log_warn(logger_tag, "Attempted to initialize already initialized buffer!", " (buffer ", gl_id, ")");
             return;
         }
 
@@ -32,14 +31,14 @@ namespace hyengine::graphics {
         glCreateRenderbuffers(1, &gl_id);
         glNamedRenderbufferStorageMultisample(gl_id, internal_samples, internal_format, internal_size.x, internal_size.y);
 
-        logger::message_info(logger::format("Allocated render texture ", gl_id, ": ", internal_size.x, "x", internal_size.y, " ", logger::format_count(internal_samples, "MSAA sample")), logger_tag);
+        log_info(logger_tag, "Allocated render texture ", gl_id, ": ", internal_size.x, "x", internal_size.y, " ", format_count(internal_samples, "MSAA sample"));
     }
 
     void render_texture::free()
     {
         ZoneScoped;
         glDeleteRenderbuffers(1, &gl_id);
-        logger::message_info(logger::format("Freed render texture ", gl_id, "."), logger_tag);
+        log_info(logger_tag, "Freed render texture ", gl_id, ".");
         gl_id = 0;
     }
 

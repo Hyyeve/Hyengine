@@ -2,7 +2,8 @@
 
 #include <tracy/Tracy.hpp>
 
-namespace hyui {
+namespace hyui
+{
     unsigned int content_adjusted_min(const ui_object& object, const int axis)
     {
         ZoneScoped;

@@ -2,9 +2,8 @@
 
 #include <tracy/Tracy.hpp>
 
-namespace hyengine::common
+namespace hyengine
 {
-
     pool_allocation_tracker::pool_allocation_tracker(const unsigned int size): total_pool_size(size), remaining_available_size(total_pool_size)
     {
     }
@@ -111,7 +110,7 @@ namespace hyengine::common
         start = 0;
         block_idx = 0;
         is_end_allocation = false;
-        for (allocation_block block : allocations)
+        for (const allocation_block block : allocations)
         {
             if (block.start < start + size)
             {

@@ -1,8 +1,8 @@
 #pragma once
 #include <atomic>
 
-namespace hyengine::threading {
-
+namespace hyengine
+{
     extern unsigned int IDLE_SLEEP_INCREMENT;
 
     class async_task

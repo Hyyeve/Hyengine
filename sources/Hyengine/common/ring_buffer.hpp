@@ -2,12 +2,14 @@
 #include <array>
 #include <tracy/Tracy.hpp>
 
-namespace hyengine::common
+namespace hyengine
 {
-    template<typename T, int capacity>
-class ring_buffer {
+    template <typename T, int capacity>
+    class ring_buffer
+    {
     public:
-        void push(T value) {
+        void push(T value)
+        {
             ZoneScoped;
             elements[write_index] = value;
             write_index++;
@@ -15,7 +17,8 @@ class ring_buffer {
             max_read_index++;
         }
 
-        [[nodiscard]] T read() {
+        [[nodiscard]] T read()
+        {
             ZoneScoped;
             T elem = elements[read_index];
             read_index++;
@@ -23,17 +26,20 @@ class ring_buffer {
             return elem;
         }
 
-        [[nodiscard]] T operator[](const size_t index) const {
+        [[nodiscard]] T operator[](const size_t index) const
+        {
             ZoneScoped;
             return elements[index % capacity];
         }
 
-        [[nodiscard]] static int size() {
+        [[nodiscard]] static int size()
+        {
             ZoneScoped;
             return capacity;
         }
 
-        [[nodiscard]] int max_index() const {
+        [[nodiscard]] int max_index() const
+        {
             ZoneScoped;
             return max_read_index >= capacity ? capacity - 1 : max_read_index;
         }

@@ -9,10 +9,9 @@
 
 #include "../common/file_io.hpp"
 
-namespace hyengine::graphics
+namespace hyengine
 {
-    using namespace hyengine;
-    using namespace glm;
+   using namespace glm;
 
     shader::shader(std::string asset_id) noexcept : asset_id(std::move(asset_id)), binary_asset_id(get_binary_asset_id(this->asset_id))
     {
@@ -38,9 +37,9 @@ namespace hyengine::graphics
         return current_program == program_id;
     }
 
-    void shader::use()
+    void shader::use() const
     {
-        ZoneScoped;
+        ZoneScoped
         glUseProgram(program_id);
     }
 
@@ -49,7 +48,7 @@ namespace hyengine::graphics
         ZoneScoped;
         if (program_id != 0)
         {
-            logger::warn(logger_tag, "Shader ", asset_id, " already loaded!");
+            log_warn(logger_tag, "Shader ", asset_id, " already loaded!");
             return;
         }
 
@@ -58,11 +57,11 @@ namespace hyengine::graphics
         if (program_id != 0)
         {
             load_uniform_locations();
-            logger::message_info(logger::format("Loaded shader ", asset_id, " and located ", uniform_locations.size(), " uniforms"), logger_tag);
+            log_info(logger_tag, hyengine::stringify("Loaded shader ", asset_id, " and located ", uniform_locations.size(), " uniforms"));
         }
         else
         {
-            logger::message_error(logger::format("Shader initialization for ", asset_id, " failed!"), logger_tag);
+            log_error(logger_tag, hyengine::stringify("Shader initialization for ", asset_id, " failed!"));
         }
     }
 
@@ -89,7 +88,7 @@ namespace hyengine::graphics
     void shader::clear_binary_cache()
     {
         ZoneScoped;
-        common::file_io::delete_asset_directory(get_binary_asset_id("shader:dummy"));
+        delete_asset_directory(get_binary_asset_id("shader:dummy"));
     }
 
     static GLuint compile_shader(const std::string& share, const std::string& source, const GLuint type)
@@ -183,7 +182,7 @@ namespace hyengine::graphics
     std::string shader::get_binary_asset_id(const std::string& normal_asset_id)
     {
         ZoneScoped;
-        return logger::format(cache_directory, ":", common::file_io::get_asset_name(normal_asset_id));
+        return hyengine::stringify(cache_directory, ":", get_asset_name(normal_asset_id));
     }
 
     static bool line_contains(const std::string_view line, const std::string_view str)
@@ -195,12 +194,12 @@ namespace hyengine::graphics
     GLuint shader::load_program(const std::string& asset_id, const std::string& binary_asset_id)
     {
         ZoneScoped;
-        if (!common::file_io::asset_exists(asset_id)) return 0;
+        if (!asset_exists(asset_id)) return 0;
 
         const GLuint binary_program = load_binary_program(binary_asset_id);
         if (binary_program != 0) return binary_program;
 
-        const std::string raw_text = common::file_io::read_asset_text(asset_id);
+        const std::string raw_text = read_asset_text(asset_id);
         std::istringstream text(raw_text);
 
         std::string line;
@@ -253,8 +252,8 @@ namespace hyengine::graphics
     GLuint shader::load_binary_program(const std::string& asset_id)
     {
         ZoneScoped;
-        if (!common::file_io::asset_exists(asset_id)) return 0;
-        const std::vector<unsigned char> binary_data = common::file_io::read_asset_bytes(asset_id);
+        if (!asset_exists(asset_id)) return 0;
+        const std::vector<unsigned char> binary_data = read_asset_bytes(asset_id);
 
         const void* header_pointer = binary_data.data();
         const void* data_pointer = static_cast<const unsigned char*>(header_pointer) + sizeof(GLenum);
@@ -288,7 +287,7 @@ namespace hyengine::graphics
             binary_data.resize(written_length + sizeof(GLenum));
         }
 
-        common::file_io::save_raw_asset(asset_id, binary_data);
+        save_raw_asset(asset_id, binary_data);
     }
 
     void shader::load_uniform_locations()
@@ -311,7 +310,7 @@ namespace hyengine::graphics
         }
     }
 
-#define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(name); location != uniform_locations.end()) { setter; } else logger::message_warn("Failed to set uniform '" + name + "'", logger_tag);
+    #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(name); location != uniform_locations.end()) { setter; } else log_warn("Failed to set uniform '" + name + "'", logger_tag);
 
     void shader::set_uniform(const std::string& name, const bool value)
     {

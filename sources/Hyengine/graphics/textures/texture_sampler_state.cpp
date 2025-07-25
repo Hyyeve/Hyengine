@@ -4,7 +4,8 @@
 
 #include <tracy/Tracy.hpp>
 
-namespace hyengine::graphics {
+namespace hyengine
+{
     texture_sampler_state::~texture_sampler_state()
     {
         ZoneScoped;

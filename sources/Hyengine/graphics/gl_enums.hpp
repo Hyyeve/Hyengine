@@ -1,13 +1,10 @@
 #pragma once
 #include "glad/glad.h"
 
-namespace hyengine::graphics::gl_enums {
-
-
-
+namespace hyengine
+{
     namespace cull_modes
     {
-
     }
 
     namespace buffer_targets
@@ -18,7 +15,7 @@ namespace hyengine::graphics::gl_enums {
         inline GLenum COPY_WRITE = GL_COPY_WRITE_BUFFER;
         inline GLenum DISPATCH_INDIRECT = GL_DISPATCH_INDIRECT_BUFFER;
         inline GLenum DRAW_INDIRECT = GL_DRAW_INDIRECT_BUFFER;
-        inline GLenum ELEMENT= GL_ELEMENT_ARRAY_BUFFER;
+        inline GLenum ELEMENT = GL_ELEMENT_ARRAY_BUFFER;
         inline GLenum PIXEL_PACK = GL_PIXEL_PACK_BUFFER;
         inline GLenum PIXEL_UNPACK = GL_PIXEL_UNPACK_BUFFER;
         inline GLenum QUERY = GL_QUERY_BUFFER;
@@ -125,10 +122,10 @@ namespace hyengine::graphics::gl_enums {
 
     namespace blend_functions
     {
-       inline GLenum ADD = GL_FUNC_ADD;
-       inline GLenum SUBTRACT = GL_FUNC_SUBTRACT;
-       inline GLenum SUBTRACT_SWAPPED = GL_FUNC_REVERSE_SUBTRACT;
-       inline GLenum MIN = GL_MIN;
-       inline GLenum MAX = GL_MAX;
+        inline GLenum ADD = GL_FUNC_ADD;
+        inline GLenum SUBTRACT = GL_FUNC_SUBTRACT;
+        inline GLenum SUBTRACT_SWAPPED = GL_FUNC_REVERSE_SUBTRACT;
+        inline GLenum MIN = GL_MIN;
+        inline GLenum MAX = GL_MAX;
     }
 }

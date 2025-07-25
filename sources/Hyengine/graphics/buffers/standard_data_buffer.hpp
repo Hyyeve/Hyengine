@@ -3,9 +3,8 @@
 #include <stdexcept>
 #include "../../library/gl.hpp"
 
-namespace hyengine::graphics {
-
-    using namespace hyengine;
+namespace hyengine
+{
 
     /* MULTIBUFFERING ORDER OF OPERATIONS
 
@@ -18,7 +17,8 @@ namespace hyengine::graphics {
 
     */
 
-    class standard_data_buffer {
+    class standard_data_buffer
+    {
     public:
         standard_data_buffer(const standard_data_buffer& other) = delete; //COPY CONSTRUCTOR
         standard_data_buffer(standard_data_buffer&& other) = delete; //MOVE CONSTRUCTOR
@@ -74,7 +74,8 @@ namespace hyengine::graphics {
     private:
         const std::string logger_tag = "GPU Slice Buffer";
 
-        struct slice_data {
+        struct slice_data
+        {
             GLintptr start_address = 0;
             GLsync fence = nullptr;
         };

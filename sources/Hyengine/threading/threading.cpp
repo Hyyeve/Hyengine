@@ -10,10 +10,8 @@
 
 #include "../core/logger.hpp"
 
-namespace hyengine::threading {
-
-    using namespace hyengine;
-
+namespace hyengine
+{
     static constexpr std::string_view logger_tag = "Async Task";
     unsigned int IDLE_SLEEP_INCREMENT = 35;
 
@@ -85,8 +83,8 @@ namespace hyengine::threading {
     void process_tasks()
     {
         ZoneScoped;
-        while(threads_active) {
-
+        while (threads_active)
+        {
             async_task* task = next_task();
 
             if (task != nullptr)
@@ -127,9 +125,12 @@ namespace hyengine::threading {
         threads.reserve(thread_count);
         for (unsigned int i = 0; i < thread_count; ++i)
         {
-            threads.emplace_back([i] {
-                char* thread_name = new char [16];
-                snprintf(thread_name, 16 , " Worker %i ", i) ;
+            threads.emplace_back([i]
+            {
+                // Tracy requires memory passed to the profiler to be pinned and never unallocated.
+                // ReSharper disable once CppDFAMemoryLeak
+                char* thread_name = new char[16];
+                snprintf(thread_name, 16, " Worker %i ", i);
                 tracy::SetThreadName(thread_name);
                 process_tasks();
             });
@@ -142,7 +143,7 @@ namespace hyengine::threading {
         ZoneScoped;
         thread_id_lock.lock();
         unsigned int id = 0;
-        unsigned int hash = std::hash<std::thread::id>{}(std::this_thread::get_id());
+        const unsigned int hash = std::hash<std::thread::id>{}(std::this_thread::get_id());
         if (thread_id_map.contains(hash))
         {
             id = thread_id_map[hash];
@@ -168,12 +169,12 @@ namespace hyengine::threading {
     }
 
 
-    void async_task::enqueue(unsigned int depends_on_id)
+    void async_task::enqueue(const unsigned int depends_on_id)
     {
         ZoneScoped;
         if (is_running)
         {
-            logger::message_debug("Can't queue; this task object is already running!", logger_tag);
+            log_debug(logger_tag, "Can't queue; this task object is already running!");
             return;
         }
 
@@ -185,7 +186,7 @@ namespace hyengine::threading {
         queue_task(this);
     }
 
-    bool async_task::await(unsigned long timeout)
+    bool async_task::await(const unsigned long timeout)
     {
         ZoneScoped;
         if (!is_running)

@@ -4,11 +4,10 @@
 #include "../buffers/typed_data_buffer.hpp"
 #include "Hyengine/graphics/shader.hpp"
 
-namespace hyengine::graphics {
-
-    using namespace hyengine;
-
-    class basic_renderer {
+namespace hyengine
+{
+    class basic_renderer
+    {
     public:
         explicit basic_renderer();
 
@@ -33,7 +32,7 @@ namespace hyengine::graphics {
         void finish();
         void block_ready();
 
-        void update_shader_uniforms(const float interpolation_delta, const graphics::camera& cam);
+        void update_shader_uniforms(const float interpolation_delta, const camera& cam);
         void reload_shaders();
 
         void bind();
@@ -46,14 +45,14 @@ namespace hyengine::graphics {
             unsigned int color;
         };
 
-        graphics::shader basic_shader = shader("shader:basic_pos_col");
-        graphics::shader texture_shader = shader("shader:basic_pos_col_tex");
+        shader basic_shader = shader("shader:basic_pos_col");
+        shader texture_shader = shader("shader:basic_pos_col_tex");
 
-        const vertex_format<2> debug_vertex_format = vertex_format<2>({graphics::vertex_element_types::VEC3, graphics::vertex_element_types::UBYTE_NVEC4});
+        const vertex_format<2> debug_vertex_format = vertex_format<2>({vertex_element_types::VEC3, vertex_element_types::UBYTE_NVEC4});
         const std::string logger_tag = "Basic Renderer";
 
-        graphics::typed_data_buffer<debug_vertex> vertex_buffer;
-        graphics::vertex_format_buffer vertex_format_buffer;
+        typed_data_buffer<debug_vertex> vertex_buffer;
+        vertex_format_buffer vertex_format_buffer;
 
         bool is_allocated = false;
         unsigned int draw_count;
@@ -62,5 +61,3 @@ namespace hyengine::graphics {
         bool use_texture = false;
     };
 }
-
-

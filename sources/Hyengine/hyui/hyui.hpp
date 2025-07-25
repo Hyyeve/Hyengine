@@ -4,13 +4,13 @@
 #include <vector>
 
 
-namespace hyui {
-
+namespace hyui
+{
     struct range_value
     {
         static range_value fixed(const unsigned int value)
         {
-            return { value, value, value};
+            return {value, value, value};
         }
 
         static range_value automatic()
@@ -25,7 +25,7 @@ namespace hyui {
 
         static range_value automatic(const unsigned int min, const unsigned int max)
         {
-            return { min, min, max };
+            return {min, min, max};
         }
 
         unsigned int current;

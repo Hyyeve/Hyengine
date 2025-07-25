@@ -4,14 +4,15 @@
 
 #include "../../core/logger.hpp"
 
-namespace hyengine::graphics {
-
+namespace hyengine
+{
     using namespace hyengine;
 
 
     basic_framebuffer::basic_framebuffer():
-    buffer(new frame_buffer()), depth_stencil_attachment(new render_texture()), color_attachment(new texture_buffer()), valid(false)
-    {}
+        buffer(new frame_buffer()), depth_stencil_attachment(new render_texture()), color_attachment(new texture_buffer()), valid(false)
+    {
+    }
 
     basic_framebuffer::~basic_framebuffer()
     {
@@ -28,8 +29,9 @@ namespace hyengine::graphics {
     void basic_framebuffer::allocate(GLenum color_format, glm::uvec2 size, int multisample_count)
     {
         ZoneScoped;
-        if(valid) {
-            logger::message_warn(logger::format("Attempted to allocate already allocated standard framebuffer! (framebuffer ", buffer->get_id(), ")"), logger_tag);
+        if (valid)
+        {
+            log_warn(stringify("Attempted to allocate already allocated standard framebuffer! (framebuffer ", buffer->get_id(), ")"), logger_tag);
             return;
         }
 
@@ -42,13 +44,13 @@ namespace hyengine::graphics {
 
         valid = buffer->validate();
 
-        logger::message_info(logger::format("Allocated standard framebuffer (framebuffer ", buffer->get_id(), ")"), logger_tag);
+        log_info(stringify("Allocated standard framebuffer (framebuffer ", buffer->get_id(), ")"), logger_tag);
     }
 
     void basic_framebuffer::free()
     {
         ZoneScoped;
-        if(valid)
+        if (valid)
         {
             const int prev_id = buffer->get_id();
             buffer->free();
@@ -56,7 +58,7 @@ namespace hyengine::graphics {
             color_attachment->free();
             valid = false;
 
-            logger::message_info(logger::format("Freed standard framebuffer (framebuffer ", prev_id, ")"), logger_tag);
+            log_info(stringify("Freed standard framebuffer (framebuffer ", prev_id, ")"), logger_tag);
         }
     }
 

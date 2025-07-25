@@ -3,7 +3,7 @@
 #include "../library/glm.hpp"
 #include "../library/gl.hpp"
 
-#include "../common/math/rectangle.hpp"
+#include "../common/rectangle.hpp"
 
 namespace hyengine
 {
@@ -15,7 +15,7 @@ namespace hyengine
         unsigned int instance_begin;
     };
 
-    struct viewport
+    struct render_viewport
     {
         int x_offset, y_offset;
         unsigned int width, height;
@@ -68,9 +68,9 @@ namespace hyengine
     void set_scissor(const glm::ivec2 position, const glm::ivec2 size);
     void set_scissor(const rectangle& rect);
 
-    void set_viewport(const viewport& viewport);
-    [[nodiscard]] const viewport& get_viewport();
-    [[nodiscard]] viewport create_letterbox_viewport(const viewport& to_fit, const int target_width, const int target_height, const bool fill);
+    void set_viewport(const render_viewport& viewport);
+    [[nodiscard]] const render_viewport& get_viewport();
+    [[nodiscard]] render_viewport create_letterbox_viewport(const render_viewport& to_fit, const int target_width, const int target_height, const bool fill);
 
     void set_gl_flag_enabled(const GLenum setting, const bool enable);
 

@@ -151,28 +151,28 @@ namespace hyengine
         glDisable(GL_SCISSOR_TEST);
     }
 
-    static viewport current_viewport{};
+    static render_viewport current_viewport{};
 
-    void set_viewport(const viewport& viewport)
+    void set_viewport(const render_viewport& viewport)
     {
         ZoneScoped;
         current_viewport = viewport;
         glViewport(viewport.x_offset, viewport.y_offset, viewport.width, viewport.height);
     }
 
-    const viewport& get_viewport()
+    const render_viewport& get_viewport()
     {
         ZoneScoped;
         return current_viewport;
     }
 
-    viewport create_letterbox_viewport(const viewport& to_fit, const int target_width, const int target_height, const bool fill)
+    render_viewport create_letterbox_viewport(const render_viewport& to_fit, const int target_width, const int target_height, const bool fill)
     {
         ZoneScoped;
         const float aspectA = to_fit.height * target_width;
         const float aspectB = target_height * to_fit.width;
 
-        viewport result{};
+        render_viewport result{};
 
         if (aspectA > aspectB != fill)
         {

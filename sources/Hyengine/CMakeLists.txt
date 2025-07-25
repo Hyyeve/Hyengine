@@ -2,15 +2,13 @@ add_library(Hyengine STATIC)
 
 target_sources(Hyengine PRIVATE
 
-        common/math/line.cpp
-        common/math/rectangle.cpp
-        common/math/frustum.cpp
-
+        common/line.cpp
+        common/rectangle.cpp
+        common/frustum.cpp
         common/pool_allocation_tracker.cpp
-        common/portability.cpp
 
-        common/file_io.cpp
-
+        core/portability.cpp
+        core/file_io.cpp
         core/hyengine.cpp
         core/logger.cpp
 
@@ -42,23 +40,23 @@ target_sources(Hyengine PRIVATE
 )
 
 target_sources(Hyengine PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILES
-        common/math/math.hpp
-        common/math/array3d.hpp
-        common/math/nodes3d.hpp
-        common/math/line.hpp
-        common/math/rectangle.hpp
-        common/math/frustum.hpp
+        common/math.hpp
+        common/array3d.hpp
+        common/nodes3d.hpp
+        common/line.hpp
+        common/rectangle.hpp
+        common/frustum.hpp
 
         common/colors.hpp
         common/id_generator.hpp
         common/interpolatable.hpp
         common/pool_allocation_tracker.hpp
-        common/portability.hpp
         common/ring_buffer.hpp
 
         core/hyengine.hpp
         core/logger.hpp
-        common/file_io.hpp
+        core/file_io.hpp
+        core/portability.hpp
 
         graphics/graphics.hpp
         graphics/native_window.hpp

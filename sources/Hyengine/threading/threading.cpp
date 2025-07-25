@@ -21,7 +21,7 @@ namespace hyengine
 
     static std::vector<std::thread> threads;
     static std::pmr::unordered_set<unsigned int> pending_task_ids;
-    static std::list<async_task*> tasks;
+    static std::list<threadpool_task*> tasks;
     static std::mutex task_lock;
     static std::atomic_bool threads_active = false;
 
@@ -35,10 +35,10 @@ namespace hyengine
         return next_task_id;
     }
 
-    async_task* next_task()
+    threadpool_task* next_task()
     {
         ZoneScoped;
-        async_task* task = nullptr;
+        threadpool_task* task = nullptr;
         task_lock.lock();
 
         if (!tasks.empty())
@@ -71,7 +71,7 @@ namespace hyengine
         return task;
     }
 
-    void mark_finished(async_task* task)
+    void mark_finished(threadpool_task* task)
     {
         ZoneScoped;
         task_lock.lock();
@@ -85,11 +85,11 @@ namespace hyengine
         ZoneScoped;
         while (threads_active)
         {
-            async_task* task = next_task();
+            threadpool_task* task = next_task();
 
             if (task != nullptr)
             {
-                task->run_now();
+                task->execute_blocking();
                 mark_finished(task);
             }
 
@@ -97,7 +97,7 @@ namespace hyengine
         }
     }
 
-    void release_threads()
+    void release_threadpool()
     {
         ZoneScoped;
         threads_active = false;
@@ -110,7 +110,7 @@ namespace hyengine
         threads.clear();
     }
 
-    void create_threads()
+    void create_threadpool()
     {
         ZoneScoped;
         if (!threads.empty())
@@ -138,7 +138,7 @@ namespace hyengine
     }
 
 
-    unsigned int current_thread_id()
+    unsigned int get_current_thread_id()
     {
         ZoneScoped;
         thread_id_lock.lock();
@@ -159,7 +159,7 @@ namespace hyengine
         return id;
     }
 
-    void queue_task(async_task* task)
+    void queue_task(threadpool_task* task)
     {
         ZoneScoped;
         task_lock.lock();
@@ -169,7 +169,7 @@ namespace hyengine
     }
 
 
-    void async_task::enqueue(const unsigned int depends_on_id)
+    void threadpool_task::enqueue(const unsigned int depends_on_id)
     {
         ZoneScoped;
         if (is_running)
@@ -186,7 +186,7 @@ namespace hyengine
         queue_task(this);
     }
 
-    bool async_task::await(const unsigned long timeout)
+    bool threadpool_task::await(const unsigned long timeout)
     {
         ZoneScoped;
         if (!is_running)
@@ -204,28 +204,29 @@ namespace hyengine
         return finished();
     }
 
-    bool async_task::finished()
+    bool threadpool_task::finished()
     {
         ZoneScoped;
         return is_finished;
     }
 
-    void async_task::run_now()
+    void threadpool_task::execute_blocking()
     {
         ZoneScoped;
         is_running = true;
+        is_finished = false;
         execute();
         is_running = false;
         is_finished = true;
     }
 
-    unsigned int async_task::id()
+    unsigned int threadpool_task::id()
     {
         ZoneScoped;
         return task_id;
     }
 
-    unsigned int async_task::dependency()
+    unsigned int threadpool_task::dependency()
     {
         ZoneScoped;
         return depends_on;

@@ -4,7 +4,7 @@
 
 namespace hyengine
 {
-    void string_replace(std::string& str, const char from, const char to)
+    void portable_string_replace(std::string& str, const char from, const char to)
     {
         ZoneScoped;
         for (char& idx : str)
@@ -13,7 +13,7 @@ namespace hyengine
         }
     }
 
-    std::string utf32_stringify(const unsigned int codepoint)
+    std::string stringify_utf32(const unsigned int codepoint)
     {
         ZoneScoped;
         std::string result;

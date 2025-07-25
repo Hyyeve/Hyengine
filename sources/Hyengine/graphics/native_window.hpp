@@ -77,7 +77,7 @@ namespace hyengine
         [[nodiscard]] glm::uvec2 get_size() const;
         [[nodiscard]] glm::uvec2 get_position() const;
         [[nodiscard]] float get_aspect() const;
-        [[nodiscard]] viewport get_viewport() const;
+        [[nodiscard]] render_viewport get_viewport() const;
         [[nodiscard]] bool get_fullscreen() const;
 
         [[nodiscard]] GLFWwindow* get_handle() const;
@@ -111,7 +111,7 @@ namespace hyengine
         bool transparent = false;
         bool size_changed = true;
         bool is_visible = true;
-        viewport viewport = {0, 0, 0, 0};
+        render_viewport viewport = {0, 0, 0, 0};
 
         const std::string logger_tag = "OS Window";
 

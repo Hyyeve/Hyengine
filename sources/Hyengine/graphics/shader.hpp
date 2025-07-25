@@ -67,7 +67,7 @@ namespace hyengine
         void set_sampler_slot(const std::string& name, int slot);
 
 
-        #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(name); location != uniform_locations.end()) { setter; } else warn(logger_tag, "Failed to set uniform array '", name, "'");
+        #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(name); location != uniform_locations.end()) { setter; } else log_warn(logger_tag, "Failed to set uniform array '", name, "'");
 
         template <std::size_t size>
         void set_uniform(const std::string& name, std::array<bool, size> values)

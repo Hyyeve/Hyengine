@@ -88,14 +88,14 @@ namespace hyengine
 
             if (updates_last_frame > 0 && ups_last_frame < config.target_ups)
             {
-                log_warn(config.name, "Last update step took longer than expected! (", format_secs(frame_time), " for ", format_count(updates_last_frame, "update"), ")");
+                log_warn(config.name, "Last update step took longer than expected! (", stringify_secs(frame_time), " for ", stringify_count(updates_last_frame, "update"), ")");
             }
 
             updates_last_frame = 0;
 
             if (frame_time > max_frame_time)
             {
-                log_warn(config.name, "Last frame took too long! ", format_secs(frame_time), ", but max allowed is ", format_secs(max_frame_time));
+                log_warn(config.name, "Last frame took too long! ", stringify_secs(frame_time), ", but max allowed is ", stringify_secs(max_frame_time));
                 frame_time = max_frame_time;
             }
 
@@ -139,6 +139,6 @@ namespace hyengine
         log_info(config.name, "Exiting frame loop");
         const double total_runtime = current_time - start_time;
 
-        log_info(config.name, "Total runtime: ", format_secs(total_runtime));
+        log_info(config.name, "Total runtime: ", stringify_secs(total_runtime));
     }
 }

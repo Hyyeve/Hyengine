@@ -37,7 +37,7 @@ namespace hyengine
 
         is_allocated = true;
 
-        log_info(logger_tag, "Allocated debug renderer with ", format_bytes(max_vertices * sizeof(debug_vertex)), " of vertex memory.");
+        log_info(logger_tag, "Allocated debug renderer with ", stringify_bytes(max_vertices * sizeof(debug_vertex)), " of vertex memory.");
     }
 
     void basic_renderer::free()

@@ -1,9 +1,8 @@
 #pragma once
-#include <array>
 
 #include "graphics.hpp"
 #include "../common/interpolatable.hpp"
-#include "Hyengine/common/math/frustum.hpp"
+#include "Hyengine/common/frustum.hpp"
 
 
 namespace hyengine
@@ -43,9 +42,9 @@ namespace hyengine
         void refresh(float interpolation);
         void start_update();
 
-        [[nodiscard]] glm::vec3 screen_to_world(const glm::vec3& point, const viewport screen) const;
-        [[nodiscard]] glm::vec3 screen_to_world(const glm::vec2 point, const viewport screen) const;
-        [[nodiscard]] glm::vec3 world_to_screen(const glm::vec3& point, const viewport screen) const;
+        [[nodiscard]] glm::vec3 screen_to_world(const glm::vec3& point, const render_viewport screen) const;
+        [[nodiscard]] glm::vec3 screen_to_world(const glm::vec2 point, const render_viewport screen) const;
+        [[nodiscard]] glm::vec3 world_to_screen(const glm::vec3& point, const render_viewport screen) const;
 
         [[nodiscard]] glm::vec3 screen_to_world(const glm::vec3& point) const;
         [[nodiscard]] glm::vec3 screen_to_world(glm::vec2 point) const;

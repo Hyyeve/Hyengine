@@ -3,7 +3,7 @@
 #include <ranges>
 #include <tracy/Tracy.hpp>
 
-#include "../common/portability.hpp"
+#include "../core/portability.hpp"
 #include "../library/gl.hpp"
 
 namespace hyengine
@@ -11,7 +11,7 @@ namespace hyengine
     void virtual_keyboard::type_character(const unsigned int codepoint)
     {
         ZoneScoped;
-        current_text += utf32_stringify(codepoint);
+        current_text += stringify_utf32(codepoint);
     }
 
     void virtual_keyboard::press_key(const int key)

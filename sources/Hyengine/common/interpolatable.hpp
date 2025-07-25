@@ -56,13 +56,13 @@ namespace hyengine
         T current_value;
 
         // ReSharper disable once CppNonExplicitConvertingConstructor
-        interpolatable(T value) : previous_value(value), current_value(value)
+        interpolatable(T value) : previous_value(value), current_value(value) // NOLINT(*-explicit-constructor)
         {
-        } // NOLINT(*-explicit-constructor, *-explicit-conversions)
+        }
 
         // ReSharper disable once CppNonExplicitConversionOperator
-        operator T()
-        { // NOLINT(*-explicit-constructor, *-explicit-conversions)
+        operator T() // NOLINT(*-explicit-constructor)
+        {
             return current_value;
         }
 

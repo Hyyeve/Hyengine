@@ -1,5 +1,5 @@
 #pragma once
-#include "../../library/glm.hpp"
+#include "../library/glm.hpp"
 
 namespace hyengine
 {

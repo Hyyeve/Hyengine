@@ -65,11 +65,11 @@ namespace hyengine
     void log_fatal(const std::string_view tag, const std::string_view msg);
     void log_secret(const std::string_view tag, const std::string_view msg);
 
-    [[nodiscard]] std::string format_duration(const std::chrono::microseconds duration);
-    [[nodiscard]] std::string format_secs(const double seconds);
-    [[nodiscard]] std::string format_millis(const double millis);
-    [[nodiscard]] std::string format_bytes(const unsigned long bytes);
-    [[nodiscard]] std::string format_count(const unsigned long count_num, std::string_view count_of);
+    [[nodiscard]] std::string stringify_duration(const std::chrono::microseconds duration);
+    [[nodiscard]] std::string stringify_secs(const double seconds);
+    [[nodiscard]] std::string stringify_millis(const double millis);
+    [[nodiscard]] std::string stringify_bytes(const unsigned long bytes);
+    [[nodiscard]] std::string stringify_count(const unsigned long count_num, std::string_view count_of);
 
     [[nodiscard]] std::string stringify(const auto&... values)
     {

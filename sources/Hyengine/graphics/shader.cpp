@@ -7,7 +7,7 @@
 #include <vector>
 #include <tracy/Tracy.hpp>
 
-#include "../common/file_io.hpp"
+#include "../core/file_io.hpp"
 
 namespace hyengine
 {
@@ -199,7 +199,7 @@ namespace hyengine
         const GLuint binary_program = load_binary_program(binary_asset_id);
         if (binary_program != 0) return binary_program;
 
-        const std::string raw_text = read_asset_text(asset_id);
+        const std::string raw_text = load_asset_text(asset_id);
         std::istringstream text(raw_text);
 
         std::string line;
@@ -253,7 +253,7 @@ namespace hyengine
     {
         ZoneScoped;
         if (!asset_exists(asset_id)) return 0;
-        const std::vector<unsigned char> binary_data = read_asset_bytes(asset_id);
+        const std::vector<unsigned char> binary_data = load_asset_bytes(asset_id);
 
         const void* header_pointer = binary_data.data();
         const void* data_pointer = static_cast<const unsigned char*>(header_pointer) + sizeof(GLenum);

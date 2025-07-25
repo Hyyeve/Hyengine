@@ -1,7 +1,7 @@
 #pragma once
 #include <array>
 
-#include "../../library/glm.hpp"
+#include "../library/glm.hpp"
 
 namespace hyengine
 {

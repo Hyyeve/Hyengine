@@ -37,7 +37,7 @@ namespace hyengine
             case GL_PROXY_TEXTURE_1D:
             {
                 glTextureStorage1D(buffer_id, internal_mipmaps, format, internal_size.x);
-                type_info = stringify("1D, ", internal_size.x, " pixels, ", format_count(internal_mipmaps, "Mipmap level"));
+                type_info = stringify("1D, ", internal_size.x, " pixels, ", stringify_count(internal_mipmaps, "Mipmap level"));
                 break;
             }
 
@@ -49,7 +49,7 @@ namespace hyengine
             case GL_PROXY_TEXTURE_CUBE_MAP_ARRAY:
             {
                 glTextureStorage3D(buffer_id, internal_mipmaps, format, internal_size.x, internal_size.y, internal_size.z);
-                type_info = stringify("3D / 2D Array, ", internal_size.x, "x", internal_size.y, "x", internal_size.z, ". ", format_count(internal_mipmaps, "Mipmap level"));
+                type_info = stringify("3D / 2D Array, ", internal_size.x, "x", internal_size.y, "x", internal_size.z, ". ", stringify_count(internal_mipmaps, "Mipmap level"));
                 break;
             }
 
@@ -58,7 +58,7 @@ namespace hyengine
             {
                 //It's unclear whether the last parameter (fixed sample locations) is actually used by any implementations, so for now I'm not supporting customizing it.
                 glTextureStorage2DMultisample(buffer_id, internal_multisample, format, internal_size.x, internal_size.y, GL_TRUE);
-                type_info = stringify("2D multisample, ", internal_size.x, "x", internal_size.y, ". ", format_count(internal_multisample, "MSAA sample"));
+                type_info = stringify("2D multisample, ", internal_size.x, "x", internal_size.y, ". ", stringify_count(internal_multisample, "MSAA sample"));
                 break;
             }
 
@@ -67,14 +67,14 @@ namespace hyengine
             {
                 //It's unclear whether the last parameter (fixed sample locations) is actually used by any implementations, so for now I'm not supporting customizing it.
                 glTextureStorage3DMultisample(buffer_id, internal_multisample, format, internal_size.x, internal_size.y, internal_size.z, GL_TRUE);
-                type_info = stringify("2D multisample array, ", internal_size.x, "x", internal_size.y, "x", internal_size.z, ". ", format_count(internal_multisample, "MSAA sample"));
+                type_info = stringify("2D multisample array, ", internal_size.x, "x", internal_size.y, "x", internal_size.z, ". ", stringify_count(internal_multisample, "MSAA sample"));
                 break;
             }
 
             default:
             {
                 glTextureStorage2D(buffer_id, internal_mipmaps, format, internal_size.x, internal_size.y);
-                type_info = stringify("Default 2D, ", internal_size.x, "x", internal_size.y, ". ", format_count(internal_mipmaps, "Mipmap level"));
+                type_info = stringify("Default 2D, ", internal_size.x, "x", internal_size.y, ". ", stringify_count(internal_mipmaps, "Mipmap level"));
                 break;
             }
         }

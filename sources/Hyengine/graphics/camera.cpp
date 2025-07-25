@@ -206,19 +206,19 @@ namespace hyengine
         return cam_frustum;
     }
 
-    vec3 camera::screen_to_world(const vec3& point, const viewport screen) const
+    vec3 camera::screen_to_world(const vec3& point, const render_viewport screen) const
     {
         ZoneScoped;
         return unProject(point, view_matrix, projection_matrix, vec4(screen.x_offset, screen.y_offset, screen.width, screen.height));
     }
 
-    vec3 camera::screen_to_world(const vec2 point, const viewport screen) const
+    vec3 camera::screen_to_world(const vec2 point, const render_viewport screen) const
     {
         ZoneScoped;
         return screen_to_world(vec3(point, 0), screen);
     }
 
-    vec3 camera::world_to_screen(const vec3& point, const viewport screen) const
+    vec3 camera::world_to_screen(const vec3& point, const render_viewport screen) const
     {
         ZoneScoped;
         return project(point, view_matrix, projection_matrix, vec4(screen.x_offset, screen.y_offset, screen.width, screen.height));

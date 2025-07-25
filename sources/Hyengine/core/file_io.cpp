@@ -6,7 +6,7 @@
 #include <string>
 #include <tracy/Tracy.hpp>
 
-#include "../core/logger.hpp"
+#include "logger.hpp"
 #include "portability.hpp"
 #include "stblib/include/stb_image.hpp"
 
@@ -18,8 +18,8 @@ namespace hyengine
     std::string asset_id_to_relative_path(std::string asset_id)
     {
         ZoneScoped;
-        string_replace(asset_id, ':', std::filesystem::path::preferred_separator);
-        string_replace(asset_id, '.', std::filesystem::path::preferred_separator);
+        portable_string_replace(asset_id, ':', std::filesystem::path::preferred_separator);
+        portable_string_replace(asset_id, '.', std::filesystem::path::preferred_separator);
         return asset_id;
     }
 
@@ -89,7 +89,7 @@ namespace hyengine
         return std::filesystem::path(get_primary_asset_directory()).append(relative_path);
     }
 
-    std::string read_raw_asset_text(const std::string& id)
+    std::string load_raw_asset_text(const std::string& id)
     {
         ZoneScoped;
         if (!asset_exists(id))
@@ -156,7 +156,7 @@ namespace hyengine
             std::string include_asset = find_directive(new_text, "include");
             if (!include_asset.empty())
             {
-                std::string asset_text = read_raw_asset_text(include_asset);
+                std::string asset_text = load_raw_asset_text(include_asset);
                 replace_directive(new_text, "include", asset_text);
                 continue;
             }
@@ -167,14 +167,14 @@ namespace hyengine
         return new_text;
     }
 
-    std::string read_preprocessed_asset_text(const std::string& id)
+    std::string load_preprocessed_asset_text(const std::string& id)
     {
         ZoneScoped;
-        const std::string text = read_raw_asset_text(id);
+        const std::string text = load_raw_asset_text(id);
         return inject_text_includes(text);
     }
 
-    std::vector<unsigned char> read_asset_bytes(const std::string& id)
+    std::vector<unsigned char> load_asset_bytes(const std::string& id)
     {
         ZoneScoped;
         if (!asset_exists(id))
@@ -210,7 +210,7 @@ namespace hyengine
     }
 
 
-    image_data read_asset_image(const std::string& id)
+    asset_image_data load_asset_image(const std::string& id)
     {
         ZoneScoped;
         if (!asset_exists(id))
@@ -219,11 +219,12 @@ namespace hyengine
             return {nullptr, 0, 0, 0};
         }
 
-        image_data result;
+        asset_image_data result {};
         int temp_width;
         int temp_height;
         int temp_channels;
 
+        stbi_set_unpremultiply_on_load(true);
         result.data = stbi_load(get_asset_path(id).string().c_str(), &temp_width, &temp_height, &temp_channels, 0);
         if (result.data == nullptr)
         {
@@ -319,14 +320,14 @@ namespace hyengine
         std::filesystem::remove_all(directory);
     }
 
-    std::string read_asset_text(const std::string& id)
+    std::string load_asset_text(const std::string& id)
     {
         ZoneScoped;
         if (should_preprocess(get_asset_type(id)))
         {
-            return read_preprocessed_asset_text(id);
+            return load_preprocessed_asset_text(id);
         }
 
-        return read_raw_asset_text(id);
+        return load_raw_asset_text(id);
     }
 }

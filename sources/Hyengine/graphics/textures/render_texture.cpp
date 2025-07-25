@@ -31,7 +31,7 @@ namespace hyengine
         glCreateRenderbuffers(1, &gl_id);
         glNamedRenderbufferStorageMultisample(gl_id, internal_samples, internal_format, internal_size.x, internal_size.y);
 
-        log_info(logger_tag, "Allocated render texture ", gl_id, ": ", internal_size.x, "x", internal_size.y, " ", format_count(internal_samples, "MSAA sample"));
+        log_info(logger_tag, "Allocated render texture ", gl_id, ": ", internal_size.x, "x", internal_size.y, " ", stringify_count(internal_samples, "MSAA sample"));
     }
 
     void render_texture::free()

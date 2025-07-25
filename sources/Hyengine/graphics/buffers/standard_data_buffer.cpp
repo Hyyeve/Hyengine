@@ -56,7 +56,7 @@ namespace hyengine
         glCreateBuffers(1, &buffer_id);
         glNamedBufferStorage(buffer_id, total_size, data, storage_flags);
 
-        log_info(logger_tag, "Allocated data buffer ", buffer_id, ". ", format_count(slice_count, "Slice"), ", Total ", format_bytes(total_size));
+        log_info(logger_tag, "Allocated data buffer ", buffer_id, ". ", stringify_count(slice_count, "Slice"), ", Total ", stringify_bytes(total_size));
     }
 
     void standard_data_buffer::free()
@@ -65,7 +65,7 @@ namespace hyengine
         unmap_storage();
         if (buffer_id == 0) return;
 
-        log_info(logger_tag, "Freeing data buffer ", buffer_id, ". ", format_count(slice_count, "Slice"), " total ", format_bytes(total_size));
+        log_info(logger_tag, "Freeing data buffer ", buffer_id, ". ", stringify_count(slice_count, "Slice"), " total ", stringify_bytes(total_size));
 
         glDeleteBuffers(1, &buffer_id);
 

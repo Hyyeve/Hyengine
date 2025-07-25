@@ -6,7 +6,7 @@ namespace hyengine
 {
     struct vertex_element
     {
-        GLboolean normalized = GL_FALSE;
+        GLboolean normalized;
         GLenum gl_type;
         int count;
         int bytes;

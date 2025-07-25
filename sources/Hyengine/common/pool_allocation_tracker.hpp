@@ -10,7 +10,7 @@ namespace hyengine
 
         bool try_allocate(const unsigned int size, unsigned int& address);
         void deallocate(const unsigned int address);
-        unsigned int get_last_used_address() const;
+        [[nodiscard]] unsigned int get_last_used_address() const;
         void resize(const unsigned int size);
         void clear();
 

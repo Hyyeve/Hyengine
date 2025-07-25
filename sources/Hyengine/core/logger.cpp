@@ -19,7 +19,7 @@ namespace hyengine
     static int log_repeat_count = 0;
     static std::stringstream message_buffer;
 
-    std::string format_duration(const std::chrono::microseconds duration)
+    std::string stringify_duration(const std::chrono::microseconds duration)
     {
         ZoneScoped;
 
@@ -47,19 +47,19 @@ namespace hyengine
         return ms_fractional + "s";
     }
 
-    std::string format_secs(const double seconds)
+    std::string stringify_secs(const double seconds)
     {
         ZoneScoped;
-        return format_millis(seconds * 1000);
+        return stringify_millis(seconds * 1000);
     }
 
-    std::string format_millis(const double millis)
+    std::string stringify_millis(const double millis)
     {
         ZoneScoped;
-        return format_duration(std::chrono::microseconds{static_cast<long>(millis * 1000)});
+        return stringify_duration(std::chrono::microseconds{static_cast<long>(millis * 1000)});
     }
 
-    std::string format_bytes(const unsigned long bytes)
+    std::string stringify_bytes(const unsigned long bytes)
     {
         ZoneScoped;
         std::stringstream result;
@@ -80,7 +80,7 @@ namespace hyengine
         return result.str();
     }
 
-    std::string format_count(const unsigned long count_num, const std::string_view count_of)
+    std::string stringify_count(const unsigned long count_num, const std::string_view count_of)
     {
         ZoneScoped;
         std::stringstream result;
@@ -104,7 +104,7 @@ namespace hyengine
         // ReSharper disable once CppDeprecatedEntity
         const auto& now = std::localtime(&current_time);
         std::cout << stringify('[', TIME_FORMAT, now->tm_hour, ":", now->tm_min, ":", now->tm_sec, ANSI_RESET, "][", ANSI_BOLD, ANSI_BRIGHT_BLUE, "T");
-        std::cout << std::setfill('0') << std::setw(3) << stringify(current_thread_id(), ANSI_RESET, ']');
+        std::cout << std::setfill('0') << std::setw(3) << stringify(get_current_thread_id(), ANSI_RESET, ']');
     }
 
     void log(const std::string_view tag, const std::string_view msg, const std::string_view type, const std::string_view color_code)

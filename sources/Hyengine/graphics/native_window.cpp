@@ -272,7 +272,7 @@ namespace hyengine
         return static_cast<float>(get_width()) / static_cast<float>(get_height());
     }
 
-    viewport native_window::get_viewport() const
+    render_viewport native_window::get_viewport() const
     {
         ZoneScoped;
         return viewport;

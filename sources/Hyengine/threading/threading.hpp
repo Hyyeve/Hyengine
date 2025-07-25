@@ -5,16 +5,16 @@ namespace hyengine
 {
     extern unsigned int IDLE_SLEEP_INCREMENT;
 
-    class async_task
+    class threadpool_task
     {
     public:
-        virtual ~async_task() = default;
+        virtual ~threadpool_task() = default;
         virtual void execute() = 0;
 
         void enqueue(unsigned int depends_on_id = 0);
         bool await(unsigned long timeout);
         bool finished();
-        void run_now();
+        void execute_blocking();
         unsigned int id();
         unsigned int dependency();
 
@@ -25,7 +25,7 @@ namespace hyengine
         std::atomic_uint depends_on;
     };
 
-    void release_threads();
-    void create_threads();
-    unsigned int current_thread_id();
+    void release_threadpool();
+    void create_threadpool();
+    unsigned int get_current_thread_id();
 }

@@ -6,11 +6,14 @@ target_sources(Hyengine PRIVATE
         common/rectangle.cpp
         common/frustum.cpp
         common/pool_allocation_tracker.cpp
+        common/easing.cpp
+        common/rectangle_stack.cpp
 
         core/portability.cpp
         core/file_io.cpp
         core/hyengine.cpp
         core/logger.cpp
+        core/ui_layout.cpp
 
         graphics/graphics.cpp
         graphics/native_window.cpp
@@ -46,17 +49,19 @@ target_sources(Hyengine PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILE
         common/line.hpp
         common/rectangle.hpp
         common/frustum.hpp
-
+        common/easing.hpp
         common/colors.hpp
         common/id_generator.hpp
         common/interpolatable.hpp
         common/pool_allocation_tracker.hpp
         common/ring_buffer.hpp
+        common/rectangle_stack.hpp
 
         core/hyengine.hpp
         core/logger.hpp
         core/file_io.hpp
         core/portability.hpp
+        core/ui_layout.hpp
 
         graphics/graphics.hpp
         graphics/native_window.hpp

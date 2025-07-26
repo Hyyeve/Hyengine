@@ -1,13 +1,13 @@
-#include "hyui.hpp"
+#include "ui_layout.hpp"
 
 #include <tracy/Tracy.hpp>
 
-namespace hyui
+namespace hyengine
 {
     unsigned int content_adjusted_min(const ui_object& object, const int axis)
     {
         ZoneScoped;
-        return std::max(object.transform[axis].sizing.min, object.transform[axis].content_size_min);
+        return std::max(object.transform[axis].sizing.min, object.transform[axis].computed_content_size_min);
     }
 
     void constrain_size(ui_object& object, const int axis)
@@ -89,10 +89,10 @@ namespace hyui
 
         if (content.empty())
         {
-            for (axis_transform& axis : container.transform)
+            for (ui_axis& axis : container.transform)
             {
                 axis.sizing.current = axis.sizing.min;
-                axis.content_size_min = 0;
+                axis.computed_content_size_min = 0;
             }
             return;
         }
@@ -101,9 +101,9 @@ namespace hyui
         {
             if (is_fixed_size(container, axis)) continue;
 
-            const unsigned int axis_padding = container.transform[axis].padding.start + container.transform[axis].padding.end;
-            const unsigned int spacing_sum = container.layout.content_spacing * (content.size() - 1);
-            const bool layout_axis = container.layout.transform_axis == axis;
+            const unsigned int axis_padding = container.transform[axis].padding.before + container.transform[axis].padding.after;
+            const unsigned int spacing_sum = container.content_spacing * (content.size() - 1);
+            const bool layout_axis = container.layout_axis == axis;
 
             unsigned int content_total = layout_axis ? spacing_sum : 0;
             unsigned int content_total_min = layout_axis ? spacing_sum : 0;
@@ -126,7 +126,7 @@ namespace hyui
             }
 
             container.transform[axis].sizing.current = axis_padding + content_total;
-            container.transform[axis].content_size_min = axis_padding + content_total_min;
+            container.transform[axis].computed_content_size_min = axis_padding + content_total_min;
 
             constrain_size(container, axis);
         }
@@ -142,10 +142,10 @@ namespace hyui
         for (int axis = 0; axis < container.transform.size(); axis++)
         {
             const unsigned int container_size = container.transform[axis].sizing.current;
-            const unsigned int axis_padding = container.transform[axis].padding.start + container.transform[axis].padding.end;
-            const unsigned int spacing_sum = container.layout.content_spacing * (content.size() - 1);
+            const unsigned int axis_padding = container.transform[axis].padding.before + container.transform[axis].padding.after;
+            const unsigned int spacing_sum = container.content_spacing * (content.size() - 1);
             const unsigned int container_space = container_size - axis_padding - spacing_sum;
-            const bool layout_axis = container.layout.transform_axis == axis;
+            const bool layout_axis = container.layout_axis == axis;
 
             if (!layout_axis)
             {
@@ -208,10 +208,10 @@ namespace hyui
 
         for (int axis = 0; axis < container.transform.size(); axis++)
         {
-            const bool layout_axis = container.layout.transform_axis == axis;
+            const bool layout_axis = container.layout_axis == axis;
             const unsigned int container_size = container.transform[axis].sizing.current;
-            const unsigned int axis_padding = container.transform[axis].padding.start + container.transform[axis].padding.end;
-            const unsigned int spacing_sum = container.layout.content_spacing * (content.size() - 1);
+            const unsigned int axis_padding = container.transform[axis].padding.before + container.transform[axis].padding.after;
+            const unsigned int spacing_sum = container.content_spacing * (content.size() - 1);
             const unsigned int container_space = container_size - axis_padding - (layout_axis ? spacing_sum : 0);
 
             if (!layout_axis)
@@ -219,10 +219,10 @@ namespace hyui
                 for (ui_object& object : content)
                 {
                     const unsigned int available_space = container_space < object.transform[axis].sizing.current ? 0 : container_space - object.transform[axis].sizing.current;
-                    const unsigned int offset = available_space * container.transform[axis].content_alignment + container.transform[axis].padding.start;
+                    const unsigned int offset = available_space * container.transform[axis].content_alignment + container.transform[axis].padding.before;
                     object.transform[axis].positioning.current = offset;
                     constrain_offset(object, axis);
-                    object.transform[axis].absolute_position = container.transform[axis].absolute_position + object.transform[axis].positioning.current;
+                    object.transform[axis].computed_absolute_position = container.transform[axis].computed_absolute_position + object.transform[axis].positioning.current;
                 }
                 continue;
             }
@@ -235,14 +235,14 @@ namespace hyui
 
             const unsigned int available_space = container_space < content_size ? 0 : container_space - content_size;
 
-            unsigned int content_offset = available_space * container.transform[axis].content_alignment + container.transform[axis].padding.start;
+            unsigned int content_offset = available_space * container.transform[axis].content_alignment + container.transform[axis].padding.before;
 
             for (ui_object& object : content)
             {
                 object.transform[axis].positioning.current = content_offset;
                 constrain_offset(object, axis);
-                object.transform[axis].absolute_position = container.transform[axis].absolute_position + object.transform[axis].positioning.current;
-                content_offset += object.transform[axis].sizing.current + container.layout.content_spacing;
+                object.transform[axis].computed_absolute_position = container.transform[axis].computed_absolute_position + object.transform[axis].positioning.current;
+                content_offset += object.transform[axis].sizing.current + container.content_spacing;
             }
         }
     }
@@ -279,7 +279,7 @@ namespace hyui
     void position_tree(ui_object& root)
     {
         ZoneScoped;
-        for (axis_transform& axis : root.transform) axis.absolute_position = axis.positioning.current;
+        for (ui_axis& axis : root.transform) axis.computed_absolute_position = axis.positioning.current;
 
         position_elements(root);
 
@@ -289,7 +289,7 @@ namespace hyui
         }
     }
 
-    void layout_tree(ui_object& root)
+    void layout_ui(ui_object& root)
     {
         ZoneScoped;
         size_tree(root);

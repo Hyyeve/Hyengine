@@ -85,7 +85,7 @@ namespace hyengine
     std::filesystem::path get_asset_directory(const std::string& asset_id)
     {
         ZoneScoped;
-        const std::string relative_path = asset_id_to_relative_path(get_asset_type(asset_id));
+        const std::string relative_path = asset_id_to_relative_path(asset_id.substr(0, asset_id.find_last_of('.')));
         return std::filesystem::path(get_primary_asset_directory()).append(relative_path);
     }
 
@@ -105,7 +105,7 @@ namespace hyengine
 
         if (!file.is_open() || file.bad())
         {
-            log_error(logger_tag, "Couldn't load asset - bad file");
+            log_error(logger_tag, "Could not read asset \'", id, "\' !");
             return "";
         }
 
@@ -190,7 +190,7 @@ namespace hyengine
 
         if (!file.is_open() || file.bad())
         {
-            log_error(logger_tag, "Couldn't load asset - bad file");
+            log_error(logger_tag, "Couldn't load asset \'", id, "\' - bad file");
             return {};
         }
 
@@ -228,7 +228,7 @@ namespace hyengine
         result.data = stbi_load(get_asset_path(id).string().c_str(), &temp_width, &temp_height, &temp_channels, 0);
         if (result.data == nullptr)
         {
-            log_error(logger_tag, "Couldn't load asset - bad file");
+            log_error(logger_tag, "Couldn't load asset \'", id, "\' - bad file");
             return {nullptr, 0, 0, 0};
         }
 
@@ -253,7 +253,7 @@ namespace hyengine
         std::ofstream file(path, std::ios::binary | std::ios::out | std::ios::trunc);
         if (!file.is_open() || file.bad())
         {
-            log_error(logger_tag, "Couldn't save asset - bad file");
+            log_error(logger_tag, "Couldn't save asset \'", id, "\' - bad file");
             return false;
         }
 
@@ -280,7 +280,7 @@ namespace hyengine
         std::ofstream file(path, std::ios::out | std::ios::trunc);
         if (!file.is_open() || file.bad())
         {
-            log_error(logger_tag, "Couldn't save asset - bad file");
+            log_error(logger_tag, "Couldn't save asset \'", id, "\' - bad file");
             return false;
         }
 

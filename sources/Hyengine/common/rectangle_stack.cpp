@@ -1,4 +1,4 @@
-#include "math/rectangle_stack.hpp"
+#include "rectangle_stack.hpp"
 
 #include <tracy/Tracy.hpp>
 

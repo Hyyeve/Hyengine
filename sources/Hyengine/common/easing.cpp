@@ -1,9 +1,9 @@
 #include <cmath>
 #include "easing.hpp"
-#include <functional>
 #include <tracy/Tracy.hpp>
 
-constexpr float PI = 3.141592f;
+#include "math.hpp"
+
 
 float hyengine::ease_power_in(const float value, const float power)
 {
@@ -20,8 +20,8 @@ float hyengine::ease_power_out(const float value, const float power)
 float hyengine::ease_power_both(const float value, const float power)
 {
     ZoneScoped;
-    if (value < 0.5) return ease_power_in(value * 2) / 2;
-    return ease_power_out(value * 2 - 1) * 0.5 + 0.5;
+    if (value < 0.5) return ease_power_in(value * 2, power) / 2;
+    return ease_power_out(value * 2 - 1, power) * 0.5 + 0.5;
 }
 
 float hyengine::ease_sine_in(const float value)
@@ -43,43 +43,24 @@ float hyengine::ease_sine_both(const float value)
     return ease_sine_out(value * 2 - 1) * 0.5 + 0.5;
 }
 
-float hyengine::ease_root_in(const float value)
+float hyengine::ease_root_in(const float value, const float power)
 {
     ZoneScoped;
-    if (value > 0 && value < 1) return 1. - sqrt(1. - value);
+    if (value > 0 && value < 1) return 1. - sqrt(1. - pow(value, power));
     return value;
 }
 
-float hyengine::ease_root_out(const float value)
+float hyengine::ease_root_out(const float value, const float power)
 {
     ZoneScoped;
-    return 1. - ease_root_in(1. - value);
+    return 1. - ease_root_in(1. - value, power);
 }
 
-float hyengine::ease_root_both(const float value)
+float hyengine::ease_root_both(const float value, const float power)
 {
     ZoneScoped;
-    if (value < 0.5) return ease_root_in(value * 2) / 2;
-    return ease_root_out(value * 2 - 1) * 0.5 + 0.5;
-}
-
-float hyengine::ease_exp_in(const float value, const float power)
-{
-    ZoneScoped;
-    return pow(2, power * value) / pow(2, power);
-}
-
-float hyengine::ease_exp_out(const float value, const float power)
-{
-    ZoneScoped;
-    return 1. - ease_exp_in(1. - value, power);
-}
-
-float hyengine::ease_exp_both(const float value, const float power)
-{
-    ZoneScoped;
-    if (value < 0.5) return ease_exp_in(value * 2, power) / 2;
-    return ease_exp_out(value * 2 - 1, power) * 0.5 + 0.5;
+    if (value < 0.5) return ease_root_in(value * 2, power) / 2;
+    return ease_root_out(value * 2 - 1, power) * 0.5 + 0.5;
 }
 
 float hyengine::ease_overshoot_out(const float value, const float overshoot)
@@ -137,4 +118,23 @@ float hyengine::ease_bounce_both(const float value, const float power, const flo
     ZoneScoped;
     if (value < 0.5) return ease_bounce_in(value * 2, power, frequency) / 2;
     return ease_bounce_out(value * 2 - 1, power, frequency) * 0.5 + 0.5;
+}
+
+float hyengine::ease_accelerate_in(const float value, const float power)
+{
+    ZoneScoped;
+    return value + pow(value, power) * (1 - value);
+}
+
+float hyengine::ease_accelerate_out(const float value, const float power)
+{
+    ZoneScoped;
+    return 1. - ease_accelerate_in(1. - value, power);
+}
+
+float hyengine::ease_accelerate_both(const float value, const float power)
+{
+    ZoneScoped;
+    if (value < 0.5) return ease_accelerate_in(value * 2, power) / 2;
+    return ease_accelerate_out(value * 2 - 1, power) * 0.5 + 0.5;
 }

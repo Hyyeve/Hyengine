@@ -26,7 +26,7 @@ namespace hyengine
 {
     using namespace hyengine;
 
-    enum class log_level : std::uint8_t
+    enum class log_level : std::u8
     {
         ALL     = 3,
         NORMAL  = 2,
@@ -66,8 +66,8 @@ namespace hyengine
     void log_secret(const std::string_view tag, const std::string_view msg);
 
     [[nodiscard]] std::string stringify_duration(const std::chrono::microseconds duration);
-    [[nodiscard]] std::string stringify_secs(const double seconds);
-    [[nodiscard]] std::string stringify_millis(const double millis);
+    [[nodiscard]] std::string stringify_secs(const f64 seconds);
+    [[nodiscard]] std::string stringify_millis(const f64 millis);
     [[nodiscard]] std::string stringify_bytes(const unsigned long bytes);
     [[nodiscard]] std::string stringify_count(const unsigned long count_num, std::string_view count_of);
 

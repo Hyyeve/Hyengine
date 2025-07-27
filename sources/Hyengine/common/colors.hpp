@@ -62,28 +62,27 @@ namespace hyengine
     constexpr glm::vec4 DARK_LIME = glm::vec4(0.25, 0.5, 0, 1);
     constexpr glm::vec4 DARK_AZURE = glm::vec4(0, 0.25, 0.5, 1);
 
-    [[nodiscard]] constexpr glm::vec4 bits_to_color(const unsigned int hex)
+    [[nodiscard]] constexpr glm::vec4 bits_to_color(const u32 hex)
     {
         return {
-            static_cast<float>(hex & 0xFFu) / 255.0f,
-            static_cast<float>(hex >> 8u & 0xFFu) / 255.0f,
-            static_cast<float>(hex >> 16u & 0xFFu) / 255.0f,
-            static_cast<float>(hex >> 24u & 0xFFu) / 255.0f,
+            static_cast<f32>(hex & 0xFFu) / 255.0f,
+            static_cast<f32>(hex >> 8u & 0xFFu) / 255.0f,
+            static_cast<f32>(hex >> 16u & 0xFFu) / 255.0f,
+            static_cast<f32>(hex >> 24u & 0xFFu) / 255.0f,
         };
     }
 
-    [[nodiscard]] constexpr unsigned int color_to_bits(const glm::vec4 col)
+    [[nodiscard]] constexpr u32 color_to_bits(const glm::vec4 col)
     {
-        const std::uint32_t byte_r = static_cast<std::uint8_t>(col.r * 255);
-        const std::uint32_t byte_g = static_cast<std::uint8_t>(col.g * 255);
-        const std::uint32_t byte_b = static_cast<std::uint8_t>(col.b * 255);
-        const std::uint32_t byte_a = static_cast<std::uint8_t>(col.a * 255);
+        const u32 byte_r = static_cast<u8>(col.r * 255);
+        const u32 byte_g = static_cast<u8>(col.g * 255);
+        const u32 byte_b = static_cast<u8>(col.b * 255);
+        const u32 byte_a = static_cast<u8>(col.a * 255);
         return byte_a << 24u | (byte_b << 16u) | (byte_g << 8u) | byte_r;
     }
 
     [[nodiscard]] inline glm::vec4 random()
     {
-        ZoneScoped;
         return bits_to_color(rand());
     }
 
@@ -91,7 +90,7 @@ namespace hyengine
     {
         auto hash = [](const std::string_view string) noexcept
         {
-            uint32_t hash_value = 5381;
+            u32 hash_value = 5381;
             for (const char c : string) hash_value = (hash_value << 5u) + hash_value + static_cast<unsigned char>(c);
             return hash_value;
         };
@@ -118,7 +117,7 @@ namespace hyengine
             case hash("light_cyan"): return LIGHT_CYAN;
             case hash("light_magenta"): return LIGHT_MAGENTA;
             case hash("light_orange"): return LIGHT_ORANGE;
-            case hash("light_mint"): return LIGHT_MINT;
+            case hash("light_mi32"): return LIGHT_MINT;
             case hash("light_violet"): return LIGHT_VIOLET;
             case hash("light_crimson"): return LIGHT_CRIMSON;
             case hash("light_lime"): return LIGHT_LIME;
@@ -126,7 +125,7 @@ namespace hyengine
 
             case hash("gray"): return GRAY;
             case hash("orange"): return ORANGE;
-            case hash("mint"): return MINT;
+            case hash("mi32"): return MINT;
             case hash("violet"): return VIOLET;
             case hash("crimson"): return CRIMSON;
             case hash("lime"): return LIME;
@@ -147,7 +146,7 @@ namespace hyengine
             case hash("dark_cyan"): return DARK_CYAN;
             case hash("dark_magenta"): return DARK_MAGENTA;
             case hash("dark_orange"): return DARK_ORANGE;
-            case hash("dark_mint"): return DARK_MINT;
+            case hash("dark_mi32"): return DARK_MINT;
             case hash("dark_violet"): return DARK_VIOLET;
             case hash("dark_crimson"): return DARK_CRIMSON;
             case hash("dark_lime"): return DARK_LIME;

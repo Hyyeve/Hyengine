@@ -19,7 +19,7 @@ namespace hyengine
             end half other \
             }; \
         } \
-        line line::operator half(const float other) const { \
+        line line::operator half(const f32 other) const { \
             return { \
             start half other, \
             end half other \
@@ -35,7 +35,7 @@ namespace hyengine
             end = end half other; \
             return *this; \
         } \
-        line& line::operator full(const float other) { \
+        line& line::operator full(const f32 other) { \
             start = start half other; \
             end = end half other; \
             return *this; \
@@ -47,69 +47,60 @@ namespace hyengine
 
     #undef OP
 
-    vec2 line::point_at(const float percent) const
+    vec2 line::point_at(const f32 percent) const
     {
-        ZoneScoped;
         return mix(start, end, percent);
     }
 
-    float distance_of(const vec2 point)
+    f32 distance_of(const vec2 poi32)
     {
-        ZoneScoped;
         vec2 start;
         vec2 end;
         vec2 delta_line = end - start;
-        vec2 delta_point = point - start;
-        float h = dot(delta_point, delta_line) / dot(delta_line, delta_line);
-        return length(delta_point - h * delta_line);
+        vec2 delta_poi32 = poi32 - start;
+        f32 h = dot(delta_poi32, delta_line) / dot(delta_line, delta_line);
+        return length(delta_poi32 - h * delta_line);
     }
 
-    //Note: 0 < interpolation_percent < 1 only guarantees that the point is within the bounding box of the line segment.
-    float line::percent_of(const vec2 point) const
+    //Note: 0 < interpolation_percent < 1 only guarantees that the poi32 is within the bounding box of the line segment.
+    f32 line::percent_of(const vec2 poi32) const
     {
-        ZoneScoped;
         vec2 delta = end - start;
-        vec2 point_delta = point - start;
-        if (length2(point_delta) < 1e-7) return 0;
-        return dot(point_delta, delta) / dot(delta, delta);
+        vec2 poi32_delta = poi32 - start;
+        if (length2(poi32_delta) < 1e-7) return 0;
+        return dot(poi32_delta, delta) / dot(delta, delta);
     }
 
-    float line::sdf(const vec2 point) const
+    f32 line::sdf(const vec2 poi32) const
     {
-        ZoneScoped;
-        const vec2 point_start = point - start;
+        const vec2 poi32_start = poi32 - start;
         const vec2 start_end = end - start;
-        float h = clamp(dot(point_start, start_end) / dot(start_end, start_end), 0.0f, 1.0f);
-        return glm::length(point_start - start_end * h);
+        f32 h = clamp(dot(poi32_start, start_end) / dot(start_end, start_end), 0.0f, 1.0f);
+        return glm::length(poi32_start - start_end * h);
     }
 
-    float line::length() const
+    f32 line::length() const
     {
-        ZoneScoped;
         return glm::length(end - start);
     }
 
-    float line::left() const
+    f32 line::left() const
     {
-        ZoneScoped;
         return min(start.x, end.x);
     }
 
-    float line::right() const
+    f32 line::right() const
     {
-        ZoneScoped;
         return max(start.x, end.x);
     }
 
-    float line::up() const
+    f32 line::up() const
     {
-        ZoneScoped;
         return max(start.y, end.y);
     }
 
-    float line::down() const
+    f32 line::down() const
     {
-        ZoneScoped;
         return min(start.y, end.y);
     }
 
@@ -118,19 +109,19 @@ namespace hyengine
     {
         ZoneScoped;
 
-        float delta_ax = start.x - end.x;
-        float delta_ay = end.y - start.y;
-        float delta_bx = other.start.x - other.end.x;
-        float delta_by = other.end.y - other.start.y;
+        f32 delta_ax = start.x - end.x;
+        f32 delta_ay = end.y - start.y;
+        f32 delta_bx = other.start.x - other.end.x;
+        f32 delta_by = other.end.y - other.start.y;
 
-        float c1 = delta_ay * (start.x) + delta_ax * (start.y);
-        float c2 = delta_by * (other.start.x) + delta_bx * (other.start.y);
-        float det = delta_ay * delta_bx - delta_by * delta_ax;
+        f32 c1 = delta_ay * (start.x) + delta_ax * (start.y);
+        f32 c2 = delta_by * (other.start.x) + delta_bx * (other.start.y);
+        f32 det = delta_ay * delta_bx - delta_by * delta_ax;
 
         if (det == 0)
         {
             //Parallel lines - no real intersection, but for physics purposes we still want to return a reasonable value.
-            //This is the midpoint between the two closest points on the lines.
+            //This is the midpoi32 between the two closest poi32s on the lines.
             vec2 greater_min = max(min(start, end), min(other.start, other.end));
             vec2 lower_max = min(max(start, end), max(other.start, other.end));
             return mix(greater_min, lower_max, 0.5);
@@ -141,7 +132,6 @@ namespace hyengine
 
     vec2 line::direction() const
     {
-        ZoneScoped;
         vec2 ex = vector();
         if (glm::length(ex) == 0) return vec2(0);
         return normalize(ex);
@@ -149,13 +139,11 @@ namespace hyengine
 
     vec2 line::vector() const
     {
-        ZoneScoped;
         return end - start;
     }
 
     vec2 line::normal() const
     {
-        ZoneScoped;
         vec2 dir = direction();
         return {dir.y, -dir.x};
     }

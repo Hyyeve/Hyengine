@@ -2,21 +2,22 @@
 
 #include <unordered_map>
 #include "../../common/id_generator.hpp"
+#include "Hyengine/common/sized_numerics.hpp"
 
 namespace hyengine
 {
     class texture_set
     {
     public:
-        unsigned int allocate_slot(const unsigned int texture_id, const unsigned int sampler_state_id = 0);
-        void set_sampler_state(const unsigned int texture_id, const unsigned int sampler_state_id);
+        u32 allocate_slot(const u32 texture_id, const u32 sampler_state_id = 0);
+        void set_sampler_state(const u32 texture_id, const u32 sampler_state_id);
 
-        void free_slot(const unsigned int texture_id);
+        void free_slot(const u32 texture_id);
 
-        [[nodiscard]] unsigned int get_slot(const unsigned int texture_id) const;
+        [[nodiscard]] u32 get_slot(const u32 texture_id) const;
         [[nodiscard]] bool has_space() const;
 
-        static unsigned int max_slots();
+        static u32 max_slots();
 
         void clear();
         void bind_state() const;
@@ -24,11 +25,11 @@ namespace hyengine
     private:
         struct texture_slot_data
         {
-            unsigned int slot;
-            unsigned int sampler_id;
+            u32 slot;
+            u32 sampler_id;
         };
 
-        id_generator<unsigned int> slot_allocator;
-        std::unordered_map<unsigned int, texture_slot_data> slot_map;
+        id_generator<u32> slot_allocator;
+        std::unordered_map<u32, texture_slot_data> slot_map;
     };
 }

@@ -2,34 +2,36 @@
 #include <array>
 #include <cassert>
 
+#include "sized_numerics.hpp"
+
 namespace hyengine
 {
-    template <typename data_type, const unsigned int side_length>
+    template <typename data_type, const u32 side_length>
     class array_3d
     {
     public:
-        static unsigned int index_for(const unsigned int x, const unsigned int y, const unsigned int z)
+        static u32 index_for(const u32 x, const u32 y, const u32 z)
         {
             assert(x < side_length && y < side_length && z < side_length);
             return x + y * side_length + z * side_length * side_length;
         }
 
-        data_type& operator [](const unsigned int x, const unsigned int y, const unsigned int z)
+        data_type& operator [](const u32 x, const u32 y, const u32 z)
         {
             return data[index_for(x, y, z)];
         }
 
-        data_type& operator [](const unsigned int idx)
+        data_type& operator [](const u32 idx)
         {
             return data[idx];
         }
 
-        const data_type& operator [](const unsigned int x, const unsigned int y, const unsigned int z) const
+        const data_type& operator [](const u32 x, const u32 y, const u32 z) const
         {
             return data[index_for(x, y, z)];
         }
 
-        const data_type& operator [](const unsigned int idx) const
+        const data_type& operator [](const u32 idx) const
         {
             return data[idx];
         }

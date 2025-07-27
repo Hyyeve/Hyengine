@@ -1,6 +1,7 @@
 #pragma once
 #include "../../library/gl.hpp"
 #include "../../library/glm.hpp"
+#include "Hyengine/common/sized_numerics.hpp"
 
 namespace hyengine
 {
@@ -15,7 +16,7 @@ namespace hyengine
         explicit texture_buffer() = default;
         ~texture_buffer();
 
-        void allocate(const GLenum texture_type, const glm::uvec3 size, const GLsizei mipmap_count, const GLenum format, const int multisample_count);
+        void allocate(const GLenum texture_type, const glm::uvec3 size, const GLsizei mipmap_count, const GLenum format, const i32 multisample_count);
         void free();
 
         void allocate_as_view(const GLenum target, const GLenum format, GLuint source_id);
@@ -35,28 +36,28 @@ namespace hyengine
 
         void copy_data(const texture_buffer& source) const;
         void copy_data_partial(const texture_buffer& source, glm::uvec3 from_pos, glm::uvec3 to_pos, glm::uvec3 size) const;
-        void copy_data_mipmap(const texture_buffer& source, const int from_mipmap, const int to_mipmap) const;
-        void copy_data_mipmap_partial(const texture_buffer& source, const int from_mipmap, const int to_mipmap, glm::uvec3 from_pos, glm::uvec3 to_pos, glm::uvec3 size) const;
+        void copy_data_mipmap(const texture_buffer& source, const i32 from_mipmap, const i32 to_mipmap) const;
+        void copy_data_mipmap_partial(const texture_buffer& source, const i32 from_mipmap, const i32 to_mipmap, glm::uvec3 from_pos, glm::uvec3 to_pos, glm::uvec3 size) const;
 
         void generate_mipmaps() const;
         void set_depth_stencil_mode(const GLenum mode) const;
 
-        void set_mipmap_min_level(const int level) const;
-        void set_mipmap_max_level(const int level) const;
+        void set_mipmap_min_level(const i32 level) const;
+        void set_mipmap_max_level(const i32 level) const;
 
         void set_border_color(const glm::vec4 col) const;
 
         void set_compare_func(const GLenum func) const;
         void set_compare_mode(const GLenum mode) const;
 
-        void set_anisotropy_level(const float anisotropy) const;
+        void set_anisotropy_level(const f32 anisotropy) const;
 
         void set_downscale_filter(const GLenum filter) const;
         void set_upscale_filter(const GLenum filter) const;
 
-        void set_lod_bias(const float bias) const;
-        void set_min_lod(const int lod) const;
-        void set_max_lod(const int lod) const;
+        void set_lod_bias(const f32 bias) const;
+        void set_min_lod(const i32 lod) const;
+        void set_max_lod(const i32 lod) const;
 
         void set_swizzle_red(const GLenum swizzle) const;
         void set_swizzle_green(const GLenum swizzle) const;
@@ -67,16 +68,16 @@ namespace hyengine
         void set_texture_wrap_y(const GLenum wrap) const;
         void set_texture_wrap_z(const GLenum wrap) const;
 
-        void bind(const int slot) const;
-        void bind_image(const int slot, const int level, GLenum access) const;
-        void bind_image_layered(const int slot, const int level, const int layer, const GLenum access) const;
+        void bind(const i32 slot) const;
+        void bind_image(const i32 slot, const i32 level, GLenum access) const;
+        void bind_image_layered(const i32 slot, const i32 level, const i32 layer, const GLenum access) const;
 
         [[nodiscard]] GLuint get_id() const;
         [[nodiscard]] glm::uvec3 get_size() const;
         [[nodiscard]] GLsizei get_mipmap_count() const;
         [[nodiscard]] GLenum get_type() const;
         [[nodiscard]] GLenum get_format() const;
-        [[nodiscard]] int get_multisample_count() const;
+        [[nodiscard]] i32 get_multisample_count() const;
 
     private:
         const std::string logger_tag = "GPU Texture";
@@ -86,6 +87,6 @@ namespace hyengine
         glm::ivec3 internal_size = glm::ivec3(0);
         GLenum internal_format = 0;
         GLsizei internal_mipmaps = 0;
-        int internal_multisample = 0;
+        i32 internal_multisample = 0;
     };
 }

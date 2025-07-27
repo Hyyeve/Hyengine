@@ -11,7 +11,7 @@ namespace hyengine
     Sync fence current slice
     Increment to next slice
     Sync await / blocking until slice is ready
-    Write data into slice
+    Write data i32o slice
     Issue commands using the buffer
     Repeat
 
@@ -31,7 +31,7 @@ namespace hyengine
         void allocate_for_cpu_writes(const GLenum target, const GLsizeiptr size);
         void allocate_for_gpu_writes(const GLenum target, const GLsizeiptr size);
 
-        void allocate(const GLenum target, const GLsizeiptr size, const unsigned int slices, const void* const data, const GLbitfield storage_flags);
+        void allocate(const GLenum target, const GLsizeiptr size, const u32 slices, const void* const data, const GLbitfield storage_flags);
         void free();
 
         void map_storage(const GLbitfield mapping_flags);
@@ -40,14 +40,14 @@ namespace hyengine
         void bind_state() const;
         void unbind_state() const;
 
-        void bind_buffer_base(const int binding) const;
-        void bind_buffer_range(const int binding, const GLintptr offset, const GLsizeiptr bytes) const;
+        void bind_buffer_base(const i32 binding) const;
+        void bind_buffer_range(const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const;
 
         void copy_buffer_data(const GLuint source_buffer_id) const;
         void copy_buffer_range(const GLuint source_buffer_id, const GLintptr read_offset, const GLintptr write_offset, const GLintptr bytes) const;
 
-        void bind_slice_base(const int binding) const;
-        void bind_slice_range(const int binding, const GLintptr offset, const GLsizeiptr bytes) const;
+        void bind_slice_base(const i32 binding) const;
+        void bind_slice_range(const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const;
 
         void copy_slice_data(const GLuint source_buffer_id) const;
         void copy_slice_range(const GLuint source_buffer_id, const GLintptr read_offset, const GLintptr write_offset, const GLintptr bytes) const;
@@ -55,7 +55,7 @@ namespace hyengine
         void block_ready();
         [[nodiscard]] bool await_ready(const unsigned long timeout_nanos);
 
-        [[nodiscard]] unsigned int get_slice_offset() const;
+        [[nodiscard]] u32 get_slice_offset() const;
 
         [[nodiscard]] void* get_mapped_pointer() const;
         [[nodiscard]] void* get_mapped_slice_pointer() const;
@@ -66,7 +66,7 @@ namespace hyengine
         [[nodiscard]] GLsizeiptr get_slice_size() const;
 
         template <typename TYPE>
-        TYPE& data(unsigned int index)
+        TYPE& data(u32 index)
         {
             return static_cast<TYPE*>(get_mapped_slice_pointer())[index];
         }
@@ -87,7 +87,7 @@ namespace hyengine
         [[nodiscard]] bool sync_await(const unsigned long timeout_nanos) const;
         void sync_block() const;
 
-        unsigned int current_slice_index = 0;
+        u32 current_slice_index = 0;
         void* mapped_pointer = nullptr;
 
         //Set on allocation only
@@ -95,7 +95,7 @@ namespace hyengine
         GLuint buffer_id = 0;
         GLsizeiptr total_size = 0;
         GLsizeiptr slice_size = 0;
-        unsigned int slice_count = 1;
+        u32 slice_count = 1;
         std::array<slice_data, 3> buffer_slices;
     };
 }

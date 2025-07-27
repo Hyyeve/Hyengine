@@ -34,13 +34,11 @@ namespace hyengine
 
     GLuint vertex_format_buffer::get_id() const
     {
-        ZoneScoped;
         return buffer_id;
     }
 
     vertex_format_buffer::~vertex_format_buffer()
     {
-        ZoneScoped;
         free();
     }
 

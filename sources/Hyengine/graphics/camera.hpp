@@ -20,26 +20,26 @@ namespace hyengine
         camera(const glm::vec3& position, const glm::vec3& rotation);
 
         void move_to(const glm::vec3& to);
-        void move_to(float x, float y, float z);
+        void move_to(f32 x, f32 y, f32 z);
         void move_by(const glm::vec3& delta);
-        void move_by(float deltaX, float deltaY, float deltaZ);
+        void move_by(f32 deltaX, f32 deltaY, f32 deltaZ);
         void move_relative(const glm::vec3& delta);
-        void move_relative(float deltaHorizontal, float deltaVertical, float deltaAxial);
+        void move_relative(f32 deltaHorizontal, f32 deltaVertical, f32 deltaAxial);
         void move_planar(const glm::vec3& delta);
-        void move_planar(float deltaHorizontal, float deltaVertical, float deltaAxial);
+        void move_planar(f32 deltaHorizontal, f32 deltaVertical, f32 deltaAxial);
 
         void rotate_to(const glm::quat& to);
         void rotate_by(const glm::quat& delta);
 
-        void zoom_by(float percent);
-        void zoom_to(float percent);
+        void zoom_by(f32 percent);
+        void zoom_to(f32 percent);
         void zoom_focus_relative(const glm::vec3& target);
         void zoom_focus_absolute(const glm::dvec3& target);
 
-        void set_perspective(float fov, float aspect, float near, float far);
-        void set_orthographic(float left, float right, float bottom, float top, float near, float far);
+        void set_perspective(f32 fov, f32 aspect, f32 near, f32 far);
+        void set_orthographic(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far);
 
-        void refresh(float interpolation);
+        void refresh(f32 interpolation);
         void start_update();
 
         [[nodiscard]] glm::vec3 screen_to_world(const glm::vec3& point, const render_viewport screen) const;
@@ -53,15 +53,15 @@ namespace hyengine
         [[nodiscard]] const glm::mat4& get_view() const;
         [[nodiscard]] const glm::mat4& get_projection() const;
 
-        [[nodiscard]] glm::dvec3 get_position(const float interpolation) const;
-        [[nodiscard]] glm::quat get_rotation(const float interpolation) const;
-        [[nodiscard]] glm::vec3 get_rotation_radians(float interpolation) const;
+        [[nodiscard]] glm::dvec3 get_position(const f32 interpolation) const;
+        [[nodiscard]] glm::quat get_rotation(const f32 interpolation) const;
+        [[nodiscard]] glm::vec3 get_rotation_radians(f32 interpolation) const;
 
         [[nodiscard]] glm::vec3 get_forward_dir() const;
         [[nodiscard]] glm::vec3 get_up_dir() const;
         [[nodiscard]] glm::vec3 get_right_dir() const;
 
-        [[nodiscard]] bool frustum_visible(glm::dvec3 sphere_pos, float sphere_radius) const;
+        [[nodiscard]] bool frustum_visible(glm::dvec3 sphere_pos, f32 sphere_radius) const;
         [[nodiscard]] frustum get_frustum() const;
 
     private:
@@ -73,7 +73,7 @@ namespace hyengine
         glm::vec3 right = glm::vec3(0);
 
         interpolatable<glm::dvec3> zoom_target = glm::dvec3(0);
-        interpolatable<float> zoom_percent = 1.0f;
+        interpolatable<f32> zoom_percent = 1.0f;
 
         glm::mat4 view_matrix = glm::mat4();
         glm::mat4 projection_matrix = glm::mat4();

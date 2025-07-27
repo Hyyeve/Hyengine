@@ -4,21 +4,22 @@
 #include "../library/gl.hpp"
 
 #include "../common/rectangle.hpp"
+#include "Hyengine/common/sized_numerics.hpp"
 
 namespace hyengine
 {
     struct gl_draw_indirect_cmd
     {
-        unsigned int vertex_count;
-        unsigned int instance_count;
-        unsigned int vertex_begin;
-        unsigned int instance_begin;
+        u32 vertex_count;
+        u32 instance_count;
+        u32 vertex_begin;
+        u32 instance_begin;
     };
 
     struct render_viewport
     {
-        int x_offset, y_offset;
-        unsigned int width, height;
+        i32 x_offset, y_offset;
+        u32 width, height;
     };
 
     struct blending_config
@@ -64,17 +65,17 @@ namespace hyengine
     void enable_scissor_test();
     void disable_scissor_test();
 
-    void set_scissor(const int x, const int y, const int width, const int height);
+    void set_scissor(const i32 x, const i32 y, const i32 width, const i32 height);
     void set_scissor(const glm::ivec2 position, const glm::ivec2 size);
     void set_scissor(const rectangle& rect);
 
     void set_viewport(const render_viewport& viewport);
     [[nodiscard]] const render_viewport& get_viewport();
-    [[nodiscard]] render_viewport create_letterbox_viewport(const render_viewport& to_fit, const int target_width, const int target_height, const bool fill);
+    [[nodiscard]] render_viewport create_letterbox_viewport(const render_viewport& to_fit, const i32 target_width, const i32 target_height, const bool fill);
 
     void set_gl_flag_enabled(const GLenum setting, const bool enable);
 
-    void set_blending_config(const blending_config& config, const unsigned int buffer_slot = 0);
+    void set_blending_config(const blending_config& config, const u32 buffer_slot = 0);
     void set_blending_enabled(const bool enable);
 
     void set_stencil_config(const stencil_config& config, const GLenum facing);
@@ -88,9 +89,9 @@ namespace hyengine
     void set_cubemap_seamless_sampling(const bool enable);
 
     void set_clear_color(const glm::vec4 color);
-    void set_clear_depth(const float depth);
-    void set_clear_stencil(const int stencil);
+    void set_clear_depth(const f32 depth);
+    void set_clear_stencil(const i32 stencil);
     void clear_buffers(const GLbitfield mask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    [[nodiscard]] unsigned int get_max_texture_units();
+    [[nodiscard]] u32 get_max_texture_units();
 }

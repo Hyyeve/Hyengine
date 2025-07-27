@@ -12,17 +12,17 @@ namespace hyengine
     {
         struct loop_data
         {
-            double time;
-            double delta_time;
-            double interpolation;
+            f64 time;
+            f64 delta_time;
+            f64 interpolation;
         };
 
         struct config
         {
-            unsigned int target_ups = 100;
-            unsigned int target_fps = 240;
+            u32 target_ups = 100;
+            u32 target_fps = 240;
 
-            double max_frame_time = 0.1;
+            f64 max_frame_time = 0.1;
 
             std::string name = "Frame Loop";
 
@@ -46,7 +46,7 @@ namespace hyengine
         };
     }
 
-    double time();
+    f64 time();
 
     void run_frame_loop(const frame_loop::config& config);
 }

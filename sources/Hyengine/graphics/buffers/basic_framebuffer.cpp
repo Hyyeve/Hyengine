@@ -16,7 +16,6 @@ namespace hyengine
 
     basic_framebuffer::~basic_framebuffer()
     {
-        ZoneScoped;
         free();
 
         delete depth_stencil_attachment;
@@ -26,7 +25,7 @@ namespace hyengine
         color_attachment = nullptr;
     }
 
-    void basic_framebuffer::allocate(GLenum color_format, glm::uvec2 size, int multisample_count)
+    void basic_framebuffer::allocate(GLenum color_format, glm::uvec2 size, i32 multisample_count)
     {
         ZoneScoped;
         if (valid)
@@ -52,7 +51,7 @@ namespace hyengine
         ZoneScoped;
         if (valid)
         {
-            const int prev_id = buffer->get_id();
+            const i32 prev_id = buffer->get_id();
             buffer->free();
             depth_stencil_attachment->free();
             color_attachment->free();
@@ -64,13 +63,11 @@ namespace hyengine
 
     void basic_framebuffer::bind_to_draw() const
     {
-        ZoneScoped;
         buffer->bind_to_draw();
     }
 
     void basic_framebuffer::bind_to_read() const
     {
-        ZoneScoped;
         buffer->bind_to_read();
     }
 }

@@ -1,141 +1,122 @@
 #include "virtual_controller.hpp"
 
+#include <ranges>
 #include <tracy/Tracy.hpp>
 
 namespace hyengine
 {
-    void virtual_controller::press_button(const int button)
+    void virtual_controller::press_button(const i32 button)
     {
-        ZoneScoped;
         button_map[button] = 1;
     }
 
-    void virtual_controller::release_button(const int button)
+    void virtual_controller::release_button(const i32 button)
     {
-        ZoneScoped;
         button_map[button] = -1;
     }
 
-    void virtual_controller::set_axis(const int axis, const float value)
+    void virtual_controller::set_axis(const i32 axis, const f32 value)
     {
-        ZoneScoped;
         axis_map[axis] = value;
     }
 
-    void virtual_controller::press_direction(const int pad, const dpad direction)
+    void virtual_controller::press_direction(const i32 pad, const dpad direction)
     {
-        ZoneScoped;
         pad_map[pad][direction] = 1;
     }
 
-    void virtual_controller::release_direction(const int pad, const dpad direction)
+    void virtual_controller::release_direction(const i32 pad, const dpad direction)
     {
-        ZoneScoped;
         pad_map[pad][direction] = -1;
     }
 
-    bool virtual_controller::pressed(const int button)
+    bool virtual_controller::pressed(const i32 button)
     {
-        ZoneScoped;
         return button_map[button] > 0;
     }
 
-    bool virtual_controller::released(const int button)
+    bool virtual_controller::released(const i32 button)
     {
-        ZoneScoped;
         return button_map[button] < 0;
     }
 
-    int virtual_controller::frame_count(const int button)
+    i32 virtual_controller::frame_count(const i32 button)
     {
-        ZoneScoped;
         return button_map[button];
     }
 
-    bool virtual_controller::pressed_this_frame(const int button)
+    bool virtual_controller::pressed_this_frame(const i32 button)
     {
-        ZoneScoped;
         return frame_count(button) == 1;
     }
 
-    bool virtual_controller::released_this_frame(const int button)
+    bool virtual_controller::released_this_frame(const i32 button)
     {
-        ZoneScoped;
         return frame_count(button) == -1;
     }
 
-    bool virtual_controller::direction_pressed(const int pad, const dpad direction)
+    bool virtual_controller::direction_pressed(const i32 pad, const dpad direction)
     {
-        ZoneScoped;
         return pad_map[pad][direction] > 0;
     }
 
-    bool virtual_controller::direction_pressed_this_frame(const int pad, const dpad direction)
+    bool virtual_controller::direction_pressed_this_frame(const i32 pad, const dpad direction)
     {
-        ZoneScoped;
         return pad_map[pad][direction] == 1;
     }
 
-    float virtual_controller::axis_value(const int axis)
+    f32 virtual_controller::axis_value(const i32 axis)
     {
-        ZoneScoped;
         return axis_map[axis];
     }
 
-    bool virtual_controller::axis_pressed(const int axis, const float threshold)
+    bool virtual_controller::axis_pressed(const i32 axis, const f32 threshold)
     {
-        ZoneScoped;
         return axis_map[axis] > threshold;
     }
 
-    bool virtual_controller::axis_released(const int axis, const float threshold)
+    bool virtual_controller::axis_released(const i32 axis, const f32 threshold)
     {
-        ZoneScoped;
         return axis_map[axis] < threshold;
     }
 
-    int virtual_controller::pressed_frames(const int button)
+    i32 virtual_controller::pressed_frames(const i32 button)
     {
-        ZoneScoped;
         return std::max(0, frame_count(button));
     }
 
-    int virtual_controller::released_frames(const int button)
+    i32 virtual_controller::released_frames(const i32 button)
     {
-        ZoneScoped;
         return std::max(0, -frame_count(button));
     }
 
-    int virtual_controller::direction_frame_count(const int pad, const dpad direction)
+    i32 virtual_controller::direction_frame_count(const i32 pad, const dpad direction)
     {
-        ZoneScoped;
         return pad_map[pad][direction];
     }
 
-    int virtual_controller::direction_pressed_frames(const int pad, const dpad direction)
+    i32 virtual_controller::direction_pressed_frames(const i32 pad, const dpad direction)
     {
-        ZoneScoped;
         return std::max(direction_frame_count(pad, direction), 0);
     }
 
-    int virtual_controller::direction_released_frames(const int pad, const dpad direction)
+    i32 virtual_controller::direction_released_frames(const i32 pad, const dpad direction)
     {
-        ZoneScoped;
         return std::max(0, -direction_frame_count(pad, direction));
     }
 
     void virtual_controller::process_inputs()
     {
         ZoneScoped;
-        for (auto& [key, value] : button_map)
+        for (i32& value : button_map | std::views::values)
         {
             if (value > 0) value++;
             else if (value < 0) value--;
         }
 
-        for (auto& [key, direction_map] : pad_map)
+        for (std::map<dpad, int>& direction_map : pad_map | std::views::values)
         {
-            for (auto& [key, value] : direction_map)
+            for (i32& value : direction_map | std::views::values)
             {
                 if (value > 0) value++;
                 else if (value < 0) value--;

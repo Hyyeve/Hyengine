@@ -2,16 +2,18 @@
 #include "../library/gl.hpp"
 #include <array>
 
+#include "Hyengine/common/sized_numerics.hpp"
+
 namespace hyengine
 {
     struct vertex_element
     {
         GLboolean normalized;
         GLenum gl_type;
-        int count;
-        int bytes;
+        i32 count;
+        i32 bytes;
         bool asInt;
-        int instance_divisor;
+        i32 instance_divisor;
     };
 
     template <size_t size>
@@ -26,7 +28,7 @@ namespace hyengine
         void apply(const GLuint vertex_format_buffer, const GLuint vertex_buffer_slot) const
         {
             size_t offset = 0;
-            for (int i = 0; i < elements.size(); i++)
+            for (i32 i = 0; i < elements.size(); i++)
             {
                 const vertex_element& element = elements[i];
                 glEnableVertexArrayAttrib(vertex_format_buffer, i);
@@ -57,12 +59,12 @@ namespace hyengine
 
     private:
         std::array<vertex_element, size> elements;
-        int total_bytes = 0;
+        i32 total_bytes = 0;
     };
 
     namespace vertex_element_types
     {
-        constexpr vertex_element make_instanced(const vertex_element& element, const int instance_divisor)
+        constexpr vertex_element make_instanced(const vertex_element& element, const i32 instance_divisor)
         {
             return vertex_element{element.normalized, element.gl_type, element.count, element.bytes, element.asInt, instance_divisor};
         }

@@ -14,9 +14,8 @@ namespace hyengine
 
     const std::string logger_tag = "Hyengine";
 
-    double time()
+    f64 time()
     {
-        ZoneScoped;
         return glfwGetTime();
     }
 
@@ -64,27 +63,27 @@ namespace hyengine
 
         config.launch();
 
-        const double update_step_time = 1.0 / config.target_ups;
-        const double max_frame_time = config.max_frame_time;
-        const double min_frame_time = 1.0 / config.target_fps;
+        const f64 update_step_time = 1.0 / config.target_ups;
+        const f64 max_frame_time = config.max_frame_time;
+        const f64 min_frame_time = 1.0 / config.target_fps;
 
-        double runtime = 0.0;
-        double current_time = time();
-        double accumulator = 0.0;
+        f64 runtime = 0.0;
+        f64 current_time = time();
+        f64 accumulator = 0.0;
 
-        const double start_time = current_time;
+        const f64 start_time = current_time;
 
         unsigned long update_count = 0;
         unsigned long frame_count = 0;
-        unsigned int updates_last_frame = 0;
+        u32 updates_last_frame = 0;
 
         log_info(config.name, "Starting updates / rendering");
 
         while (true)
         {
-            const double new_time = time();
-            double frame_time = new_time - current_time;
-            const double ups_last_frame = updates_last_frame / frame_time;
+            const f64 new_time = time();
+            f64 frame_time = new_time - current_time;
+            const f64 ups_last_frame = updates_last_frame / frame_time;
 
             if (updates_last_frame > 0 && ups_last_frame < config.target_ups)
             {
@@ -127,8 +126,8 @@ namespace hyengine
             {
                 FrameMarkStart("Render");
                 ZoneScopedNC("Render", 0x0077FF);
-                const double interpolation_delta = accumulator / update_step_time;
-                config.render({runtime + frame_time * interpolation_delta, frame_time, interpolation_delta});
+                const f64 i32erpolation_delta = accumulator / update_step_time;
+                config.render({runtime + frame_time * i32erpolation_delta, frame_time, i32erpolation_delta});
                 frame_count++;
                 FrameMarkEnd("Render");
             }
@@ -137,7 +136,7 @@ namespace hyengine
         }
 
         log_info(config.name, "Exiting frame loop");
-        const double total_runtime = current_time - start_time;
+        const f64 total_runtime = current_time - start_time;
 
         log_info(config.name, "Total runtime: ", stringify_secs(total_runtime));
     }

@@ -6,8 +6,6 @@ find_package(glm CONFIG REQUIRED)
 
 include(FetchContent)
 
-set(TRACY_ENABLE OFF)
-
 FetchContent_Declare(
         tracy
         GIT_REPOSITORY https://github.com/wolfpld/tracy.git

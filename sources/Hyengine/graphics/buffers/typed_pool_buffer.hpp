@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pool_data_buffer.hpp"
+#include "Hyengine/common/sized_numerics.hpp"
 
 namespace hyengine
 {
@@ -35,22 +36,22 @@ namespace hyengine
             internal_data_buffer.shrink_staging_buffer();
         }
 
-        bool try_allocate_space(const unsigned int elements, unsigned int& address)
+        bool try_allocate_space(const u32 elements, u32& address)
         {
             return internal_data_buffer.try_allocate_space(elements * sizeof(TYPE), address);
         }
 
-        void deallocate_space(const unsigned int address)
+        void deallocate_space(const u32 address)
         {
             internal_data_buffer.deallocate_space(address);
         }
 
-        [[nodiscard]] unsigned int get_last_allocated_element() const
+        [[nodiscard]] u32 get_last_allocated_element() const
         {
             return internal_data_buffer.get_last_allocated_address() / sizeof(TYPE);
         }
 
-        void queue_upload(const unsigned int& address, const TYPE* const data, const unsigned int elements)
+        void queue_upload(const u32& address, const TYPE* const data, const u32 elements)
         {
             internal_data_buffer.queue_upload(address, data, elements * sizeof(TYPE));
         }
@@ -70,12 +71,12 @@ namespace hyengine
             internal_data_buffer.unbind_state();
         }
 
-        void bind_buffer_base(const int binding) const
+        void bind_buffer_base(const i32 binding) const
         {
             internal_data_buffer.bind_buffer_base(binding);
         }
 
-        void bind_buffer_range(const int binding, const GLintptr index, const GLsizeiptr elements) const
+        void bind_buffer_range(const i32 binding, const GLintptr index, const GLsizeiptr elements) const
         {
             internal_data_buffer.bind_buffer_range(binding, index * sizeof(TYPE), elements * sizeof(TYPE));
         }
@@ -95,7 +96,7 @@ namespace hyengine
             return internal_data_buffer.get_target();
         }
 
-        [[nodiscard]] unsigned int get_pending_upload_count() const
+        [[nodiscard]] u32 get_pending_upload_count() const
         {
             return internal_data_buffer.get_pending_upload_count();
         }

@@ -1,4 +1,5 @@
 #pragma once
+#include "sized_numerics.hpp"
 #include "../library/glm.hpp"
 
 namespace hyengine
@@ -11,10 +12,10 @@ namespace hyengine
         #define OP(half, full) \
             line operator half(const line& other) const; \
             line operator half(const glm::vec2 other) const; \
-            line operator half(const float other) const; \
+            line operator half(const f32 other) const; \
             line& operator full(const line& other); \
             line& operator full(const glm::vec2 other); \
-            line& operator full(const float other);
+            line& operator full(const f32 other);
         OP(+, +=);
         OP(-, -=);
         OP(*, *=);
@@ -22,14 +23,14 @@ namespace hyengine
 
         #undef OP
 
-        [[nodiscard]] glm::vec2 point_at(float percent) const;
-        [[nodiscard]] float percent_of(glm::vec2 point) const;
-        [[nodiscard]] float sdf(glm::vec2 point) const;
-        [[nodiscard]] float length() const;
-        [[nodiscard]] float left() const;
-        [[nodiscard]] float right() const;
-        [[nodiscard]] float up() const;
-        [[nodiscard]] float down() const;
+        [[nodiscard]] glm::vec2 point_at(f32 percent) const;
+        [[nodiscard]] f32 percent_of(glm::vec2 poi32) const;
+        [[nodiscard]] f32 sdf(glm::vec2 poi32) const;
+        [[nodiscard]] f32 length() const;
+        [[nodiscard]] f32 left() const;
+        [[nodiscard]] f32 right() const;
+        [[nodiscard]] f32 up() const;
+        [[nodiscard]] f32 down() const;
 
         [[nodiscard]] glm::vec2 vector() const;
         [[nodiscard]] glm::vec2 direction() const;

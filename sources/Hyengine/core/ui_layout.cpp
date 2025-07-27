@@ -4,69 +4,61 @@
 
 namespace hyengine
 {
-    unsigned int content_adjusted_min(const ui_object& object, const int axis)
+    u32 content_adjusted_min(const ui_object& object, const i32 axis)
     {
-        ZoneScoped;
         return std::max(object.transform[axis].sizing.min, object.transform[axis].computed_content_size_min);
     }
 
-    void constrain_size(ui_object& object, const int axis)
+    void constrain_size(ui_object& object, const i32 axis)
     {
-        ZoneScoped;
-        const unsigned int min = content_adjusted_min(object, axis);
-        const unsigned int max = object.transform[axis].sizing.max;
-        const unsigned int current = object.transform[axis].sizing.current;
+        const u32 min = content_adjusted_min(object, axis);
+        const u32 max = object.transform[axis].sizing.max;
+        const u32 current = object.transform[axis].sizing.current;
         object.transform[axis].sizing.current = std::min(std::max(current, min), max);
     }
 
-    void constrain_offset(ui_object& object, const int axis)
+    void constrain_offset(ui_object& object, const i32 axis)
     {
-        ZoneScoped;
-        const unsigned int min = object.transform[axis].positioning.min;
-        const unsigned int max = object.transform[axis].positioning.max;
-        const unsigned int current = object.transform[axis].positioning.current;
+        const u32 min = object.transform[axis].positioning.min;
+        const u32 max = object.transform[axis].positioning.max;
+        const u32 current = object.transform[axis].positioning.current;
         object.transform[axis].positioning.current = std::min(std::max(current, min), max);
     }
 
-    bool is_fixed_size(const ui_object& object, const int axis)
+    bool is_fixed_size(const ui_object& object, const i32 axis)
     {
-        ZoneScoped;
-        const unsigned int min = content_adjusted_min(object, axis);
-        const unsigned int max = object.transform[axis].sizing.max;
+        const u32 min = content_adjusted_min(object, axis);
+        const u32 max = object.transform[axis].sizing.max;
         return min >= max;
     }
 
-    bool can_shrink(const ui_object& object, const int axis)
+    bool can_shrink(const ui_object& object, const i32 axis)
     {
-        ZoneScoped;
-        const unsigned int min = content_adjusted_min(object, axis);
-        const unsigned int current = object.transform[axis].sizing.current;
+        const u32 min = content_adjusted_min(object, axis);
+        const u32 current = object.transform[axis].sizing.current;
         return current > min;
     }
 
-    bool can_expand(const ui_object& object, const int axis)
+    bool can_expand(const ui_object& object, const i32 axis)
     {
-        ZoneScoped;
-        const unsigned int max = object.transform[axis].sizing.max;
-        const unsigned int current = object.transform[axis].sizing.current;
+        const u32 max = object.transform[axis].sizing.max;
+        const u32 current = object.transform[axis].sizing.current;
         return current < max;
     }
 
-    bool can_resize(const ui_object& object, const int axis, const int direction)
+    bool can_resize(const ui_object& object, const i32 axis, const i32 direction)
     {
-        ZoneScoped;
         return direction > 0 ? can_expand(object, axis) : can_shrink(object, axis);
     }
 
-    int constrained_resize_amount(const ui_object& object, const int axis, const int amount)
+    i32 constrained_resize_amount(const ui_object& object, const i32 axis, const i32 amount)
     {
-        ZoneScoped;
         if (amount == 0 || is_fixed_size(object, axis)) return 0;
-        const unsigned int min = content_adjusted_min(object, axis);
-        const unsigned int max = object.transform[axis].sizing.max;
-        const unsigned int current = object.transform[axis].sizing.current;
+        const u32 min = content_adjusted_min(object, axis);
+        const u32 max = object.transform[axis].sizing.max;
+        const u32 current = object.transform[axis].sizing.current;
 
-        int actual_amount = 0;
+        i32 actual_amount = 0;
 
         if (amount > 0)
         {
@@ -97,21 +89,21 @@ namespace hyengine
             return;
         }
 
-        for (int axis = 0; axis < container.transform.size(); axis++)
+        for (i32 axis = 0; axis < container.transform.size(); axis++)
         {
             if (is_fixed_size(container, axis)) continue;
 
-            const unsigned int axis_padding = container.transform[axis].padding.before + container.transform[axis].padding.after;
-            const unsigned int spacing_sum = container.content_spacing * (content.size() - 1);
+            const u32 axis_padding = container.transform[axis].padding.before + container.transform[axis].padding.after;
+            const u32 spacing_sum = container.content_spacing * (content.size() - 1);
             const bool layout_axis = container.layout_axis == axis;
 
-            unsigned int content_total = layout_axis ? spacing_sum : 0;
-            unsigned int content_total_min = layout_axis ? spacing_sum : 0;
+            u32 content_total = layout_axis ? spacing_sum : 0;
+            u32 content_total_min = layout_axis ? spacing_sum : 0;
 
             for (ui_object object : content)
             {
-                const unsigned int content_size = object.transform[axis].sizing.current;
-                const unsigned int content_size_min = object.transform[axis].sizing.current;
+                const u32 content_size = object.transform[axis].sizing.current;
+                const u32 content_size_min = object.transform[axis].sizing.current;
 
                 if (layout_axis)
                 {
@@ -139,12 +131,12 @@ namespace hyengine
 
         if (content.empty()) return;
 
-        for (int axis = 0; axis < container.transform.size(); axis++)
+        for (i32 axis = 0; axis < container.transform.size(); axis++)
         {
-            const unsigned int container_size = container.transform[axis].sizing.current;
-            const unsigned int axis_padding = container.transform[axis].padding.before + container.transform[axis].padding.after;
-            const unsigned int spacing_sum = container.content_spacing * (content.size() - 1);
-            const unsigned int container_space = container_size - axis_padding - spacing_sum;
+            const u32 container_size = container.transform[axis].sizing.current;
+            const u32 axis_padding = container.transform[axis].padding.before + container.transform[axis].padding.after;
+            const u32 spacing_sum = container.content_spacing * (content.size() - 1);
+            const u32 container_space = container_size - axis_padding - spacing_sum;
             const bool layout_axis = container.layout_axis == axis;
 
             if (!layout_axis)
@@ -157,19 +149,19 @@ namespace hyengine
                 continue;
             }
 
-            unsigned int content_size = 0;
+            u32 content_size = 0;
             for (ui_object& object : content)
             {
                 content_size += object.transform[axis].sizing.current;
             }
 
-            int remaining_space = container_space - content_size;
-            int current_priority = std::numeric_limits<int>::max();
+            i32 remaining_space = container_space - content_size;
+            i32 current_priority = std::numeric_limits<i32>::max();
 
             while (remaining_space != 0)
             {
-                int next_highest_priority = std::numeric_limits<int>::min();
-                int resizable_at_priority = 0;
+                i32 next_highest_priority = std::numeric_limits<i32>::min();
+                i32 resizable_at_priority = 0;
                 for (ui_object& object : content)
                 {
                     if (object.sizing_priority < current_priority && object.sizing_priority > next_highest_priority) next_highest_priority = object.sizing_priority;
@@ -183,13 +175,13 @@ namespace hyengine
                     continue;
                 }
 
-                int resize_amount = remaining_space / resizable_at_priority;
+                i32 resize_amount = remaining_space / resizable_at_priority;
                 if (resize_amount == 0) resize_amount = 1;
 
                 for (ui_object& object : content)
                 {
                     if (!can_resize(object, axis, remaining_space) || object.sizing_priority != current_priority) continue;
-                    const int actual_resize = constrained_resize_amount(object, axis, resize_amount);
+                    const i32 actual_resize = constrained_resize_amount(object, axis, resize_amount);
                     object.transform[axis].sizing.current += actual_resize;
                     remaining_space -= actual_resize;
                     if (remaining_space == 0) break;
@@ -206,20 +198,20 @@ namespace hyengine
         std::vector<ui_object>& content = container.content;
         if (content.empty()) return;
 
-        for (int axis = 0; axis < container.transform.size(); axis++)
+        for (i32 axis = 0; axis < container.transform.size(); axis++)
         {
             const bool layout_axis = container.layout_axis == axis;
-            const unsigned int container_size = container.transform[axis].sizing.current;
-            const unsigned int axis_padding = container.transform[axis].padding.before + container.transform[axis].padding.after;
-            const unsigned int spacing_sum = container.content_spacing * (content.size() - 1);
-            const unsigned int container_space = container_size - axis_padding - (layout_axis ? spacing_sum : 0);
+            const u32 container_size = container.transform[axis].sizing.current;
+            const u32 axis_padding = container.transform[axis].padding.before + container.transform[axis].padding.after;
+            const u32 spacing_sum = container.content_spacing * (content.size() - 1);
+            const u32 container_space = container_size - axis_padding - (layout_axis ? spacing_sum : 0);
 
             if (!layout_axis)
             {
                 for (ui_object& object : content)
                 {
-                    const unsigned int available_space = container_space < object.transform[axis].sizing.current ? 0 : container_space - object.transform[axis].sizing.current;
-                    const unsigned int offset = available_space * container.transform[axis].content_alignment + container.transform[axis].padding.before;
+                    const u32 available_space = container_space < object.transform[axis].sizing.current ? 0 : container_space - object.transform[axis].sizing.current;
+                    const u32 offset = available_space * container.transform[axis].content_alignment + container.transform[axis].padding.before;
                     object.transform[axis].positioning.current = offset;
                     constrain_offset(object, axis);
                     object.transform[axis].computed_absolute_position = container.transform[axis].computed_absolute_position + object.transform[axis].positioning.current;
@@ -227,15 +219,15 @@ namespace hyengine
                 continue;
             }
 
-            unsigned int content_size = 0;
+            u32 content_size = 0;
             for (const ui_object& object : content)
             {
                 content_size += object.transform[axis].sizing.current;
             }
 
-            const unsigned int available_space = container_space < content_size ? 0 : container_space - content_size;
+            const u32 available_space = container_space < content_size ? 0 : container_space - content_size;
 
-            unsigned int content_offset = available_space * container.transform[axis].content_alignment + container.transform[axis].padding.before;
+            u32 content_offset = available_space * container.transform[axis].content_alignment + container.transform[axis].padding.before;
 
             for (ui_object& object : content)
             {
@@ -249,7 +241,6 @@ namespace hyengine
 
     void fit_tree_containers(ui_object& root)
     {
-        ZoneScoped;
         for (ui_object& content : root.content)
         {
             fit_tree_containers(content);
@@ -260,7 +251,6 @@ namespace hyengine
 
     void fit_tree_contents(ui_object& root)
     {
-        ZoneScoped;
         fit_to_container(root);
 
         for (ui_object& content : root.content)
@@ -271,14 +261,12 @@ namespace hyengine
 
     void size_tree(ui_object& root)
     {
-        ZoneScoped;
         fit_tree_containers(root);
         fit_tree_contents(root);
     }
 
     void position_tree(ui_object& root)
     {
-        ZoneScoped;
         for (ui_axis& axis : root.transform) axis.computed_absolute_position = axis.positioning.current;
 
         position_elements(root);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphics.hpp"
+#include "Hyengine/common/sized_numerics.hpp"
 
 namespace hyengine
 {
@@ -11,8 +12,8 @@ namespace hyengine
 
     struct window_config
     {
-        unsigned int width = 1280;
-        unsigned int height = 720;
+        u32 width = 1280;
+        u32 height = 720;
 
         std::string title = "App Window";
         GLFWimage* icon = nullptr;
@@ -25,10 +26,10 @@ namespace hyengine
         bool transparent = false;
         bool visible = true;
 
-        float opacity = 1.0f;
+        f32 opacity = 1.0f;
 
-        unsigned int gl_version_major = 4;
-        unsigned int gl_version_minor = 5;
+        u32 gl_version_major = 4;
+        u32 gl_version_minor = 5;
         bool gl_profile_compatibility = false;
         bool gl_profile_debug = false;
     };
@@ -49,9 +50,9 @@ namespace hyengine
 
         void set_title(const char* title) const;
         void set_icon(const GLFWimage* icon) const;
-        void set_opacity(const float opacity) const;
-        void set_size(int width, int height);
-        void set_position(int x, int y);
+        void set_opacity(const f32 opacity) const;
+        void set_size(i32 width, i32 height);
+        void set_position(i32 x, i32 y);
         void set_decorated(bool decorations) const;
         void center_position();
 
@@ -61,10 +62,11 @@ namespace hyengine
         void set_captured_cursor() const;
         void set_normal_cursor() const;
 
-        void set_vsync(int sync) const;
+        void set_vsync(i32 sync) const;
 
         void hide();
         void show();
+        void vanish();
         void toggle_visible();
         void close();
 
@@ -72,11 +74,11 @@ namespace hyengine
         void swap_buffers();
 
         [[nodiscard]] bool visible() const;
-        [[nodiscard]] int get_width() const;
-        [[nodiscard]] int get_height() const;
+        [[nodiscard]] i32 get_width() const;
+        [[nodiscard]] i32 get_height() const;
         [[nodiscard]] glm::uvec2 get_size() const;
         [[nodiscard]] glm::uvec2 get_position() const;
-        [[nodiscard]] float get_aspect() const;
+        [[nodiscard]] f32 get_aspect() const;
         [[nodiscard]] render_viewport get_viewport() const;
         [[nodiscard]] bool get_fullscreen() const;
 
@@ -86,8 +88,7 @@ namespace hyengine
         [[nodiscard]] bool exists() const;
         [[nodiscard]] bool should_close() const;
 
-        [[nodiscard]] unsigned int get_fps() const;
-        [[nodiscard]] unsigned int get_frame_count() const;
+        [[nodiscard]] u32 get_frame_count() const;
 
         [[nodiscard]] bool has_size_changed() const;
 
@@ -95,17 +96,17 @@ namespace hyengine
         GLFWwindow* handle = nullptr;
         GLFWmonitor* current_monitor = nullptr;
 
-        int x = 0;
-        int y = 0;
+        i32 x = 0;
+        i32 y = 0;
 
-        unsigned int width = 0;
-        unsigned int height = 0;
+        u32 width = 0;
+        u32 height = 0;
 
-        unsigned int fullscreen_width = 0;
-        unsigned int fullscreen_height = 0;
+        u32 fullscreen_width = 0;
+        u32 fullscreen_height = 0;
 
         unsigned long frame_count = 0;
-        double creation_time = 0;
+        f64 creation_time = 0;
         bool fullscreen = false;
         bool decorated = true;
         bool transparent = false;
@@ -115,8 +116,8 @@ namespace hyengine
 
         const std::string logger_tag = "OS Window";
 
-        static void update_size(GLFWwindow* window, int width, int height);
-        static void update_position(GLFWwindow* window, int x, int y);
+        static void update_size(GLFWwindow* window, i32 width, i32 height);
+        static void update_position(GLFWwindow* window, i32 x, i32 y);
         void update_current_monitor();
     };
 }

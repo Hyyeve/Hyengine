@@ -56,6 +56,7 @@ target_sources(Hyengine PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILE
         common/pool_allocation_tracker.hpp
         common/ring_buffer.hpp
         common/rectangle_stack.hpp
+        common/sized_numerics.hpp
 
         core/hyengine.hpp
         core/logger.hpp

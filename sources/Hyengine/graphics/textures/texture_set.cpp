@@ -4,55 +4,48 @@
 
 namespace hyengine
 {
-    unsigned int texture_set::allocate_slot(const unsigned int texture_id, const unsigned int sampler_state_id)
+    u32 texture_set::allocate_slot(const u32 texture_id, const u32 sampler_state_id)
     {
-        ZoneScoped;
         if (!has_space()) return 0;
         if (slot_map.contains(texture_id)) return get_slot(texture_id);
 
-        const unsigned int slot = slot_allocator.assign();
+        const u32 slot = slot_allocator.assign();
         texture_slot_data slot_data = {slot, sampler_state_id};
         slot_map.insert({texture_id, slot_data});
 
         return slot;
     }
 
-    void texture_set::set_sampler_state(const unsigned int texture_id, const unsigned int sampler_state_id)
+    void texture_set::set_sampler_state(const u32 texture_id, const u32 sampler_state_id)
     {
-        ZoneScoped;
         if (!slot_map.contains(texture_id)) return;
         slot_map[texture_id].sampler_id = sampler_state_id;
     }
 
-    void texture_set::free_slot(const unsigned int texture_id)
+    void texture_set::free_slot(const u32 texture_id)
     {
-        ZoneScoped;
         if (!slot_map.contains(texture_id)) return;
         slot_allocator.free(get_slot(texture_id));
     }
 
-    unsigned int texture_set::get_slot(const unsigned int texture_id) const
+    u32 texture_set::get_slot(const u32 texture_id) const
     {
-        ZoneScoped;
         if (!slot_map.contains(texture_id)) return 0;
         return slot_map.at(texture_id).slot;
     }
 
     bool texture_set::has_space() const
     {
-        ZoneScoped;
         return slot_map.size() < max_slots();
     }
 
-    unsigned int texture_set::max_slots()
+    u32 texture_set::max_slots()
     {
-        ZoneScoped;
         return get_max_texture_units();
     }
 
     void texture_set::clear()
     {
-        ZoneScoped;
         slot_allocator.clear();
         slot_map.clear();
     }

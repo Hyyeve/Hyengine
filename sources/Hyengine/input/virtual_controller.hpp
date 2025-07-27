@@ -1,6 +1,8 @@
 #pragma once
 #include <map>
 
+#include "Hyengine/common/sized_numerics.hpp"
+
 
 namespace hyengine
 {
@@ -12,38 +14,38 @@ namespace hyengine
             LEFT, RIGHT, UP, DOWN
         };
 
-        void press_button(int button);
-        void release_button(int button);
-        void set_axis(int axis, float value);
+        void press_button(i32 button);
+        void release_button(i32 button);
+        void set_axis(i32 axis, f32 value);
 
-        void press_direction(int pad, dpad direction);
-        void release_direction(int pad, dpad direction);
+        void press_direction(i32 pad, dpad direction);
+        void release_direction(i32 pad, dpad direction);
 
-        [[nodiscard]] bool pressed(int button);
-        [[nodiscard]] bool released(int button);
-        [[nodiscard]] bool pressed_this_frame(int button);
-        [[nodiscard]] bool released_this_frame(int button);
+        [[nodiscard]] bool pressed(i32 button);
+        [[nodiscard]] bool released(i32 button);
+        [[nodiscard]] bool pressed_this_frame(i32 button);
+        [[nodiscard]] bool released_this_frame(i32 button);
 
-        [[nodiscard]] bool direction_pressed(int pad, dpad direction);
-        [[nodiscard]] bool direction_pressed_this_frame(int pad, dpad direction);
+        [[nodiscard]] bool direction_pressed(i32 pad, dpad direction);
+        [[nodiscard]] bool direction_pressed_this_frame(i32 pad, dpad direction);
 
-        [[nodiscard]] float axis_value(int axis);
-        [[nodiscard]] bool axis_pressed(int axis, float threshold);
-        [[nodiscard]] bool axis_released(int axis, float threshold);
+        [[nodiscard]] f32 axis_value(i32 axis);
+        [[nodiscard]] bool axis_pressed(i32 axis, f32 threshold);
+        [[nodiscard]] bool axis_released(i32 axis, f32 threshold);
 
-        [[nodiscard]] int frame_count(int button);
-        [[nodiscard]] int pressed_frames(int button);
-        [[nodiscard]] int released_frames(int button);
+        [[nodiscard]] i32 frame_count(i32 button);
+        [[nodiscard]] i32 pressed_frames(i32 button);
+        [[nodiscard]] i32 released_frames(i32 button);
 
-        [[nodiscard]] int direction_frame_count(int pad, dpad direction);
-        [[nodiscard]] int direction_pressed_frames(int pad, dpad direction);
-        [[nodiscard]] int direction_released_frames(int pad, dpad direction);
+        [[nodiscard]] i32 direction_frame_count(i32 pad, dpad direction);
+        [[nodiscard]] i32 direction_pressed_frames(i32 pad, dpad direction);
+        [[nodiscard]] i32 direction_released_frames(i32 pad, dpad direction);
 
         void process_inputs();
 
     private:
-        std::map<int, int> button_map = std::map<int, int>();
-        std::map<int, float> axis_map = std::map<int, float>();
-        std::map<int, std::map<dpad, int>> pad_map = std::map<int, std::map<dpad, int>>();
+        std::map<i32, i32> button_map = std::map<i32, i32>();
+        std::map<i32, f32> axis_map = std::map<i32, f32>();
+        std::map<i32, std::map<dpad, i32>> pad_map = std::map<i32, std::map<dpad, i32>>();
     };
 }

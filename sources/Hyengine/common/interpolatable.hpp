@@ -22,7 +22,6 @@
         current_value op rhs; \
         return *this; \
     }
-#include <tracy/Tracy.hpp>
 
 namespace hyengine
 {
@@ -32,7 +31,6 @@ namespace hyengine
         template <typename P>
         [[nodiscard]] static T interpolate(const T& a, const T& b, P percent)
         {
-            ZoneScoped;
             return a + (b - a) * percent;
         }
     };
@@ -43,7 +41,6 @@ namespace hyengine
         template <typename P>
         [[nodiscard]] static glm::quat interpolate(const glm::quat& a, const glm::quat& b, P percent)
         {
-            ZoneScoped;
             return glm::slerp(a, b, percent);
         }
     };
@@ -100,35 +97,30 @@ namespace hyengine
         template <typename P>
         [[nodiscard]] T interpolated(const P percent) const
         {
-            ZoneScoped;
             return I::interpolate(previous_value, current_value, percent);
         }
 
         template <typename P>
         void interpolate_previous_to(const P percent)
         {
-            ZoneScoped;
             previous_value = interpolated(percent);
         }
 
         template <typename P>
         void interpolate_current_to(const P percent)
         {
-            ZoneScoped;
             current_value = interpolated(percent);
         }
 
         template <typename P>
         void stabilize_to(const P percent)
         {
-            ZoneScoped;
             current_value = interpolated(percent);
             previous_value = current_value;
         }
 
         void stabilize()
         {
-            ZoneScoped;
             previous_value = current_value;
         }
     };

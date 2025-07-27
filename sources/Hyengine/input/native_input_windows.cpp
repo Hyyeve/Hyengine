@@ -5,26 +5,25 @@
 #include "../graphics/native_window.hpp"
 #include "native_input.hpp"
 #include "../core/logger.hpp"
+#include "Hyengine/common/sized_numerics.hpp"
 
 namespace hyengine
 {
-    unsigned int global_hotkey_id = 1;
+    u32 global_hotkey_id = 1;
 
-    std::set<unsigned int> pressed_hotkeys;
+    std::set<u32> pressed_hotkeys;
 
-    unsigned int glfw_to_native_modifiers(const unsigned int mods)
+    u32 glfw_to_native_modifiers(const u32 mods)
     {
-        ZoneScoped;
-        unsigned int result = 0;
+        u32 result = 0;
         if (mods & GLFW_MOD_SHIFT) result |= MOD_SHIFT;
         if (mods & GLFW_MOD_CONTROL) result |= MOD_CONTROL;
         if (mods & GLFW_MOD_ALT) result |= MOD_ALT;
         return result;
     }
 
-    unsigned int glfw_to_native_key(const unsigned int key)
+    u32 glfw_to_native_key(const u32 key)
     {
-        ZoneScoped;
         if (key == GLFW_KEY_SPACE) return key; //space matches
         if (key <= GLFW_KEY_SLASH) return key + 149; //apostrophe through slash are same order at a much higher windows code
         if (key == GLFW_KEY_SEMICOLON) return VK_OEM_1;
@@ -81,13 +80,13 @@ namespace hyengine
         return 0;
     }
 
-    unsigned int set_global_hotkey(const unsigned int key, const unsigned int mods)
+    u32 set_global_hotkey(const u32 key, const u32 mods)
     {
         ZoneScoped;
-        const unsigned int id = global_hotkey_id;
+        const u32 id = global_hotkey_id;
 
-        const unsigned int vk_mods = glfw_to_native_modifiers(mods);
-        const unsigned int vk_key = glfw_to_native_key(key);
+        const u32 vk_mods = glfw_to_native_modifiers(mods);
+        const u32 vk_key = glfw_to_native_key(key);
         const bool success = RegisterHotKey(nullptr, id, vk_mods, vk_key);
 
         if (success)
@@ -99,7 +98,7 @@ namespace hyengine
         return 0;
     }
 
-    void clear_global_hotkey(const unsigned int id)
+    void clear_global_hotkey(const u32 id)
     {
         ZoneScoped;
         UnregisterHotKey(nullptr, id);
@@ -120,9 +119,8 @@ namespace hyengine
         }
     }
 
-    bool global_hotkey_pressed_this_frame(const unsigned int id)
+    bool global_hotkey_pressed_this_frame(const u32 id)
     {
-        ZoneScoped;
         return pressed_hotkeys.contains(id);
     }
 }

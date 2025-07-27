@@ -8,14 +8,13 @@ namespace hyengine
 {
     render_texture::~render_texture()
     {
-        ZoneScoped;
         if (gl_id > 0)
         {
             free();
         }
     }
 
-    void render_texture::allocate(const GLenum format, const glm::uvec2 size, const int multisample_count)
+    void render_texture::allocate(const GLenum format, const glm::uvec2 size, const i32 multisample_count)
     {
         ZoneScoped;
         if (gl_id > 0)
@@ -44,7 +43,6 @@ namespace hyengine
 
     void render_texture::copy_data(const render_texture& source) const
     {
-        ZoneScoped;
         copy_data_partial(source, {0, 0}, {0, 0}, {internal_size.x, internal_size.y});
     }
 
@@ -56,25 +54,21 @@ namespace hyengine
 
     GLuint render_texture::get_id() const
     {
-        ZoneScoped;
         return gl_id;
     }
 
     glm::uvec2 render_texture::get_size() const
     {
-        ZoneScoped;
         return internal_size;
     }
 
     GLenum render_texture::get_format() const
     {
-        ZoneScoped;
         return internal_format;
     }
 
-    int render_texture::get_multisample_count() const
+    i32 render_texture::get_multisample_count() const
     {
-        ZoneScoped;
         return internal_samples;
     }
 }

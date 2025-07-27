@@ -13,7 +13,7 @@ namespace hyengine
 
     virtual_controller disconnected_controller;
     std::array<virtual_controller, 16> controller_hardware;
-    std::array<int, 16> player_to_controller_map;
+    std::array<i32, 16> player_to_controller_map;
 
     virtual_keyboard keyboard_hardware = virtual_keyboard();
     virtual_mouse mouse_hardware = virtual_mouse();
@@ -21,46 +21,41 @@ namespace hyengine
     virtual_keyboard& current_keyboard = keyboard_hardware;
     virtual_mouse& current_mouse = mouse_hardware;
 
-    void glfw_key_callback(GLFWwindow* /*window*/, const int key, int /*scancode*/, const int action, int /*mods*/)
+    void glfw_key_callback(GLFWwindow* /*window*/, const i32 key, i32 /*scancode*/, const i32 action, i32 /*mods*/)
     {
-        ZoneScoped;
         if (action == GLFW_PRESS) keyboard_hardware.press_key(key);
         if (action == GLFW_RELEASE) keyboard_hardware.release_key(key);
     }
 
-    void glfw_char_callback(GLFWwindow* /*window*/, const unsigned int codepoint)
+    void glfw_char_callback(GLFWwindow* /*window*/, const u32 codepoi32)
     {
-        ZoneScoped;
-        keyboard_hardware.type_character(codepoint);
+        keyboard_hardware.type_character(codepoi32);
     }
 
-    void glfw_mouse_button_callback(GLFWwindow* /*window*/, const int button, const int action, int /*mods*/)
+    void glfw_mouse_button_callback(GLFWwindow* /*window*/, const i32 button, const i32 action, i32 /*mods*/)
     {
-        ZoneScoped;
         if (action == GLFW_PRESS) mouse_hardware.click_button(button);
         if (action == GLFW_RELEASE) mouse_hardware.release_button(button);
     }
 
-    void glfw_mouse_scroll_callback(GLFWwindow* /*window*/, const double x_offset, const double y_offset)
+    void glfw_mouse_scroll_callback(GLFWwindow* /*window*/, const f64 x_offset, const f64 y_offset)
     {
-        ZoneScoped;
         mouse_hardware.scroll({x_offset, y_offset});
     }
 
-    void glfw_mouse_position_callback(GLFWwindow* window, const double x, const double y)
+    void glfw_mouse_position_callback(GLFWwindow* window, const f64 x, const f64 y)
     {
-        ZoneScoped;
-        int win_height = 0;
+        i32 win_height = 0;
         glfwGetWindowSize(window, nullptr, &win_height); //doing this every single time the mouse is updated probably isn't great, but..
         mouse_hardware.move_absolute(vec2(x, win_height - y));
     }
 
-    void glfw_joystick_connection_callback(const int id, const int event)
+    void glfw_joystick_connection_callback(const i32 id, const i32 event)
     {
         ZoneScoped;
         if (event == GLFW_CONNECTED)
         {
-            for (int i = 0; i < 16; i++)
+            for (i32 i = 0; i < 16; i++)
             {
                 if (player_to_controller_map[i] == -1)
                 {
@@ -71,7 +66,7 @@ namespace hyengine
         }
         else if (event == GLFW_DISCONNECTED)
         {
-            for (int i = 0; i < 16; i++)
+            for (i32 i = 0; i < 16; i++)
             {
                 if (player_to_controller_map[i] == id)
                 {
@@ -85,8 +80,8 @@ namespace hyengine
     void reset_controller_map()
     {
         ZoneScoped;
-        for (int i = 0; i < 16; i++) player_to_controller_map[i] = -1;
-        for (int i = 0; i < 16; i++)
+        for (i32 i = 0; i < 16; i++) player_to_controller_map[i] = -1;
+        for (i32 i = 0; i < 16; i++)
         {
             if (glfwJoystickPresent(i)) glfw_joystick_connection_callback(i, GLFW_CONNECTED);
         }
@@ -110,7 +105,7 @@ namespace hyengine
     void poll_controllers()
     {
         ZoneScoped;
-        for (int idx = 0; idx < 16; idx++)
+        for (i32 idx = 0; idx < 16; idx++)
         {
             if (!glfwJoystickPresent(idx)) continue;
             virtual_controller& controller = controller_hardware[idx];
@@ -119,8 +114,8 @@ namespace hyengine
 
             if (glfwJoystickIsGamepad(idx) && glfwGetGamepadState(idx, &gamepad_state) == GLFW_TRUE)
             {
-                for (int axis = 0; axis <= GLFW_GAMEPAD_AXIS_LAST; axis++) controller.set_axis(axis, gamepad_state.axes[axis]);
-                for (int button = 0; button <= GLFW_GAMEPAD_BUTTON_LAST; button++)
+                for (i32 axis = 0; axis <= GLFW_GAMEPAD_AXIS_LAST; axis++) controller.set_axis(axis, gamepad_state.axes[axis]);
+                for (i32 button = 0; button <= GLFW_GAMEPAD_BUTTON_LAST; button++)
                 {
                     const bool pressed = gamepad_state.buttons[button] == GLFW_PRESS;
 
@@ -168,23 +163,23 @@ namespace hyengine
             }
             else
             {
-                int buttons_count;
+                i32 buttons_count;
                 const unsigned char* buttons = glfwGetJoystickButtons(idx, &buttons_count);
-                int axes_count;
+                i32 axes_count;
                 const float* axes = glfwGetJoystickAxes(idx, &axes_count);
-                int hats_count;
+                i32 hats_count;
                 const unsigned char* hats = glfwGetJoystickHats(idx, &hats_count);
 
-                for (int i = 0; i < buttons_count; i++)
+                for (i32 i = 0; i < buttons_count; i++)
                 {
                     const bool pressed = buttons[i] == GLFW_PRESS;
                     if (pressed && !controller.pressed(i)) controller.press_button(i);
                     else if (!pressed && controller.pressed(i)) controller.release_button(i);
                 }
 
-                for (int i = 0; i < axes_count; i++) controller.set_axis(i, axes[i]);
+                for (i32 i = 0; i < axes_count; i++) controller.set_axis(i, axes[i]);
 
-                for (int i = 0; i < hats_count; i++)
+                for (i32 i = 0; i < hats_count; i++)
                 {
                     const bool hat_up = hats[i] & GLFW_HAT_UP;
                     const bool hat_down = hats[i] & GLFW_HAT_DOWN;
@@ -207,52 +202,54 @@ namespace hyengine
         }
     }
 
+    void poll_events()
+    {
+        ZoneScoped;
+        poll_controllers();
+        glfwPollEvents();
+    }
+
     void process_inputs()
     {
         ZoneScoped;
         keyboard_hardware.process_inputs();
         mouse_hardware.process_inputs();
         for (virtual_controller& controller : controller_hardware) controller.process_inputs();
-        poll_controllers();
-        glfwPollEvents();
+        poll_events();
     }
 
     virtual_keyboard& hardware_keyboard()
     {
-        ZoneScoped;
         return keyboard_hardware;
     }
 
     virtual_mouse& hardware_mouse()
     {
-        ZoneScoped;
         return mouse_hardware;
     }
 
-    virtual_controller& hardware_controller(const unsigned int player_index)
+    virtual_controller& hardware_controller(const u32 player_index)
     {
-        ZoneScoped;
         if (player_to_controller_map[player_index] >= 0) return controller_hardware[player_index];
         return disconnected_controller;
     }
 
-    bool hardware_controller_connected(const unsigned int player_index)
+    bool hardware_controller_connected(const u32 player_index)
     {
-        ZoneScoped;
         return player_to_controller_map[player_index] >= 0;
     }
 
-    bool hardware_controller_has_mappings(const unsigned int player_index)
+    bool hardware_controller_has_mappings(const u32 player_index)
     {
         ZoneScoped;
         if (player_to_controller_map[player_index] >= 0) return glfwJoystickIsGamepad(player_to_controller_map[player_index]);
         return false;
     }
 
-    std::string hardware_controller_name(const unsigned int player_index)
+    std::string hardware_controller_name(const u32 player_index)
     {
         ZoneScoped;
-        const int controller_id = player_to_controller_map[player_index];
+        const i32 controller_id = player_to_controller_map[player_index];
         if (controller_id < 0) return "Disconnected Controller";
         if (glfwJoystickIsGamepad(controller_id)) return glfwGetGamepadName(controller_id);
         return glfwGetJoystickName(controller_id);
@@ -260,157 +257,131 @@ namespace hyengine
 
     void set_keyboard_input(const virtual_keyboard& input)
     {
-        ZoneScoped;
         current_keyboard = input;
     }
 
     void set_mouse_input(const virtual_mouse& input)
     {
-        ZoneScoped;
         current_mouse = input;
     }
 
     void set_hardware_keyboard()
     {
-        ZoneScoped;
         current_keyboard = keyboard_hardware;
     }
 
     void set_hardware_mouse()
     {
-        ZoneScoped;
         current_mouse = mouse_hardware;
     }
 
-    bool key_pressed(const int key)
+    bool key_pressed(const i32 key)
     {
-        ZoneScoped;
         return current_keyboard.pressed(key);
     }
 
-    bool key_released(const int key)
+    bool key_released(const i32 key)
     {
-        ZoneScoped;
         return current_keyboard.released(key);
     }
 
-    bool key_pressed_this_frame(const int key)
+    bool key_pressed_this_frame(const i32 key)
     {
-        ZoneScoped;
         return current_keyboard.pressed_this_frame(key);
     }
 
-    bool key_released_this_frame(const int key)
+    bool key_released_this_frame(const i32 key)
     {
-        ZoneScoped;
         return current_keyboard.released_this_frame(key);
     }
 
-    int key_frame_count(const int key)
+    i32 key_frame_count(const i32 key)
     {
-        ZoneScoped;
         return current_keyboard.frame_count(key);
     }
 
-    int key_pressed_frames(const int key)
+    i32 key_pressed_frames(const i32 key)
     {
-        ZoneScoped;
         return current_keyboard.pressed_frames(key);
     }
 
-    int key_released_frames(const int key)
+    i32 key_released_frames(const i32 key)
     {
-        ZoneScoped;
         return current_keyboard.released_frames(key);
     }
 
     bool key_control_pressed()
     {
-        ZoneScoped;
         return current_keyboard.control_pressed();
     }
 
     bool key_shift_pressed()
     {
-        ZoneScoped;
         return current_keyboard.shift_pressed();
     }
 
     bool key_alt_pressed()
     {
-        ZoneScoped;
         return current_keyboard.alt_pressed();
     }
 
     bool key_super_pressed()
     {
-        ZoneScoped;
         return current_keyboard.super_pressed();
     }
 
-    bool mouse_clicked(const int button)
+    bool mouse_clicked(const i32 button)
     {
-        ZoneScoped;
         return current_mouse.clicked(button);
     }
 
-    bool mouse_released(const int button)
+    bool mouse_released(const i32 button)
     {
-        ZoneScoped;
         return current_mouse.released(button);
     }
 
-    bool mouse_clicked_this_frame(const int button)
+    bool mouse_clicked_this_frame(const i32 button)
     {
-        ZoneScoped;
         return current_mouse.clicked_this_frame(button);
     }
 
-    bool mouse_released_this_frame(const int button)
+    bool mouse_released_this_frame(const i32 button)
     {
-        ZoneScoped;
         return current_mouse.released_this_frame(button);
     }
 
-    int mouse_frame_count(const int button)
+    i32 mouse_frame_count(const i32 button)
     {
-        ZoneScoped;
         return current_mouse.frame_count(button);
     }
 
-    int mouse_pressed_frames(const int button)
+    i32 mouse_pressed_frames(const i32 button)
     {
-        ZoneScoped;
         return current_mouse.pressed_frames(button);
     }
 
-    int mouse_released_frames(const int button)
+    i32 mouse_released_frames(const i32 button)
     {
-        ZoneScoped;
         return current_mouse.released_frames(button);
     }
 
     vec2 mouse_position()
     {
-        ZoneScoped;
         return current_mouse.get_position();
     }
 
     vec2 mouse_position_delta()
     {
-        ZoneScoped;
         return current_mouse.get_position_delta();
     }
 
     vec2 mouse_total_scroll()
     {
-        ZoneScoped;
         return current_mouse.get_total_scroll();
     }
 
     vec2 mouse_scroll_delta()
     {
-        ZoneScoped;
         return current_mouse.get_scroll_delta();
     }
 }

@@ -18,21 +18,21 @@ namespace hyengine
 
         ~basic_renderer();
 
-        void allocate(const unsigned int memory_budget_mb);
+        void allocate(const u32 memory_budget_mb);
         void free();
 
         void vertex(glm::vec3 pos, glm::vec4 color);
         void triangle(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec4 color);
         void quad(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 d, glm::vec4 color);
         void rect(glm::vec2 a, glm::vec2 b, glm::vec4 color);
-        void line(glm::vec3 start, glm::vec3 end, glm::vec4 color, float thickness);
+        void line(glm::vec3 start, glm::vec3 end, glm::vec4 color, f32 thickness);
 
-        void texture(bool enable, unsigned int texture_slot = 0);
+        void texture(bool enable, u32 texture_slot = 0);
 
         void finish();
         void block_ready();
 
-        void update_shader_uniforms(const float interpolation_delta, const camera& cam);
+        void update_shader_uniforms(const f32 interpolation_delta, const camera& cam);
         void reload_shaders();
 
         void bind();
@@ -42,7 +42,7 @@ namespace hyengine
         struct debug_vertex
         {
             glm::vec3 position;
-            unsigned int color;
+            u32 color;
         };
 
         shader basic_shader = shader("shader:basic_pos_col");
@@ -55,8 +55,8 @@ namespace hyengine
         vertex_format_buffer vertex_format_buffer;
 
         bool is_allocated = false;
-        unsigned int draw_count;
-        unsigned int write_index;
+        u32 draw_count;
+        u32 write_index;
 
         bool use_texture = false;
     };

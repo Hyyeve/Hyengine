@@ -17,7 +17,6 @@ namespace hyengine
 
     std::string asset_id_to_relative_path(std::string asset_id)
     {
-        ZoneScoped;
         portable_string_replace(asset_id, ':', std::filesystem::path::preferred_separator);
         portable_string_replace(asset_id, '.', std::filesystem::path::preferred_separator);
         return asset_id;
@@ -25,19 +24,16 @@ namespace hyengine
 
     std::string get_asset_type(const std::string& asset_id)
     {
-        ZoneScoped;
         return asset_id.substr(0, asset_id.find(':'));
     }
 
     std::string get_asset_name(const std::string& asset_id)
     {
-        ZoneScoped;
         return asset_id.substr(asset_id.find(':') + 1);
     }
 
     std::string_view get_asset_extension(const std::string_view type)
     {
-        ZoneScoped;
         if (type == "shader") return "glsl";
         if (type == "shader.bin") return "bin";
         if (type == "png") return "png";
@@ -46,21 +42,18 @@ namespace hyengine
 
     bool should_preprocess(const std::string_view type)
     {
-        ZoneScoped;
         if (type == "shader") return true;
         return false;
     }
 
     std::regex directive_data_pattern(const std::string& directive)
     {
-        ZoneScoped;
         const std::string pattern = "<" + directive + "=([^>]+)>";
         return std::regex(pattern);
     }
 
     std::regex directive_line_pattern(const std::string& directive)
     {
-        ZoneScoped;
         const std::string pattern = "\\n?.*<" + directive + "=.+>\\n?";
         return std::regex(pattern);
     }
@@ -77,14 +70,12 @@ namespace hyengine
 
     std::filesystem::path get_asset_path(const std::string& asset_id)
     {
-        ZoneScoped;
         const std::string relative_path = asset_id_to_relative_path(asset_id);
         return std::filesystem::path(get_primary_asset_directory()).append(relative_path).replace_extension(get_asset_extension(get_asset_type(asset_id)));
     }
 
     std::filesystem::path get_asset_directory(const std::string& asset_id)
     {
-        ZoneScoped;
         const std::string relative_path = asset_id_to_relative_path(asset_id.substr(0, asset_id.find_last_of('.')));
         return std::filesystem::path(get_primary_asset_directory()).append(relative_path);
     }
@@ -141,7 +132,6 @@ namespace hyengine
 
     bool asset_exists(const std::string& asset_id)
     {
-        ZoneScoped;
         return std::filesystem::exists(get_asset_path(asset_id));
     }
 
@@ -151,7 +141,7 @@ namespace hyengine
         std::smatch include_match;
         std::string new_text(text);
 
-        for (int i = 0; i < std::numeric_limits<char>::max(); i++)
+        for (i32 i = 0; i < std::numeric_limits<char>::max(); i++)
         {
             std::string include_asset = find_directive(new_text, "include");
             if (!include_asset.empty())
@@ -220,9 +210,9 @@ namespace hyengine
         }
 
         asset_image_data result {};
-        int temp_width;
-        int temp_height;
-        int temp_channels;
+        i32 temp_width;
+        i32 temp_height;
+        i32 temp_channels;
 
         stbi_set_unpremultiply_on_load(true);
         result.data = stbi_load(get_asset_path(id).string().c_str(), &temp_width, &temp_height, &temp_channels, 0);
@@ -322,7 +312,6 @@ namespace hyengine
 
     std::string load_asset_text(const std::string& id)
     {
-        ZoneScoped;
         if (should_preprocess(get_asset_type(id)))
         {
             return load_preprocessed_asset_text(id);

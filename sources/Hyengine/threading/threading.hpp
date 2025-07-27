@@ -1,9 +1,11 @@
 #pragma once
 #include <atomic>
 
+#include "Hyengine/common/sized_numerics.hpp"
+
 namespace hyengine
 {
-    extern unsigned int IDLE_SLEEP_INCREMENT;
+    extern u32 IDLE_SLEEP_INCREMENT;
 
     class threadpool_task
     {
@@ -11,12 +13,12 @@ namespace hyengine
         virtual ~threadpool_task() = default;
         virtual void execute() = 0;
 
-        void enqueue(unsigned int depends_on_id = 0);
-        bool await(unsigned long timeout);
+        void enqueue(u32 depends_on_id = 0);
+        bool await(uint64_t timeout);
         bool finished();
         void execute_blocking();
-        unsigned int id();
-        unsigned int dependency();
+        u32 id();
+        u32 dependency();
 
     private:
         std::atomic_bool is_finished;
@@ -27,5 +29,5 @@ namespace hyengine
 
     void release_threadpool();
     void create_threadpool();
-    unsigned int get_current_thread_id();
+    u32 get_current_thread_id();
 }

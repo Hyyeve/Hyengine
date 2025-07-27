@@ -2,6 +2,7 @@
 
 #include "../../library/gl.hpp"
 #include "../../library/glm.hpp"
+#include "Hyengine/common/sized_numerics.hpp"
 
 
 namespace hyengine
@@ -17,7 +18,7 @@ namespace hyengine
         explicit render_texture() = default;
         ~render_texture();
 
-        void allocate(const GLenum format, const glm::uvec2 size, const int multisample_count);
+        void allocate(const GLenum format, const glm::uvec2 size, const i32 multisample_count);
         void free();
 
         void copy_data(const render_texture& source) const;
@@ -26,14 +27,14 @@ namespace hyengine
         [[nodiscard]] GLuint get_id() const;
         [[nodiscard]] glm::uvec2 get_size() const;
         [[nodiscard]] GLenum get_format() const;
-        [[nodiscard]] int get_multisample_count() const;
+        [[nodiscard]] i32 get_multisample_count() const;
 
     private:
         const std::string logger_tag = "GPU Render Texture";
 
         GLuint gl_id = 0;
         glm::ivec2 internal_size = {0, 0};
-        int internal_samples = 0;
+        i32 internal_samples = 0;
         GLenum internal_format = 0;
     };
 }

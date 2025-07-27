@@ -75,20 +75,20 @@ namespace hyengine
         }
     }
 
-    void native_window::set_opacity(const float opacity) const
+    void native_window::set_opacity(const f32 opacity) const
     {
         ZoneScoped;
         glfwSetWindowOpacity(handle, opacity);
     }
 
-    void native_window::set_size(const int width, const int height)
+    void native_window::set_size(const i32 width, const i32 height)
     {
         ZoneScoped;
         glfwSetWindowSize(handle, width, height);
         update_current_monitor();
     }
 
-    void native_window::set_position(const int x, const int y)
+    void native_window::set_position(const i32 x, const i32 y)
     {
         ZoneScoped;
         glfwSetWindowPos(handle, x, y);
@@ -105,11 +105,11 @@ namespace hyengine
     {
         ZoneScoped;
         const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        int current_width = 0;
-        int current_height = 0;
+        i32 current_width = 0;
+        i32 current_height = 0;
         glfwGetWindowSize(handle, &current_width, &current_height);
-        const int x = (mode->width - current_width) / 2;
-        const int y = (mode->height - current_height) / 2;
+        const i32 x = (mode->width - current_width) / 2;
+        const i32 y = (mode->height - current_height) / 2;
         glfwSetWindowPos(handle, x, y);
         update_current_monitor();
     }
@@ -144,7 +144,7 @@ namespace hyengine
                 fullscreen = true;
 
                 const GLFWvidmode* video_mode = glfwGetVideoMode(current_monitor);
-                int window_x, window_y;
+                i32 window_x, window_y;
                 glfwGetWindowPos(handle, &window_x, &window_y);
 
                 fullscreen_width = video_mode->width + 2;
@@ -171,7 +171,7 @@ namespace hyengine
         update_current_monitor();
     }
 
-    void native_window::set_vsync(const int sync) const
+    void native_window::set_vsync(const i32 sync) const
     {
         ZoneScoped;
         this->apply_context();
@@ -217,6 +217,13 @@ namespace hyengine
     void native_window::hide()
     {
         ZoneScoped;
+        glfwIconifyWindow(handle);
+        is_visible = false;
+    }
+
+    void native_window::vanish()
+    {
+        ZoneScoped;
         glfwHideWindow(handle);
         is_visible = false;
     }
@@ -238,67 +245,56 @@ namespace hyengine
 
     bool native_window::visible() const
     {
-        ZoneScoped;
         return is_visible;
     }
 
-    int native_window::get_width() const
+    i32 native_window::get_width() const
     {
-        ZoneScoped;
         return fullscreen ? fullscreen_width : width;
     }
 
-    int native_window::get_height() const
+    i32 native_window::get_height() const
     {
-        ZoneScoped;
         return fullscreen ? fullscreen_height : height;
     }
 
     glm::uvec2 native_window::get_size() const
     {
-        ZoneScoped;
         return {width, height};
     }
 
     glm::uvec2 native_window::get_position() const
     {
-        ZoneScoped;
         return {x, y};
     }
 
-    float native_window::get_aspect() const
+    f32 native_window::get_aspect() const
     {
-        ZoneScoped;
-        return static_cast<float>(get_width()) / static_cast<float>(get_height());
+        return static_cast<f32>(get_width()) / static_cast<f32>(get_height());
     }
 
     render_viewport native_window::get_viewport() const
     {
-        ZoneScoped;
         return viewport;
     }
 
     bool native_window::get_fullscreen() const
     {
         return fullscreen;
-        ZoneScoped;
     }
 
     GLFWwindow* native_window::get_handle() const
     {
         return handle;
-        ZoneScoped;
     }
 
     GLFWmonitor* native_window::get_current_monitor() const
     {
-        ZoneScoped;
         return current_monitor;
     }
 
     bool native_window::exists() const
     {
-        ZoneScoped;
         return handle != nullptr;
     }
 
@@ -308,20 +304,12 @@ namespace hyengine
         return glfwWindowShouldClose(handle) != 0;
     }
 
-    unsigned int native_window::get_fps() const
+    u32 native_window::get_frame_count() const
     {
-        ZoneScoped;
-        return static_cast<unsigned int>(frame_count / (glfwGetTime() - creation_time));
-    }
-
-    unsigned int native_window::get_frame_count() const
-    {
-        ZoneScoped;
         return frame_count;
     }
 
-
-    void native_window::update_size(GLFWwindow* window, const int width, const int height)
+    void native_window::update_size(GLFWwindow* window, const i32 width, const i32 height)
     {
         ZoneScoped;
         native_window* local_window = static_cast<native_window*>(glfwGetWindowUserPointer(window));
@@ -338,11 +326,11 @@ namespace hyengine
             local_window->fullscreen_height = height;
         }
 
-        local_window->viewport = {0, 0, static_cast<unsigned int>(width), static_cast<unsigned int>(height)};
+        local_window->viewport = {0, 0, static_cast<u32>(width), static_cast<u32>(height)};
         local_window->size_changed = true;
     }
 
-    void native_window::update_position(GLFWwindow* window, const int x, const int y)
+    void native_window::update_position(GLFWwindow* window, const i32 x, const i32 y)
     {
         ZoneScoped;
         native_window* local_window = static_cast<native_window*>(glfwGetWindowUserPointer(window));
@@ -354,7 +342,6 @@ namespace hyengine
 
     bool native_window::has_size_changed() const
     {
-        ZoneScoped;
         return size_changed;
     }
 
@@ -363,10 +350,10 @@ namespace hyengine
     {
         ZoneScoped;
         GLFWmonitor* best = nullptr;
-        int win_x = 0, win_y = 0;
+        i32 win_x = 0, win_y = 0;
         glfwGetWindowPos(handle, &win_x, &win_y);
 
-        int win_width = 0, win_height = 0;
+        i32 win_width = 0, win_height = 0;
         glfwGetWindowSize(handle, &win_width, &win_height);
 
         if (fullscreen)
@@ -382,34 +369,34 @@ namespace hyengine
             y = win_y;
         }
 
-        viewport = {0, 0, static_cast<unsigned int>(win_width), static_cast<unsigned int>(win_height)};
+        viewport = {0, 0, static_cast<u32>(win_width), static_cast<u32>(win_height)};
 
-        int monitor_count = 0;
+        i32 monitor_count = 0;
         GLFWmonitor** monitors = glfwGetMonitors(&monitor_count);
 
-        int best_overlap = 0;
+        i32 best_overlap = 0;
 
-        for (int i = 0; i < monitor_count; i++)
+        for (i32 i = 0; i < monitor_count; i++)
         {
             const GLFWvidmode* mode = glfwGetVideoMode(monitors[i]);
 
-            int monitor_x = 0, monitor_y = 0;
+            i32 monitor_x = 0, monitor_y = 0;
             glfwGetMonitorPos(monitors[i], &monitor_x, &monitor_y);
 
-            const int monitor_width = mode->width;
-            const int monitor_height = mode->height;
+            const i32 monitor_width = mode->width;
+            const i32 monitor_height = mode->height;
 
-            auto min = [](const int x, const int y)
+            auto min = [](const i32 x, const i32 y)
             {
                 return x < y ? x : y;
             };
 
-            auto max = [](const int x, const int y)
+            auto max = [](const i32 x, const i32 y)
             {
                 return x > y ? x : y;
             };
 
-            const int overlap_area =
+            const i32 overlap_area =
                 max(0, min(win_x + win_width, monitor_x + monitor_width) - max(win_x, monitor_x)) *
                 max(0, min(win_y + win_height, monitor_y + monitor_height) - max(win_y, monitor_y));
 

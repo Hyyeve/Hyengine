@@ -26,7 +26,7 @@ namespace hyengine
             internal_data_buffer.allocate_for_gpu_writes(target, elements * sizeof(TYPE));
         }
 
-        void allocate(const GLenum target, const GLsizeiptr elements, const unsigned int slices, const TYPE* const data, const GLbitfield storage_flags)
+        void allocate(const GLenum target, const GLsizeiptr elements, const u32 slices, const TYPE* const data, const GLbitfield storage_flags)
         {
             internal_data_buffer.allocate(target, elements * sizeof(TYPE), slices, data, storage_flags);
         }
@@ -56,12 +56,12 @@ namespace hyengine
             internal_data_buffer.unbind_state();
         }
 
-        void bind_buffer_base(const int binding) const
+        void bind_buffer_base(const i32 binding) const
         {
             internal_data_buffer.bind_buffer_base(binding);
         }
 
-        void bind_buffer_range(const int binding, const GLintptr index, const GLsizeiptr elements) const
+        void bind_buffer_range(const i32 binding, const GLintptr index, const GLsizeiptr elements) const
         {
             internal_data_buffer.bind_buffer_range(binding, index * sizeof(TYPE), elements * sizeof(TYPE));
         }
@@ -76,12 +76,12 @@ namespace hyengine
             internal_data_buffer.copy_buffer_range(source_buffer_id, read_index * sizeof(TYPE), write_index * sizeof(TYPE), elements * sizeof(TYPE));
         }
 
-        void bind_slice_base(const int binding) const
+        void bind_slice_base(const i32 binding) const
         {
             internal_data_buffer.bind_slice_base(binding);
         }
 
-        void bind_slice_range(const int binding, const GLintptr index, const GLsizeiptr elements) const
+        void bind_slice_range(const i32 binding, const GLintptr index, const GLsizeiptr elements) const
         {
             internal_data_buffer.bind_slice_range(binding, index * sizeof(TYPE), elements * sizeof(TYPE));
         }
@@ -106,12 +106,12 @@ namespace hyengine
             return internal_data_buffer.await_ready(timeout_nanos);
         }
 
-        [[nodiscard]] unsigned int get_slice_first_element() const
+        [[nodiscard]] u32 get_slice_first_element() const
         {
             return internal_data_buffer.get_slice_offset() / sizeof(TYPE);
         }
 
-        [[nodiscard]] unsigned int get_slice_offset() const
+        [[nodiscard]] u32 get_slice_offset() const
         {
             return internal_data_buffer.get_slice_offset();
         }
@@ -153,7 +153,7 @@ namespace hyengine
             return sizeof(TYPE);
         }
 
-        TYPE& data(const unsigned int index)
+        TYPE& data(const u32 index)
         {
             return internal_data_buffer.data<TYPE>(index);
         }

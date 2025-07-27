@@ -8,6 +8,7 @@
 #include "../library/gl.hpp"
 #include "../library/glm.hpp"
 #include "../core/logger.hpp"
+#include "Hyengine/common/sized_numerics.hpp"
 
 
 namespace hyengine
@@ -50,12 +51,12 @@ namespace hyengine
         void set_uniform(const std::string& name, const glm::dvec3& value);
         void set_uniform(const std::string& name, const glm::dvec4& value);
 
-        void set_uniform(const std::string& name, const int value);
+        void set_uniform(const std::string& name, const i32 value);
         void set_uniform(const std::string& name, const glm::ivec2 value);
         void set_uniform(const std::string& name, const glm::ivec3 value);
         void set_uniform(const std::string& name, const glm::ivec4 value);
 
-        void set_uniform(const std::string& name, const unsigned int value);
+        void set_uniform(const std::string& name, const u32 value);
         void set_uniform(const std::string& name, const glm::uvec2);
         void set_uniform(const std::string& name, const glm::uvec3 value);
         void set_uniform(const std::string& name, const glm::uvec4 value);
@@ -64,7 +65,7 @@ namespace hyengine
         void set_uniform(const std::string& name, const glm::mat3 value);
         void set_uniform(const std::string& name, const glm::mat4 value);
 
-        void set_sampler_slot(const std::string& name, int slot);
+        void set_sampler_slot(const std::string& name, i32 slot);
 
 
         #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(name); location != uniform_locations.end()) { setter; } else log_warn(logger_tag, "Failed to set uniform array '", name, "'");
@@ -154,7 +155,7 @@ namespace hyengine
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<int, size> values)
+        void set_uniform(const std::string& name, std::array<i32, size> values)
         {
             ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform1iv(program_id, location->second, values.size(), values.data()))
@@ -182,7 +183,7 @@ namespace hyengine
         }
 
         template <std::size_t size>
-        void set_uniform(const std::string& name, std::array<unsigned int, size> values)
+        void set_uniform(const std::string& name, std::array<u32, size> values)
         {
             ZoneScoped;
             TRY_SET_UNIFORM(glProgramUniform1uiv(program_id, location->second, values.size(), values.data()))
@@ -243,9 +244,9 @@ namespace hyengine
         void load_uniform_locations();
 
         constexpr static std::string_view logger_tag = "Shader";
-        constexpr static std::string_view cache_directory = "shader.bin";
+        constexpr static std::string_view cache_directory = "shader:bin";
 
-        std::unordered_map<std::string, int> uniform_locations;
+        std::unordered_map<std::string, i32> uniform_locations;
 
         GLuint program_id = 0;
         std::string asset_id;

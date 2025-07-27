@@ -1,18 +1,19 @@
 #pragma once
 
 #include <tracy/Tracy.hpp>
+
+#include "sized_numerics.hpp"
 #include "../library/glm.hpp"
 
 namespace hyengine
 {
-    constexpr double PI = 3.1415926535897f;
-    constexpr double TAU = 6.2831853071795f;
+    constexpr f64 PI = 3.1415926535897f;
+    constexpr f64 TAU = 6.2831853071795f;
 
     //Linear interpolation
     template <typename number>
     number lerp(number start, number end, number value)
     {
-        ZoneScoped;
         return start + (end - start) * value;
     }
 
@@ -20,7 +21,6 @@ namespace hyengine
     template <typename number>
     number inverse_lerp(number start, number end, number value)
     {
-        ZoneScoped;
         return (start - value) / (end - value);
     }
 
@@ -28,7 +28,6 @@ namespace hyengine
     template <typename number>
     number smooth_follow(number current, number target, number delta, number half_life)
     {
-        ZoneScoped;
         return target + (current - target) * glm::exp2(-delta / half_life);
     }
 
@@ -36,7 +35,6 @@ namespace hyengine
     template <typename number>
     number delta_follow(number current, number target, number delta)
     {
-        ZoneScoped;
         if (glm::abs(target - current) < delta) return target;
         return current > target ? current - delta : current + delta;
     }
@@ -45,7 +43,6 @@ namespace hyengine
     template <typename number>
     number remap_range(number start_in, number end_in, number start_out, number end_out, number value)
     {
-        ZoneScoped;
         return lerp(start_out, end_out, inverse_lerp(start_in, end_in, value));
     }
 
@@ -53,7 +50,6 @@ namespace hyengine
     template <typename number>
     number abs_min(number value_a, number value_b)
     {
-        ZoneScoped;
         return glm::abs(value_a) < glm::abs(value_b) ? value_a : value_b;
     }
 
@@ -61,7 +57,6 @@ namespace hyengine
     template <typename number>
     number abs_max(number value_a, number value_b)
     {
-        ZoneScoped;
         return glm::abs(value_a) > glm::abs(value_b) ? value_a : value_b;
     }
 
@@ -69,7 +64,6 @@ namespace hyengine
     template <typename number>
     number abs_floor(number value)
     {
-        ZoneScoped;
         return value < 0 ? glm::ceil(value) : glm::floor(value);
     }
 
@@ -77,7 +71,6 @@ namespace hyengine
     template <typename number>
     number abs_ceil(number value)
     {
-        ZoneScoped;
         return value > 0 ? glm::ceil(value) : glm::floor(value);
     }
 
@@ -85,7 +78,6 @@ namespace hyengine
     template <typename number>
     number abs_difference(number value_a, number value_b)
     {
-        ZoneScoped;
         return glm::abs(value_a - value_b);
     }
 
@@ -93,7 +85,6 @@ namespace hyengine
     template <typename number>
     number min_max(number value_a, number value_b, number check)
     {
-        ZoneScoped;
         return check > 0 ? glm::min(value_a, value_b) : glm::max(value_a, value_b);
     }
 
@@ -101,7 +92,6 @@ namespace hyengine
     template <typename number>
     number max_min(number value_a, number value_b, number check)
     {
-        ZoneScoped;
         return check < 0 ? glm::min(value_a, value_b) : glm::max(value_a, value_b);
     }
 
@@ -109,7 +99,6 @@ namespace hyengine
     template <typename number>
     number value_reduce(number value, number amount)
     {
-        ZoneScoped;
         return value < 0 ? value + amount : value - amount;
     }
 
@@ -117,7 +106,6 @@ namespace hyengine
     template <typename number>
     number value_expand(number value, number amount)
     {
-        ZoneScoped;
         return value > 0 ? value + amount : value - amount;
     }
 
@@ -125,7 +113,6 @@ namespace hyengine
     template <typename number>
     number value_constrain(number value, number range)
     {
-        ZoneScoped;
         return glm::clamp(value, -range, +range);
     }
 
@@ -133,7 +120,6 @@ namespace hyengine
     template <typename number>
     number epsilon_snap(number value, number epsilon, number snapped)
     {
-        ZoneScoped;
         return abs(value) < abs(epsilon) ? snapped : value;
     }
 
@@ -141,7 +127,6 @@ namespace hyengine
     template <typename number>
     number clamp_inside(number value, number check, number start, number end)
     {
-        ZoneScoped;
         return check >= start && check <= end ? glm::clamp(value, start, end) : value;
     }
 
@@ -149,14 +134,12 @@ namespace hyengine
     template <typename number>
     number clamp_outside(number value, number check, number start, number end)
     {
-        ZoneScoped;
         if (check < start) return glm::min(value, start);
         if (check > end) return glm::max(value, end);
         return value;
     }
 
-
-    //Quaternion out of eular rotations
+    //Quaternion out of euler rotations
     inline glm::quat make_euler_rotation_zxy(glm::vec3 euler, glm::vec3 y_axis = glm::vec3(0, 1, 0), glm::vec3 x_axis = glm::vec3(1, 0, 0))
     {
         ZoneScoped;

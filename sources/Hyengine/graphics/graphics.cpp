@@ -24,7 +24,6 @@ namespace hyengine
 
     static void handle_gl_error(GLenum source, GLenum type, GLuint /*id*/, GLenum severity, GLsizei /*length*/, const GLchar* message, const void* /*userParam*/)
     {
-        ZoneScoped;
         std::string source_str;
         std::string type_str;
         bool should_display = true;
@@ -115,18 +114,16 @@ namespace hyengine
 
     void enable_gl_debug()
     {
-        ZoneScoped;
         glEnable(GL_DEBUG_OUTPUT);
         glDebugMessageCallback(handle_gl_error, nullptr);
     }
 
     void set_scissor(const rectangle& rect)
     {
-        ZoneScoped;
         set_scissor(rect.position, rect.size);
     }
 
-    void set_scissor(const int x, const int y, const int width, const int height)
+    void set_scissor(const i32 x, const i32 y, const i32 width, const i32 height)
     {
         ZoneScoped;
         glScissor(x, y, width, height);
@@ -134,7 +131,6 @@ namespace hyengine
 
     void set_scissor(ivec2 position, ivec2 size)
     {
-        ZoneScoped;
         set_scissor(position.x, position.y, size.x, size.y);
     }
 
@@ -162,15 +158,13 @@ namespace hyengine
 
     const render_viewport& get_viewport()
     {
-        ZoneScoped;
         return current_viewport;
     }
 
-    render_viewport create_letterbox_viewport(const render_viewport& to_fit, const int target_width, const int target_height, const bool fill)
+    render_viewport create_letterbox_viewport(const render_viewport& to_fit, const i32 target_width, const i32 target_height, const bool fill)
     {
-        ZoneScoped;
-        const float aspectA = to_fit.height * target_width;
-        const float aspectB = target_height * to_fit.width;
+        const f32 aspectA = to_fit.height * target_width;
+        const f32 aspectB = target_height * to_fit.width;
 
         render_viewport result{};
 
@@ -200,7 +194,7 @@ namespace hyengine
             glDisable(setting);
     }
 
-    void set_blending_config(const blending_config& config, const unsigned int buffer_slot)
+    void set_blending_config(const blending_config& config, const u32 buffer_slot)
     {
         ZoneScoped;
         glBlendColor(config.constant_blend_color.r, config.constant_blend_color.g, config.constant_blend_color.b, config.constant_blend_color.a);
@@ -224,13 +218,11 @@ namespace hyengine
 
     void set_stencil_enabled(const bool enable)
     {
-        ZoneScoped;
         set_gl_flag_enabled(GL_STENCIL_TEST, enable);
     }
 
     void set_cull_face_enabled(const bool enable)
     {
-        ZoneScoped;
         set_gl_flag_enabled(GL_CULL_FACE, enable);
     }
 
@@ -242,13 +234,11 @@ namespace hyengine
 
     void set_depth_test_enabled(const bool enable)
     {
-        ZoneScoped;
         set_gl_flag_enabled(GL_DEPTH_TEST, enable);
     }
 
     void set_cubemap_seamless_sampling(const bool enable)
     {
-        ZoneScoped;
         set_gl_flag_enabled(GL_TEXTURE_CUBE_MAP_SEAMLESS, enable);
     }
 
@@ -258,13 +248,13 @@ namespace hyengine
         glClearColor(color.r, color.g, color.b, color.a);
     }
 
-    void set_clear_depth(const float depth)
+    void set_clear_depth(const f32 depth)
     {
         ZoneScoped;
         glClearDepthf(depth);
     }
 
-    void set_clear_stencil(const int stencil)
+    void set_clear_stencil(const i32 stencil)
     {
         ZoneScoped;
         glClearStencil(stencil);
@@ -276,11 +266,10 @@ namespace hyengine
         glClear(mask);
     }
 
-    unsigned int get_max_texture_units()
+    u32 get_max_texture_units()
     {
-        ZoneScoped;
         GLint result = 0;
         glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &result);
-        return static_cast<unsigned int>(result);
+        return static_cast<u32>(result);
     }
 }

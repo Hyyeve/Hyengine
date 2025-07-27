@@ -6,7 +6,6 @@ namespace hyengine
 {
     void portable_string_replace(std::string& str, const char from, const char to)
     {
-        ZoneScoped;
         for (char& idx : str)
         {
             if (idx == from) idx = to;
@@ -15,7 +14,6 @@ namespace hyengine
 
     std::string stringify_utf32(const unsigned int codepoint)
     {
-        ZoneScoped;
         std::string result;
         if (codepoint < 0x80)
         {

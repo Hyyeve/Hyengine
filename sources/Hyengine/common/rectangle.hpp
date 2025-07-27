@@ -1,4 +1,5 @@
 #pragma once
+#include "sized_numerics.hpp"
 #include "../library/glm.hpp"
 
 namespace hyengine
@@ -21,10 +22,10 @@ namespace hyengine
         [[nodiscard]] glm::vec2 min_corner() const;
         [[nodiscard]] glm::vec2 max_corner() const;
 
-        [[nodiscard]] float left() const;
-        [[nodiscard]] float right() const;
-        [[nodiscard]] float up() const;
-        [[nodiscard]] float down() const;
+        [[nodiscard]] f32 left() const;
+        [[nodiscard]] f32 right() const;
+        [[nodiscard]] f32 up() const;
+        [[nodiscard]] glm::f32 down() const;
 
         [[nodiscard]] rectangle expanded_by(glm::vec4 left_right_top_bottom) const;
         [[nodiscard]] rectangle expanded_to(const rectangle& other) const;
@@ -34,7 +35,7 @@ namespace hyengine
         [[nodiscard]] rectangle union_with(const rectangle& other) const;
         [[nodiscard]] rectangle intersection_with(const rectangle& other) const;
 
-        [[nodiscard]] bool contains(glm::vec2 point) const;
+        [[nodiscard]] bool contains(glm::vec2 poi32) const;
         [[nodiscard]] bool intersects(const rectangle& other) const;
         [[nodiscard]] bool is_inside(const rectangle& other) const;
         [[nodiscard]] bool is_smaller_than(const rectangle& other) const;

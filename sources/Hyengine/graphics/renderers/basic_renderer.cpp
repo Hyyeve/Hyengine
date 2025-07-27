@@ -12,11 +12,10 @@ namespace hyengine
 
     basic_renderer::~basic_renderer()
     {
-        ZoneScoped;
         free();
     }
 
-    void basic_renderer::allocate(const unsigned int memory_budget_mb)
+    void basic_renderer::allocate(const u32 memory_budget_mb)
     {
         ZoneScoped;
         if (is_allocated)
@@ -28,7 +27,7 @@ namespace hyengine
         basic_shader.load();
         texture_shader.load();
 
-        const unsigned int max_vertices = ((1024 * 1024) / sizeof(debug_vertex)) * memory_budget_mb;
+        const u32 max_vertices = ((1024 * 1024) / sizeof(debug_vertex)) * memory_budget_mb;
 
         vertex_buffer.allocate_for_cpu_writes(GL_ARRAY_BUFFER, max_vertices);
         vertex_format_buffer.allocate();
@@ -56,7 +55,6 @@ namespace hyengine
 
     void basic_renderer::vertex(glm::vec3 pos, glm::vec4 color)
     {
-        ZoneScoped;
         if (!is_allocated)
         {
             log_warn(logger_tag, "Can't add triangle; renderer not allocated!");
@@ -69,7 +67,6 @@ namespace hyengine
 
     void basic_renderer::triangle(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec4 color)
     {
-        ZoneScoped;
         vertex(a, color);
         vertex(c, color);
         vertex(b, color);
@@ -77,20 +74,17 @@ namespace hyengine
 
     void basic_renderer::quad(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 d, glm::vec4 color)
     {
-        ZoneScoped;
         triangle(a, b, c, color);
         triangle(d, c, b, color);
     }
 
     void basic_renderer::rect(glm::vec2 a, glm::vec2 b, glm::vec4 color)
     {
-        ZoneScoped;
         quad({a.x, a.y, 0}, {b.x, a.y, 0}, {a.x, b.y, 0}, {b.x, b.y, 0}, color);
     }
 
-    void basic_renderer::line(glm::vec3 start, glm::vec3 end, glm::vec4 color, float thickness)
+    void basic_renderer::line(glm::vec3 start, glm::vec3 end, glm::vec4 color, f32 thickness)
     {
-        ZoneScoped;
         const glm::vec3 axis = glm::normalize(end - start);
         const glm::vec3 tangent = glm::normalize(glm::cross(axis, glm::normalize(glm::vec3(1e-3, 1e-2, 1e-4))));
         const glm::vec3 bitangent = glm::normalize(glm::cross(axis, tangent));
@@ -111,7 +105,7 @@ namespace hyengine
         quad(end + offset_2, end + offset_3, end + offset_0, end + offset_1, color);
     }
 
-    void basic_renderer::texture(const bool enable, const unsigned int texture_slot)
+    void basic_renderer::texture(const bool enable, const u32 texture_slot)
     {
         ZoneScoped;
         use_texture = enable;
@@ -120,18 +114,16 @@ namespace hyengine
 
     void basic_renderer::finish()
     {
-        ZoneScoped;
         draw_count = write_index;
         write_index = 0;
     }
 
     void basic_renderer::block_ready()
     {
-        ZoneScoped;
         vertex_buffer.block_ready();
     }
 
-    void basic_renderer::update_shader_uniforms(const float interpolation_delta, const camera& cam)
+    void basic_renderer::update_shader_uniforms(const f32 interpolation_delta, const camera& cam)
     {
         ZoneScoped;
         shader& current_shader = use_texture ? texture_shader : basic_shader;

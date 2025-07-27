@@ -67,13 +67,11 @@ namespace hyengine
 
         bool contains(glm::ivec3 position)
         {
-            ZoneScoped;
             return data_map.contains(position);
         }
 
         node_data* lookup(glm::ivec3 position)
         {
-            ZoneScoped;
             if (data_map.contains(position))
             {
                 return &data_map[position];
@@ -84,7 +82,6 @@ namespace hyengine
 
         void clear()
         {
-            ZoneScoped;
             data_map.clear();
         }
 

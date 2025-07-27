@@ -2,6 +2,7 @@
 
 #include "../../library/gl.hpp"
 #include "../../library/glm.hpp"
+#include "Hyengine/common/sized_numerics.hpp"
 
 namespace hyengine
 {
@@ -24,19 +25,19 @@ namespace hyengine
         void set_compare_func(const GLenum func) const;
         void set_compare_mode(const GLenum mode) const;
 
-        void set_anisotropy_level(const float anisotropy) const;
+        void set_anisotropy_level(const f32 anisotropy) const;
         void set_downscale_filter(const GLenum filter) const;
         void set_upscale_filter(const GLenum filter) const;
 
-        void set_lod_bias(const float bias) const;
-        void set_min_lod(const int lod) const;
-        void set_max_lod(const int lod) const;
+        void set_lod_bias(const f32 bias) const;
+        void set_min_lod(const i32 lod) const;
+        void set_max_lod(const i32 lod) const;
 
         void set_texture_wrap_x(const GLenum wrap) const;
         void set_texture_wrap_y(const GLenum wrap) const;
         void set_texture_wrap_z(const GLenum wrap) const;
 
-        void bind(const int slot) const;
+        void bind(const i32 slot) const;
 
         [[nodiscard]] GLuint get_id() const;
 

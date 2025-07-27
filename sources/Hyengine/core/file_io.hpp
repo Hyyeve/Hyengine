@@ -2,14 +2,16 @@
 #include <string>
 #include <vector>
 
+#include "Hyengine/common/sized_numerics.hpp"
+
 namespace hyengine
 {
     struct asset_image_data
     {
         unsigned char* data; //RGBA ordered, with the number of channels included as specified below. 8-bit channels
-        unsigned int width;
-        unsigned int height;
-        unsigned int num_channels;
+        u32 width;
+        u32 height;
+        u32 num_channels;
     };
 
     std::string load_asset_text(const std::string& id);
@@ -22,7 +24,7 @@ namespace hyengine
     template <typename data>
     data load_asset_struct(const std::string& id)
     {
-        std::vector<unsigned char> bytes = load_asset_bytes(id);
+        const std::vector<unsigned char> bytes = load_asset_bytes(id);
         data result;
         memcpy(&result, bytes.data(), sizeof(data));
         return result;

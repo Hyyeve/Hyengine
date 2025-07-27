@@ -13,7 +13,6 @@ namespace hyengine
 
     frame_buffer::~frame_buffer()
     {
-        ZoneScoped;
         if (buffer_id > 0) free();
     }
 
@@ -35,7 +34,6 @@ namespace hyengine
 
     void frame_buffer::attach_texture(const texture_buffer& texture, const GLenum attachment_binding)
     {
-        ZoneScoped;
         attach_texture(texture, attachment_binding, 0);
     }
 
@@ -148,19 +146,16 @@ namespace hyengine
 
     void frame_buffer::copy_data(frame_buffer& source, glm::uvec4 rect) const
     {
-        ZoneScoped;
         copy_data(source, rect, GL_LINEAR);
     }
 
     void frame_buffer::copy_data(frame_buffer& source, glm::uvec4 rect, GLenum filter) const
     {
-        ZoneScoped;
         copy_data(source, rect, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, filter);
     }
 
     void frame_buffer::copy_data(frame_buffer& source, glm::uvec4 rect, GLbitfield mask, GLenum filter) const
     {
-        ZoneScoped;
         copy_data(source, rect, rect, mask, filter);
     }
 
@@ -169,7 +164,7 @@ namespace hyengine
         ZoneScoped;
         if (buffer_id <= 0 || !is_valid)
         {
-            log_warn(logger_tag, "Can't copy into framebuffer ", buffer_id, " - not initialized!");
+            log_warn(logger_tag, "Can't copy i32o framebuffer ", buffer_id, " - not initialized!");
             return;
         }
 
@@ -212,7 +207,6 @@ namespace hyengine
 
     GLuint frame_buffer::get_id() const
     {
-        ZoneScoped;
         return buffer_id;
     }
 }

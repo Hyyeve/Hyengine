@@ -1,8 +1,10 @@
 #pragma once
+#include "Hyengine/common/sized_numerics.hpp"
+
 namespace hyengine
 {
-    unsigned int set_global_hotkey(const unsigned int key, const unsigned int mods);
-    void clear_global_hotkey(const unsigned int id);
+    u32 set_global_hotkey(const u32 key, const u32 mods);
+    void clear_global_hotkey(const u32 id);
     void process_native_input();
-    bool global_hotkey_pressed_this_frame(const unsigned int id);
+    bool global_hotkey_pressed_this_frame(const u32 id);
 }

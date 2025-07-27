@@ -22,7 +22,7 @@ namespace hyengine
         explicit basic_framebuffer();
         ~basic_framebuffer();
 
-        void allocate(GLenum color_format, glm::uvec2 size, int multisample_count);
+        void allocate(GLenum color_format, glm::uvec2 size, i32 multisample_count);
         void free();
 
         void bind_to_draw() const;

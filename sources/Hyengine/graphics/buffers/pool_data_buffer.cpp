@@ -15,7 +15,6 @@ namespace hyengine
 
     pool_data_buffer::~pool_data_buffer()
     {
-        ZoneScoped;
         free();
     }
 
@@ -37,37 +36,33 @@ namespace hyengine
 
     void pool_data_buffer::shrink_staging_buffer()
     {
-        ZoneScoped;
         force_reallocate_staging_buffer = true;
     }
 
-    bool pool_data_buffer::try_allocate_space(const unsigned int size, unsigned int& address)
+    bool pool_data_buffer::try_allocate_space(const u32 size, u32& address)
     {
-        ZoneScoped;
         return pool_allocator.try_allocate(size, address);
     }
 
-    void pool_data_buffer::deallocate_space(const unsigned int address)
+    void pool_data_buffer::deallocate_space(const u32 address)
     {
-        ZoneScoped;
         pool_allocator.deallocate(address);
     }
 
-    unsigned int pool_data_buffer::get_last_allocated_address() const
+    u32 pool_data_buffer::get_last_allocated_address() const
     {
-        ZoneScoped;
         return pool_allocator.get_last_used_address();
     }
 
-    void pool_data_buffer::queue_upload(const unsigned int& address, const void* const data, const unsigned int size)
+    void pool_data_buffer::queue_upload(const u32& address, const void* const data, const u32 size)
     {
         ZoneScoped;
-        const unsigned int temp_address = temp_upload_buffer_offset;
+        const u32 temp_address = temp_upload_buffer_offset;
         const bool has_temp_space = temp_upload_buffer_offset + size <= temp_upload_buffer_size;
 
         if (!has_temp_space)
         {
-            const unsigned int new_buffer_size = temp_upload_buffer_size * 2 + size;
+            const u32 new_buffer_size = temp_upload_buffer_size * 2 + size;
             GLbyte* new_temp_memory = new GLbyte[new_buffer_size];
 
             if (temp_upload_buffer != nullptr)
@@ -88,49 +83,41 @@ namespace hyengine
 
     void pool_data_buffer::bind_state() const
     {
-        ZoneScoped;
         pool_buffer.bind_state();
     }
 
     void pool_data_buffer::unbind_state() const
     {
-        ZoneScoped;
         pool_buffer.unbind_state();
     }
 
-    void pool_data_buffer::bind_buffer_base(const int binding) const
+    void pool_data_buffer::bind_buffer_base(const i32 binding) const
     {
-        ZoneScoped;
         pool_buffer.bind_buffer_base(binding);
     }
 
-    void pool_data_buffer::bind_buffer_range(const int binding, const GLintptr offset, const GLsizeiptr size) const
+    void pool_data_buffer::bind_buffer_range(const i32 binding, const GLintptr offset, const GLsizeiptr size) const
     {
-        ZoneScoped;
         pool_buffer.bind_buffer_range(binding, offset, size);
     }
 
     GLsizeiptr pool_data_buffer::get_size() const
     {
-        ZoneScoped;
         return pool_buffer.get_size();
     }
 
     GLuint pool_data_buffer::get_buffer_id() const
     {
-        ZoneScoped;
         return pool_buffer.get_buffer_id();
     }
 
     GLenum pool_data_buffer::get_target() const
     {
-        ZoneScoped;
         return pool_buffer.get_target();
     }
 
-    unsigned int pool_data_buffer::get_pending_upload_count() const
+    u32 pool_data_buffer::get_pending_upload_count() const
     {
-        ZoneScoped;
         return pending_uploads.size();
     }
 
@@ -142,7 +129,7 @@ namespace hyengine
             return;
         }
 
-        unsigned int staging_buffer_location = 0;
+        u32 staging_buffer_location = 0;
         for (upload_info& upload : pending_uploads)
         {
             upload.upload_buffer_address = staging_buffer_location;

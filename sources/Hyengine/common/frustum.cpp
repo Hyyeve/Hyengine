@@ -1,6 +1,8 @@
 #include "frustum.hpp"
 #include <tracy/Tracy.hpp>
 
+#include "sized_numerics.hpp"
+
 namespace hyengine
 {
     void frustum::set_from_matrices(glm::mat4 projection, glm::mat4 view, glm::dvec3 position)
@@ -44,9 +46,9 @@ namespace hyengine
         normals[5].z = mat[2][3] - mat[2][2];
         distances[5] = mat[3][3] - mat[3][2];
 
-        for (int i = 0; i < 6; i++)
+        for (i32 i = 0; i < 6; i++)
         {
-            const float length = glm::length(normals[i]);
+            const f32 length = glm::length(normals[i]);
             normals[i] /= length;
             distances[i] /= length;
         }
@@ -54,7 +56,7 @@ namespace hyengine
         offset = position;
     }
 
-    void frustum::set_from_origin_and_window(glm::dvec3 origin, glm::vec3 forward, std::array<glm::dvec3, 4> window, float near, float far)
+    void frustum::set_from_origin_and_window(glm::dvec3 origin, glm::vec3 forward, std::array<glm::dvec3, 4> window, f32 near, f32 far)
     {
         ZoneScoped;
         glm::vec3 top_left_dir = glm::normalize(origin - window[0]);
@@ -89,11 +91,10 @@ namespace hyengine
         offset = origin;
     }
 
-    bool frustum::visible(glm::dvec3 sphere_pos, float sphere_radius) const
+    bool frustum::visible(glm::dvec3 sphere_pos, f32 sphere_radius) const
     {
-        ZoneScoped;
         const glm::vec3 relative_pos = sphere_pos - offset;
-        for (int i = 0; i < 6; i++)
+        for (i32 i = 0; i < 6; i++)
         {
             if (glm::dot(relative_pos, normals[i]) + distances[i] + sphere_radius <= 0)
             {

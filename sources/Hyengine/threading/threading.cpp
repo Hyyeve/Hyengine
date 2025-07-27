@@ -13,23 +13,22 @@
 namespace hyengine
 {
     static constexpr std::string_view logger_tag = "Async Task";
-    unsigned int IDLE_SLEEP_INCREMENT = 35;
+    u32 IDLE_SLEEP_INCREMENT = 35;
 
-    static std::atomic<unsigned int> thread_id_counter = 0;
-    static std::unordered_map<unsigned int, unsigned int> thread_id_map;
+    static std::atomic<u32> thread_id_counter = 0;
+    static std::unordered_map<u32, u32> thread_id_map;
     static std::mutex thread_id_lock;
 
     static std::vector<std::thread> threads;
-    static std::pmr::unordered_set<unsigned int> pending_task_ids;
+    static std::pmr::unordered_set<u32> pending_task_ids;
     static std::list<threadpool_task*> tasks;
     static std::mutex task_lock;
     static std::atomic_bool threads_active = false;
 
 
-    unsigned int next_task_id()
+    u32 next_task_id()
     {
-        ZoneScoped;
-        static std::atomic_uint next_task_id = 0;
+        static atomic_u32 next_task_id = 0;
         next_task_id += 1;
         if (next_task_id == 0) next_task_id = 1; //Could overflow, but zero is our "invalid task" value
         return next_task_id;
@@ -37,7 +36,6 @@ namespace hyengine
 
     threadpool_task* next_task()
     {
-        ZoneScoped;
         threadpool_task* task = nullptr;
         task_lock.lock();
 
@@ -46,8 +44,8 @@ namespace hyengine
             task = tasks.back();
             tasks.pop_back();
 
-            const int max_rotations = tasks.size();
-            int rotation_count = 0;
+            const i32 max_rotations = tasks.size();
+            i32 rotation_count = 0;
             while (pending_task_ids.contains(task->dependency()))
             {
                 if (rotation_count >= max_rotations)
@@ -73,7 +71,6 @@ namespace hyengine
 
     void mark_finished(threadpool_task* task)
     {
-        ZoneScoped;
         task_lock.lock();
         pending_task_ids.erase(task->id());
         task_lock.unlock();
@@ -99,7 +96,6 @@ namespace hyengine
 
     void release_threadpool()
     {
-        ZoneScoped;
         threads_active = false;
 
         for (std::thread& thread : threads)
@@ -112,7 +108,6 @@ namespace hyengine
 
     void create_threadpool()
     {
-        ZoneScoped;
         if (!threads.empty())
         {
             return;
@@ -121,9 +116,9 @@ namespace hyengine
         threads_active = true;
 
         //1 thread per core, minus main thread. Or just make 4 if we don't know how many cores we have.
-        const unsigned int thread_count = std::max(std::thread::hardware_concurrency(), 5u) - 1u;
+        const u32 thread_count = std::max(std::thread::hardware_concurrency(), 5u) - 1u;
         threads.reserve(thread_count);
-        for (unsigned int i = 0; i < thread_count; ++i)
+        for (u32 i = 0; i < thread_count; ++i)
         {
             threads.emplace_back([i]
             {
@@ -138,12 +133,11 @@ namespace hyengine
     }
 
 
-    unsigned int get_current_thread_id()
+    u32 get_current_thread_id()
     {
-        ZoneScoped;
         thread_id_lock.lock();
-        unsigned int id = 0;
-        const unsigned int hash = std::hash<std::thread::id>{}(std::this_thread::get_id());
+        u32 id = 0;
+        const u32 hash = std::hash<std::thread::id>{}(std::this_thread::get_id());
         if (thread_id_map.contains(hash))
         {
             id = thread_id_map[hash];
@@ -161,7 +155,6 @@ namespace hyengine
 
     void queue_task(threadpool_task* task)
     {
-        ZoneScoped;
         task_lock.lock();
         tasks.push_front(task);
         pending_task_ids.insert(task->id());
@@ -169,9 +162,8 @@ namespace hyengine
     }
 
 
-    void threadpool_task::enqueue(const unsigned int depends_on_id)
+    void threadpool_task::enqueue(const u32 depends_on_id)
     {
-        ZoneScoped;
         if (is_running)
         {
             log_debug(logger_tag, "Can't queue; this task object is already running!");
@@ -186,15 +178,14 @@ namespace hyengine
         queue_task(this);
     }
 
-    bool threadpool_task::await(const unsigned long timeout)
+    bool threadpool_task::await(const u64 timeout)
     {
-        ZoneScoped;
         if (!is_running)
         {
             return false;
         }
 
-        unsigned long slept_amount = 0;
+        u64 slept_amount = 0;
         while (!finished() && slept_amount < timeout)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(IDLE_SLEEP_INCREMENT));
@@ -206,7 +197,6 @@ namespace hyengine
 
     bool threadpool_task::finished()
     {
-        ZoneScoped;
         return is_finished;
     }
 
@@ -220,15 +210,13 @@ namespace hyengine
         is_finished = true;
     }
 
-    unsigned int threadpool_task::id()
+    u32 threadpool_task::id()
     {
-        ZoneScoped;
         return task_id;
     }
 
-    unsigned int threadpool_task::dependency()
+    u32 threadpool_task::dependency()
     {
-        ZoneScoped;
         return depends_on;
     }
 }

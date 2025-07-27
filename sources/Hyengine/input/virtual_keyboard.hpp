@@ -3,23 +3,25 @@
 #include <map>
 #include <string>
 
+#include "Hyengine/common/sized_numerics.hpp"
+
 namespace hyengine
 {
     class virtual_keyboard
     {
     public:
-        void type_character(unsigned int codepoint);
-        void press_key(int key);
-        void release_key(int key);
+        void type_character(u32 codepoint);
+        void press_key(i32 key);
+        void release_key(i32 key);
 
-        [[nodiscard]] bool pressed(int key);
-        [[nodiscard]] bool released(int key);
-        [[nodiscard]] bool pressed_this_frame(int key);
-        [[nodiscard]] bool released_this_frame(int key);
+        [[nodiscard]] bool pressed(i32 key);
+        [[nodiscard]] bool released(i32 key);
+        [[nodiscard]] bool pressed_this_frame(i32 key);
+        [[nodiscard]] bool released_this_frame(i32 key);
 
-        [[nodiscard]] int frame_count(int key);
-        [[nodiscard]] int pressed_frames(int key);
-        [[nodiscard]] int released_frames(int key);
+        [[nodiscard]] i32 frame_count(i32 key);
+        [[nodiscard]] i32 pressed_frames(i32 key);
+        [[nodiscard]] i32 released_frames(i32 key);
 
         [[nodiscard]] bool control_pressed();
         [[nodiscard]] bool shift_pressed();
@@ -31,7 +33,7 @@ namespace hyengine
         void process_inputs();
 
     private:
-        std::map<int, int> key_map = std::map<int, int>();
+        std::map<i32, i32> key_map = std::map<i32, i32>();
         std::string current_text;
     };
 }

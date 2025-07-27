@@ -4,14 +4,14 @@
 
 namespace hyengine
 {
-    pool_allocation_tracker::pool_allocation_tracker(const unsigned int size): total_pool_size(size), remaining_available_size(total_pool_size)
+    pool_allocation_tracker::pool_allocation_tracker(const u32 size): total_pool_size(size), remaining_available_size(total_pool_size)
     {
     }
 
-    bool pool_allocation_tracker::try_allocate(const unsigned int size, unsigned int& address)
+    bool pool_allocation_tracker::try_allocate(const u32 size, u32& address)
     {
         ZoneScoped;
-        unsigned int block_idx;
+        u32 block_idx;
         bool is_end_allocation;
         const bool has_space = find_free(size, address, block_idx, is_end_allocation);
 
@@ -27,10 +27,10 @@ namespace hyengine
         return true;
     }
 
-    void pool_allocation_tracker::deallocate(const unsigned int address)
+    void pool_allocation_tracker::deallocate(const u32 address)
     {
         ZoneScoped;
-        unsigned int size = 0;
+        u32 size = 0;
         const auto loc = std::ranges::find_if(allocations, [address, &size](const allocation_block& block)
         {
             if (block.start == address)
@@ -48,29 +48,26 @@ namespace hyengine
         }
     }
 
-    unsigned int pool_allocation_tracker::get_last_used_address() const
+    u32 pool_allocation_tracker::get_last_used_address() const
     {
-        ZoneScoped;
         if (allocations.empty()) return 0;
         const allocation_block& last_block = allocations.back();
         return last_block.start + last_block.size;
     }
 
-    void pool_allocation_tracker::resize(const unsigned int size)
+    void pool_allocation_tracker::resize(const u32 size)
     {
-        ZoneScoped;
         remaining_available_size += size - total_pool_size;
         total_pool_size = size;
     }
 
     void pool_allocation_tracker::clear()
     {
-        ZoneScoped;
         allocations.clear();
         remaining_available_size = total_pool_size;
     }
 
-    bool pool_allocation_tracker::find_free(const unsigned int size, unsigned int& start, unsigned int& block_idx, bool& is_end_allocation) const
+    bool pool_allocation_tracker::find_free(const u32 size, u32& start, u32& block_idx, bool& is_end_allocation) const
     {
         ZoneScoped;
         //Can't fit!
@@ -98,7 +95,7 @@ namespace hyengine
         }
 
         //Doesn't fit at the end - do we have space elsewhere?
-        unsigned int remaining_possible_space = remaining_available_size - last_block.size;
+        u32 remaining_possible_space = remaining_available_size - last_block.size;
         if (size > remaining_possible_space)
         {
             return false;

@@ -16,7 +16,7 @@ namespace hyengine
     static std::mutex logging_lock;
     static log_level logging_level = log_level::NORMAL;
     static std::string last_log;
-    static int log_repeat_count = 0;
+    static i32 log_repeat_count = 0;
     static std::stringstream message_buffer;
 
     std::string stringify_duration(const std::chrono::microseconds duration)
@@ -37,25 +37,23 @@ namespace hyengine
 
         if (ms.count() < 1000)
         {
-            format_stream << static_cast<double>(ms.count()) + static_cast<double>(us.count() % 1000) / 1000.0;
+            format_stream << static_cast<f64>(ms.count()) + static_cast<f64>(us.count() % 1000) / 1000.0;
             const std::string ms_fractional = format_stream.str();
             return ms_fractional + "ms";
         }
 
-        format_stream << static_cast<double>(s.count()) + static_cast<double>(ms.count() % 1000) / 1000.0;
+        format_stream << static_cast<f64>(s.count()) + static_cast<f64>(ms.count() % 1000) / 1000.0;
         const std::string ms_fractional = format_stream.str();
         return ms_fractional + "s";
     }
 
-    std::string stringify_secs(const double seconds)
+    std::string stringify_secs(const f64 seconds)
     {
-        ZoneScoped;
         return stringify_millis(seconds * 1000);
     }
 
-    std::string stringify_millis(const double millis)
+    std::string stringify_millis(const f64 millis)
     {
-        ZoneScoped;
         return stringify_duration(std::chrono::microseconds{static_cast<long>(millis * 1000)});
     }
 
@@ -64,8 +62,8 @@ namespace hyengine
         ZoneScoped;
         std::stringstream result;
         result << std::fixed << std::setprecision(2);
-        const double bytes_fractional = bytes;
-        double bytes_scaled;
+        const f64 bytes_fractional = bytes;
+        f64 bytes_scaled;
         if (bytes < 1e3) bytes_scaled = bytes;
         else if (bytes < 1e6) bytes_scaled = bytes_fractional / 1e3;
         else if (bytes < 1e9) bytes_scaled = bytes_fractional / 1e6;
@@ -82,7 +80,6 @@ namespace hyengine
 
     std::string stringify_count(const unsigned long count_num, const std::string_view count_of)
     {
-        ZoneScoped;
         std::stringstream result;
         result << count_num << " " << count_of;
         if (count_num != 1) result << "s";
@@ -92,7 +89,6 @@ namespace hyengine
 
     void set_log_level(const log_level level)
     {
-        ZoneScoped;
         logging_level = level;
     }
 
@@ -141,44 +137,37 @@ namespace hyengine
 
     void log_debug(const std::string_view tag, const std::string_view msg)
     {
-        ZoneScoped;
         if (logging_level > log_level::NORMAL) log(tag, msg, "DEBG", ANSI_GREEN);
     }
 
     void log_info(const std::string_view tag, const std::string_view msg)
     {
-        ZoneScoped;
         if (logging_level > log_level::REDUCED) log(tag, msg, "INFO", ANSI_BLUE);
     }
 
     void log_performance(const std::string_view tag, const std::string_view msg)
     {
-        ZoneScoped;
         if (logging_level > log_level::REDUCED) log(tag, msg, "PERF", ANSI_CYAN);
     }
 
     void log_warn(const std::string_view tag, const std::string_view msg)
     {
-        ZoneScoped;
         if (logging_level > log_level::NONE) log(tag, msg, "WARN", ANSI_BRIGHT_YELLOW);
     }
 
     void log_error(const std::string_view tag, const std::string_view msg)
     {
-        ZoneScoped;
         if (logging_level > log_level::NONE) log(tag, msg, "ERRR", ANSI_RED);
     }
 
     void log_fatal(const std::string_view tag, const std::string_view msg)
     {
-        ZoneScoped;
         constexpr std::string_view FATAL_FORMAT = std::string_view("\u001B[91m\u001B[1m\u001B[4m");
         log(tag, msg, "FATAL", FATAL_FORMAT);
     }
 
     void log_secret(const std::string_view tag, const std::string_view msg)
     {
-        ZoneScoped;
         log(tag, msg, "SECRET", ANSI_BRIGHT_YELLOW);
     }
 }

@@ -8,7 +8,6 @@ namespace hyengine
 {
     texture_sampler_state::~texture_sampler_state()
     {
-        ZoneScoped;
         free();
     }
 
@@ -43,7 +42,7 @@ namespace hyengine
         glSamplerParameteri(gl_id, GL_TEXTURE_COMPARE_MODE, mode);
     }
 
-    void texture_sampler_state::set_anisotropy_level(const float anisotropy) const
+    void texture_sampler_state::set_anisotropy_level(const f32 anisotropy) const
     {
         ZoneScoped;
         if (GLAD_GL_VERSION_4_6 || GLAD_GL_ARB_texture_filter_anisotropic || GLAD_GL_EXT_texture_filter_anisotropic)
@@ -64,19 +63,19 @@ namespace hyengine
         glSamplerParameteri(gl_id, GL_TEXTURE_MAG_FILTER, filter);
     }
 
-    void texture_sampler_state::set_lod_bias(const float bias) const
+    void texture_sampler_state::set_lod_bias(const f32 bias) const
     {
         ZoneScoped;
         glSamplerParameterf(gl_id, GL_TEXTURE_LOD_BIAS, bias);
     }
 
-    void texture_sampler_state::set_min_lod(const int lod) const
+    void texture_sampler_state::set_min_lod(const i32 lod) const
     {
         ZoneScoped;
         glSamplerParameteri(gl_id, GL_TEXTURE_MIN_LOD, lod);
     }
 
-    void texture_sampler_state::set_max_lod(const int lod) const
+    void texture_sampler_state::set_max_lod(const i32 lod) const
     {
         ZoneScoped;
         glSamplerParameteri(gl_id, GL_TEXTURE_MAX_LOD, lod);
@@ -100,7 +99,7 @@ namespace hyengine
         glSamplerParameteri(gl_id, GL_TEXTURE_WRAP_R, wrap);
     }
 
-    void texture_sampler_state::bind(const int slot) const
+    void texture_sampler_state::bind(const i32 slot) const
     {
         ZoneScoped;
         glBindSampler(slot, gl_id);
@@ -108,7 +107,6 @@ namespace hyengine
 
     GLuint texture_sampler_state::get_id() const
     {
-        ZoneScoped;
         return gl_id;
     }
 }

@@ -70,6 +70,17 @@ namespace hyengine
         buffer_id = 0;
         current_slice_index = 1;
         buffer_target = 0;
+        total_size = 0;
+        slice_size = 0;
+        slice_count = 1;
+
+        for (slice_data& slice : buffer_slices)
+        {
+            slice.start_address = 0;
+            if (slice.fence != nullptr) glDeleteSync(slice.fence);
+            slice.fence = nullptr;
+        }
+
     }
 
     void standard_data_buffer::map_storage(const GLbitfield mapping_flags)

@@ -1,4 +1,5 @@
 #pragma once
+#include <atomic>
 #include <cstdint>
 
 namespace hyengine {
@@ -12,6 +13,13 @@ namespace hyengine {
     typedef int16_t i16;
     typedef int32_t i32;
     typedef int64_t i64;
+
+    typedef char char8;
+    typedef wchar_t char16;
+
+    typedef char8_t utf8;
+    typedef char16_t utf16;
+    typedef char32_t utf32;
 
     typedef float f32;
     typedef double f64;

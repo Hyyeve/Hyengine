@@ -3,6 +3,7 @@
 #include "../../common/colors.hpp"
 #include "../../core/logger.hpp"
 #include "../shader.hpp"
+#include "Hyengine/graphics/shader_batching.hpp"
 
 namespace hyengine
 {
@@ -24,25 +25,33 @@ namespace hyengine
             return;
         }
 
-        basic_shader.load();
-        texture_shader.load();
 
-        const u32 max_vertices = ((1024 * 1024) / sizeof(debug_vertex)) * memory_budget_mb;
+        basic_shader = create_shader_instance("shader:basic_pos_col", false);
+        //texture_shader = create_shader_instance("shader:basic_pos_col_tex", true);
+        texture_shader = create_shader_instance("shader:font", false);
+
+        basic_shader->load();
+        texture_shader->load();
+
+        const u32 max_vertices = ((1024 * 1024) / sizeof(basic_vertex)) * memory_budget_mb;
 
         vertex_buffer.allocate_for_cpu_writes(GL_ARRAY_BUFFER, max_vertices);
         vertex_format_buffer.allocate();
-        vertex_format_buffer.attach_vertex_format(debug_vertex_format, 0);
+        vertex_format_buffer.attach_vertex_format(basic_vertex_format, 0);
         vertex_format_buffer.attach_vertex_buffer(0, vertex_buffer.get_buffer_id(), 0, vertex_buffer.get_element_size());
 
         is_allocated = true;
 
-        log_info(logger_tag, "Allocated debug renderer with ", stringify_bytes(max_vertices * sizeof(debug_vertex)), " of vertex memory.");
+        log_info(logger_tag, "Allocated debug renderer with ", stringify_bytes(max_vertices * sizeof(basic_vertex)), " of vertex memory.");
     }
 
     void basic_renderer::free()
     {
         ZoneScoped;
         if (!is_allocated) return;
+
+        basic_shader.reset();
+        texture_shader.reset();
 
         vertex_format_buffer.free();
         vertex_buffer.free();
@@ -53,7 +62,7 @@ namespace hyengine
         log_info(logger_tag, "Freed debug renderer");
     }
 
-    void basic_renderer::vertex(glm::vec3 pos, glm::vec4 color)
+    void basic_renderer::vertex(glm::vec3 pos, glm::vec4 color, glm::vec2 uv)
     {
         if (!is_allocated)
         {
@@ -61,7 +70,7 @@ namespace hyengine
             return;
         }
 
-        vertex_buffer.get_mapped_slice_pointer()[write_index] = {pos, color_to_bits(color)};
+        vertex_buffer.get_mapped_slice_pointer()[write_index] = {pos, uv, color_to_bits(color)};
         write_index++;
     }
 
@@ -74,8 +83,13 @@ namespace hyengine
 
     void basic_renderer::quad(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 d, glm::vec4 color)
     {
-        triangle(a, b, c, color);
-        triangle(d, c, b, color);
+        vertex(a, color, glm::vec2(0.0f, 0.0f));
+        vertex(b, color, glm::vec2(1.0f, 0.0f));
+        vertex(c, color, glm::vec2(0.0f, 1.0f));
+
+        vertex(d, color, glm::vec2(1.0f, 1.0f));
+        vertex(c, color, glm::vec2(0.0f, 1.0f));
+        vertex(b, color, glm::vec2(1.0f, 0.0f));
     }
 
     void basic_renderer::rect(glm::vec2 a, glm::vec2 b, glm::vec4 color)
@@ -109,7 +123,7 @@ namespace hyengine
     {
         ZoneScoped;
         use_texture = enable;
-        texture_shader.set_sampler_slot("u_texture", texture_slot);
+        texture_shader->set_sampler_slot("u_texture", texture_slot);
     }
 
     void basic_renderer::finish()
@@ -126,26 +140,26 @@ namespace hyengine
     void basic_renderer::update_shader_uniforms(const f32 interpolation_delta, const camera& cam)
     {
         ZoneScoped;
-        shader& current_shader = use_texture ? texture_shader : basic_shader;
+        shader* current_shader = use_texture ? texture_shader.get() : basic_shader.get();
 
-        current_shader.set_uniform("u_projection_mat", cam.get_projection());
-        current_shader.set_uniform("u_view_mat", cam.get_view());
-        current_shader.set_uniform("u_camera_pos", cam.get_position(interpolation_delta));
+        current_shader->set_uniform("u_projection_mat", cam.get_projection());
+        current_shader->set_uniform("u_view_mat", cam.get_view());
+        current_shader->set_uniform("u_camera_pos", cam.get_position(interpolation_delta));
     }
 
     void basic_renderer::reload_shaders()
     {
         ZoneScoped;
-        basic_shader.reload();
-        texture_shader.reload();
+        basic_shader->reload();
+        texture_shader->reload();
     }
 
     void basic_renderer::bind()
     {
         ZoneScoped;
         vertex_format_buffer.bind_state();
-        if (use_texture) texture_shader.use();
-        else basic_shader.use();
+        if (use_texture) texture_shader->use();
+        else basic_shader->use();
     }
 
     void basic_renderer::draw() const

@@ -21,9 +21,9 @@ namespace hyengine
             free();
         }
 
-        void allocate(const GLenum target, const GLsizeiptr elements)
+        void allocate(const GLenum target, const GLsizeiptr elements, const GLsizeiptr staging_elements)
         {
-            internal_data_buffer.allocate(target, elements * sizeof(TYPE));
+            internal_data_buffer.allocate(target, elements * sizeof(TYPE), staging_elements * sizeof(TYPE));
         }
 
         void free()
@@ -34,6 +34,11 @@ namespace hyengine
         void shrink_staging_buffer()
         {
             internal_data_buffer.shrink_staging_buffer();
+        }
+
+        void reserve_staging_buffer_size(const u32 elements)
+        {
+            internal_data_buffer.reserve_staging_buffer_size(elements * sizeof(TYPE));
         }
 
         bool try_allocate_space(const u32 elements, u32& address)
@@ -51,14 +56,14 @@ namespace hyengine
             return internal_data_buffer.get_last_allocated_address() / sizeof(TYPE);
         }
 
-        void queue_upload(const u32& address, const TYPE* const data, const u32 elements)
+        void block_ready()
         {
-            internal_data_buffer.queue_upload(address, data, elements * sizeof(TYPE));
+            internal_data_buffer.block_ready();
         }
 
-        void submit_uploads()
+        void upload(const u32& address, const TYPE* data, const u32 elements)
         {
-            internal_data_buffer.submit_uploads();
+            internal_data_buffer.upload(address, data, elements * sizeof(TYPE));
         }
 
         void bind_state() const

@@ -18,7 +18,10 @@ target_sources(Hyengine PRIVATE
         graphics/graphics.cpp
         graphics/native_window.cpp
         graphics/shader.cpp
+        graphics/shader_batching.cpp
         graphics/camera.cpp
+
+        graphics/font/font_meta.cpp
 
         graphics/textures/texture_set.cpp
         graphics/textures/texture_sampler_state.cpp
@@ -67,8 +70,11 @@ target_sources(Hyengine PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILE
         graphics/graphics.hpp
         graphics/native_window.hpp
         graphics/shader.hpp
+        graphics/shader_batching.hpp
         graphics/camera.hpp
         graphics/vertex_formats.hpp
+
+        graphics/font/font_meta.hpp
 
         graphics/textures/texture_set.hpp
         graphics/textures/texture_sampler_state.hpp
@@ -106,3 +112,4 @@ target_link_libraries(Hyengine PUBLIC glad)
 target_link_libraries(Hyengine PUBLIC glfw)
 target_link_libraries(Hyengine PUBLIC ${OPENGL_LIBRARIES})
 target_link_libraries(Hyengine PUBLIC TracyClient)
+target_link_libraries(Hyengine PUBLIC stblib)

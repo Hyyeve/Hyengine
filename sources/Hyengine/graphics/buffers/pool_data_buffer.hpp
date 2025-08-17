@@ -1,5 +1,7 @@
 #pragma once
 
+#include <future>
+#include <memory>
 #include <vector>
 
 #include "standard_data_buffer.hpp"
@@ -19,22 +21,28 @@ namespace hyengine
         pool_data_buffer& operator=(const pool_data_buffer& other) = delete; //COPY ASSIGNMENT
         pool_data_buffer& operator=(pool_data_buffer&& other) noexcept = delete; //MOVE ASSIGNMENT
 
-
         explicit pool_data_buffer();
         ~pool_data_buffer();
 
-        void allocate(const GLenum target, const GLsizeiptr size);
+        void allocate(const GLenum target, const GLsizeiptr size, const GLsizeiptr staging_size);
         void free();
 
         void shrink_staging_buffer();
+        void reserve_staging_buffer_size(const u32 size);
 
         bool try_allocate_space(const u32 size, u32& address);
         void deallocate_space(const u32 address);
         [[nodiscard]] u32 get_last_allocated_address() const;
 
-        //Caller needs to ensure data poi32er remains valid until uploads are submitted!
+    private:
+        //Caller needs to ensure data pointer remains valid until uploads are submitted!
         void queue_upload(const u32& address, const void* const data, const u32 size);
         void submit_uploads();
+    public:
+
+        void block_ready();
+        void upload(const u32& address, const void* const data, const u32 size);
+        //void upload_async(const u32& address, const void* const data, const u32 size);
 
         void bind_state() const;
         void unbind_state() const;
@@ -52,7 +60,7 @@ namespace hyengine
 
         struct upload_info
         {
-            u32 temp_data_address;
+            const void* source;
             GLintptr upload_buffer_address;
             GLintptr write_address;
             GLsizeiptr size;
@@ -64,11 +72,8 @@ namespace hyengine
         pool_allocation_tracker pool_allocator;
 
         standard_data_buffer staging_buffer;
+        u32 current_staging_buffer_address;
         std::vector<upload_info> pending_uploads;
         bool force_reallocate_staging_buffer = false;
-
-        GLbyte* temp_upload_buffer;
-        u32 temp_upload_buffer_size;
-        u32 temp_upload_buffer_offset;
     };
 }

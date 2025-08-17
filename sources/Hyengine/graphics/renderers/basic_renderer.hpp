@@ -21,7 +21,7 @@ namespace hyengine
         void allocate(const u32 memory_budget_mb);
         void free();
 
-        void vertex(glm::vec3 pos, glm::vec4 color);
+        void vertex(glm::vec3 pos, glm::vec4 color, glm::vec2 uv = glm::vec2(0.0, 0.0));
         void triangle(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec4 color);
         void quad(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 d, glm::vec4 color);
         void rect(glm::vec2 a, glm::vec2 b, glm::vec4 color);
@@ -39,19 +39,20 @@ namespace hyengine
         void draw() const;
 
     private:
-        struct debug_vertex
+        struct basic_vertex
         {
             glm::vec3 position;
+            glm::vec2 uv;
             u32 color;
         };
 
-        shader basic_shader = shader("shader:basic_pos_col");
-        shader texture_shader = shader("shader:basic_pos_col_tex");
+        std::shared_ptr<shader> basic_shader;
+        std::shared_ptr<shader> texture_shader;
 
-        const vertex_format<2> debug_vertex_format = vertex_format<2>({vertex_element_types::VEC3, vertex_element_types::UBYTE_NVEC4});
+        const vertex_format<3> basic_vertex_format = vertex_format<3>({vertex_element_types::VEC3, vertex_element_types::VEC2, vertex_element_types::UBYTE_NVEC4});
         const std::string logger_tag = "Basic Renderer";
 
-        typed_data_buffer<debug_vertex> vertex_buffer;
+        typed_data_buffer<basic_vertex> vertex_buffer;
         vertex_format_buffer vertex_format_buffer;
 
         bool is_allocated = false;

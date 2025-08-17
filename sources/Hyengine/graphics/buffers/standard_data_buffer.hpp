@@ -2,6 +2,7 @@
 #include <array>
 #include <stdexcept>
 #include "../../library/gl.hpp"
+#include "Hyengine/common/sized_numerics.hpp"
 
 namespace hyengine
 {

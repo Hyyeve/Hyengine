@@ -18,7 +18,6 @@ namespace hyengine
 
         void insert(glm::ivec3 position, data_type data)
         {
-            ZoneScoped;
             if (data_map.contains(position))
             {
                 data_map[position].data = data;
@@ -51,7 +50,6 @@ namespace hyengine
 
         void erase(glm::ivec3 position)
         {
-            ZoneScoped;
             if (data_map.contains(position))
             {
                 node_data& data = data_map[position];

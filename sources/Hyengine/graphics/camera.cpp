@@ -6,8 +6,9 @@ namespace hyengine
 {
     using namespace glm;
 
-    camera::camera(const vec3& position, const vec3& rotation) : position(position), rotation(rotation)
+    camera::camera(const vec3& position, const glm::quat& rotation) : position(position), rotation(rotation)
     {
+        start_update();
         refresh(0.0);
     }
 
@@ -26,9 +27,9 @@ namespace hyengine
         position += delta;
     }
 
-    void camera::move_by(const f32 deltaX, const f32 deltaY, const f32 deltaZ)
+    void camera::move_by(const f32 delta_x, const f32 delta_y, const f32 delta_z)
     {
-        position += vec3(deltaX, deltaY, deltaZ);
+        position += vec3(delta_x, delta_y, delta_z);
     }
 
     void camera::move_relative(const vec3& delta)
@@ -41,14 +42,14 @@ namespace hyengine
         position += vec3(delta.x * right.x + delta.y * up.x + delta.z * forward.x, delta.x * right.y + delta.y * up.y + delta.z * forward.y, delta.x * right.z + delta.y * up.z + delta.z * forward.z);
     }
 
-    void camera::move_relative(const f32 deltaHorizontal, const f32 deltaVertical, const f32 deltaAxial)
+    void camera::move_relative(const f32 delta_horizontal, const f32 delta_vertical, const f32 delta_axial)
     {
-        position += vec3(deltaHorizontal * right.x + deltaVertical * up.x + deltaAxial * forward.x, deltaHorizontal * right.y + deltaVertical * up.y + deltaAxial * forward.y, deltaHorizontal * right.z + deltaVertical * up.z + deltaAxial * forward.z);
+        position += vec3(delta_horizontal * right.x + delta_vertical * up.x + delta_axial * forward.x, delta_horizontal * right.y + delta_vertical * up.y + delta_axial * forward.y, delta_horizontal * right.z + delta_vertical * up.z + delta_axial * forward.z);
     }
 
-    void camera::move_planar(const f32 deltaHorizontal, const f32 deltaVertical, const f32 deltaAxial)
+    void camera::move_planar(const f32 delta_horizontal, const f32 delta_vertical, const f32 delta_axial)
     {
-        position += vec3(deltaHorizontal * right.x + deltaVertical * up.x + deltaAxial * forward.x, deltaHorizontal * right.y + deltaVertical * up.y + deltaAxial * forward.y, deltaHorizontal * right.z + deltaVertical * up.z + deltaAxial * forward.z);
+        position += vec3(delta_horizontal * right.x + delta_vertical * up.x + delta_axial * forward.x, delta_horizontal * right.y + delta_vertical * up.y + delta_axial * forward.y, delta_horizontal * right.z + delta_vertical * up.z + delta_axial * forward.z);
     }
 
     void camera::rotate_to(const glm::quat& to)

@@ -12,10 +12,9 @@
 
 namespace hyengine
 {
-    static constexpr std::string_view logger_tag = "Async Task";
-    u32 IDLE_SLEEP_INCREMENT = 35;
+    static constexpr std::string_view LOGGER_TAG = "Async Task";
 
-    static std::atomic<u32> thread_id_counter = 0;
+    static atomic_u32 thread_id_counter = 0;
     static std::unordered_map<u32, u32> thread_id_map;
     static std::mutex thread_id_lock;
 
@@ -23,8 +22,10 @@ namespace hyengine
     static std::pmr::unordered_set<u32> pending_task_ids;
     static std::list<threadpool_task*> tasks;
     static std::mutex task_lock;
-    static std::atomic_bool threads_active = false;
+    static atomic_bool threads_active = false;
 
+    static std::mutex task_sleep_lock;
+    static std::condition_variable task_sleep_condition;
 
     u32 next_task_id()
     {
@@ -76,11 +77,10 @@ namespace hyengine
         task_lock.unlock();
     }
 
-    //We do actually return when the threads are freed, but we never want to call this and block the main thread indefinitely.
     void process_tasks()
     {
         ZoneScoped;
-        while (threads_active)
+        while (true)
         {
             threadpool_task* task = next_task();
 
@@ -88,15 +88,28 @@ namespace hyengine
             {
                 task->execute_blocking();
                 mark_finished(task);
+                continue;
             }
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(IDLE_SLEEP_INCREMENT));
+            //Make sure we stop executing tasks and join if threads active has been set to false
+            //Otherwise we could block on the wait condition indefinitely
+            if (!threads_active)
+            {
+                break;
+            }
+
+            std::unique_lock lock(task_sleep_lock);
+            task_sleep_condition.wait(lock);
         }
     }
 
     void release_threadpool()
     {
+        ZoneScoped;
+        task_sleep_lock.lock();
         threads_active = false;
+        task_sleep_lock.unlock();
+        task_sleep_condition.notify_all();
 
         for (std::thread& thread : threads)
         {
@@ -108,6 +121,7 @@ namespace hyengine
 
     void create_threadpool()
     {
+        ZoneScoped;
         if (!threads.empty())
         {
             return;
@@ -115,8 +129,10 @@ namespace hyengine
 
         threads_active = true;
 
-        //1 thread per core, minus main thread. Or just make 4 if we don't know how many cores we have.
-        const u32 thread_count = std::max(std::thread::hardware_concurrency(), 5u) - 1u;
+        //We want one task thread per logical core, leaving two cores free for the main thread and OS
+        //If there isn't any logical cores available (or the hardware concurrency hint is unavailable) we just make 3.
+        const i32 available_logical_cores = std::thread::hardware_concurrency() - 2;
+        const u32 thread_count = static_cast<u32>(std::max(available_logical_cores, 3));
         threads.reserve(thread_count);
         for (u32 i = 0; i < thread_count; ++i)
         {
@@ -137,7 +153,7 @@ namespace hyengine
     {
         thread_id_lock.lock();
         u32 id = 0;
-        const u32 hash = std::hash<std::thread::id>{}(std::this_thread::get_id());
+        const u32 hash = std::hash<std::thread::id> {}(std::this_thread::get_id());
         if (thread_id_map.contains(hash))
         {
             id = thread_id_map[hash];
@@ -156,46 +172,46 @@ namespace hyengine
     void queue_task(threadpool_task* task)
     {
         task_lock.lock();
+        task_sleep_lock.lock();
+
         tasks.push_front(task);
         pending_task_ids.insert(task->id());
-        task_lock.unlock();
-    }
 
+        task_sleep_lock.unlock();
+        task_lock.unlock();
+
+        //Make sure a thread is awake to process the task
+        task_sleep_condition.notify_one();
+    }
 
     void threadpool_task::enqueue(const u32 depends_on_id)
     {
         if (is_running)
         {
-            log_debug(logger_tag, "Can't queue; this task object is already running!");
+            log_error(LOGGER_TAG, "Can't queue; this task object is already running!");
             return;
         }
 
         is_finished = false;
         is_running = true;
+
+        completion_promise = std::promise<void>();
+        completion_future = completion_promise.get_future();
+
         task_id = next_task_id();
         depends_on = depends_on_id;
 
         queue_task(this);
     }
 
-    bool threadpool_task::await(const u64 timeout)
+    bool threadpool_task::await(const u64 timeout) const
     {
-        if (!is_running)
-        {
-            return false;
-        }
-
-        u64 slept_amount = 0;
-        while (!finished() && slept_amount < timeout)
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(IDLE_SLEEP_INCREMENT));
-            slept_amount += IDLE_SLEEP_INCREMENT;
-        }
-
+        ZoneScoped;
+        completion_future.wait_for(std::chrono::milliseconds(timeout));
         return finished();
     }
 
-    bool threadpool_task::finished()
+    bool threadpool_task::finished() const
     {
         return is_finished;
     }
@@ -205,9 +221,13 @@ namespace hyengine
         ZoneScoped;
         is_running = true;
         is_finished = false;
+
         execute();
+
         is_running = false;
         is_finished = true;
+
+        completion_promise.set_value();
     }
 
     u32 threadpool_task::id()

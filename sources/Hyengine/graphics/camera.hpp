@@ -10,23 +10,24 @@ namespace hyengine
     class camera
     {
     public:
-        explicit camera(glm::vec3 position) : camera(position, glm::vec3(0, -90, 0))
+        explicit camera(const glm::vec3& position, const glm::quat& rotation);
+
+        explicit camera(glm::vec3 position) : camera(position, glm::quat(1, 0, 0, 0))
         {
         }
 
         camera() : camera(glm::vec3(0))
         {
-        };
-        camera(const glm::vec3& position, const glm::vec3& rotation);
+        }
 
         void move_to(const glm::vec3& to);
         void move_to(f32 x, f32 y, f32 z);
         void move_by(const glm::vec3& delta);
-        void move_by(f32 deltaX, f32 deltaY, f32 deltaZ);
+        void move_by(f32 delta_x, f32 delta_y, f32 delta_z);
         void move_relative(const glm::vec3& delta);
-        void move_relative(f32 deltaHorizontal, f32 deltaVertical, f32 deltaAxial);
+        void move_relative(f32 delta_horizontal, f32 delta_vertical, f32 delta_axial);
         void move_planar(const glm::vec3& delta);
-        void move_planar(f32 deltaHorizontal, f32 deltaVertical, f32 deltaAxial);
+        void move_planar(f32 delta_horizontal, f32 delta_vertical, f32 delta_axial);
 
         void rotate_to(const glm::quat& to);
         void rotate_by(const glm::quat& delta);
@@ -66,7 +67,7 @@ namespace hyengine
 
     private:
         interpolatable<glm::dvec3> position = glm::dvec3(0);
-        interpolatable<glm::quat> rotation = glm::quat();
+        interpolatable<glm::quat> rotation = glm::quat(0, 0, 0, 1);
 
         glm::vec3 forward = glm::vec3(0);
         glm::vec3 up = glm::vec3(0, 0, 0);

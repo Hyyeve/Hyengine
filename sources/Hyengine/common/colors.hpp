@@ -3,6 +3,7 @@
 #include <tracy/Tracy.hpp>
 
 #include "glm/glm.hpp"
+#include "Hyengine/core/portability.hpp"
 
 namespace hyengine
 {
@@ -88,69 +89,62 @@ namespace hyengine
 
     [[nodiscard]] constexpr glm::vec4 from_name(const std::string_view name)
     {
-        auto hash = [](const std::string_view string) noexcept
+        switch (string_hash(name))
         {
-            u32 hash_value = 5381;
-            for (const char c : string) hash_value = (hash_value << 5u) + hash_value + static_cast<unsigned char>(c);
-            return hash_value;
-        };
+            case string_hash("white"): return WHITE;
+            case string_hash("black"): return BLACK;
+            case string_hash("transparent_white"): return TRANSPARENT_WHITE;
+            case string_hash("transparent_black"): return TRANSPARENT_BLACK;
 
-        switch (hash(name))
-        {
-            case hash("white"): return WHITE;
-            case hash("black"): return BLACK;
-            case hash("transparent_white"): return TRANSPARENT_WHITE;
-            case hash("transparent_black"): return TRANSPARENT_BLACK;
+            case string_hash("red"): return RED;
+            case string_hash("green"): return GREEN;
+            case string_hash("blue"): return BLUE;
+            case string_hash("yellow"): return YELLOW;
+            case string_hash("cyan"): return CYAN;
+            case string_hash("magenta"): return MAGENTA;
 
-            case hash("red"): return RED;
-            case hash("green"): return GREEN;
-            case hash("blue"): return BLUE;
-            case hash("yellow"): return YELLOW;
-            case hash("cyan"): return CYAN;
-            case hash("magenta"): return MAGENTA;
+            case string_hash("light_gray"): return LIGHT_GRAY;
+            case string_hash("light_red"): return LIGHT_RED;
+            case string_hash("light_green"): return LIGHT_GREEN;
+            case string_hash("light_blue"): return LIGHT_BLUE;
+            case string_hash("light_yellow"): return LIGHT_YELLOW;
+            case string_hash("light_cyan"): return LIGHT_CYAN;
+            case string_hash("light_magenta"): return LIGHT_MAGENTA;
+            case string_hash("light_orange"): return LIGHT_ORANGE;
+            case string_hash("light_mi32"): return LIGHT_MINT;
+            case string_hash("light_violet"): return LIGHT_VIOLET;
+            case string_hash("light_crimson"): return LIGHT_CRIMSON;
+            case string_hash("light_lime"): return LIGHT_LIME;
+            case string_hash("light_azure"): return LIGHT_AZURE;
 
-            case hash("light_gray"): return LIGHT_GRAY;
-            case hash("light_red"): return LIGHT_RED;
-            case hash("light_green"): return LIGHT_GREEN;
-            case hash("light_blue"): return LIGHT_BLUE;
-            case hash("light_yellow"): return LIGHT_YELLOW;
-            case hash("light_cyan"): return LIGHT_CYAN;
-            case hash("light_magenta"): return LIGHT_MAGENTA;
-            case hash("light_orange"): return LIGHT_ORANGE;
-            case hash("light_mi32"): return LIGHT_MINT;
-            case hash("light_violet"): return LIGHT_VIOLET;
-            case hash("light_crimson"): return LIGHT_CRIMSON;
-            case hash("light_lime"): return LIGHT_LIME;
-            case hash("light_azure"): return LIGHT_AZURE;
+            case string_hash("gray"): return GRAY;
+            case string_hash("orange"): return ORANGE;
+            case string_hash("mi32"): return MINT;
+            case string_hash("violet"): return VIOLET;
+            case string_hash("crimson"): return CRIMSON;
+            case string_hash("lime"): return LIME;
+            case string_hash("azure"): return AZURE;
 
-            case hash("gray"): return GRAY;
-            case hash("orange"): return ORANGE;
-            case hash("mi32"): return MINT;
-            case hash("violet"): return VIOLET;
-            case hash("crimson"): return CRIMSON;
-            case hash("lime"): return LIME;
-            case hash("azure"): return AZURE;
+            case string_hash("half_red"): return HALF_RED;
+            case string_hash("half_green"): return HALF_GREEN;
+            case string_hash("half_blue"): return HALF_BLUE;
+            case string_hash("half_yellow"): return HALF_YELLOW;
+            case string_hash("half_cyan"): return HALF_CYAN;
+            case string_hash("half_magenta"): return HALF_MAGENTA;
 
-            case hash("half_red"): return HALF_RED;
-            case hash("half_green"): return HALF_GREEN;
-            case hash("half_blue"): return HALF_BLUE;
-            case hash("half_yellow"): return HALF_YELLOW;
-            case hash("half_cyan"): return HALF_CYAN;
-            case hash("half_magenta"): return HALF_MAGENTA;
-
-            case hash("dark_gray"): return DARK_GRAY;
-            case hash("dark_red"): return DARK_RED;
-            case hash("dark_green"): return DARK_GREEN;
-            case hash("dark_blue"): return DARK_BLUE;
-            case hash("dark_yellow"): return DARK_YELLOW;
-            case hash("dark_cyan"): return DARK_CYAN;
-            case hash("dark_magenta"): return DARK_MAGENTA;
-            case hash("dark_orange"): return DARK_ORANGE;
-            case hash("dark_mi32"): return DARK_MINT;
-            case hash("dark_violet"): return DARK_VIOLET;
-            case hash("dark_crimson"): return DARK_CRIMSON;
-            case hash("dark_lime"): return DARK_LIME;
-            case hash("dark_azure"): return DARK_AZURE;
+            case string_hash("dark_gray"): return DARK_GRAY;
+            case string_hash("dark_red"): return DARK_RED;
+            case string_hash("dark_green"): return DARK_GREEN;
+            case string_hash("dark_blue"): return DARK_BLUE;
+            case string_hash("dark_yellow"): return DARK_YELLOW;
+            case string_hash("dark_cyan"): return DARK_CYAN;
+            case string_hash("dark_magenta"): return DARK_MAGENTA;
+            case string_hash("dark_orange"): return DARK_ORANGE;
+            case string_hash("dark_mi32"): return DARK_MINT;
+            case string_hash("dark_violet"): return DARK_VIOLET;
+            case string_hash("dark_crimson"): return DARK_CRIMSON;
+            case string_hash("dark_lime"): return DARK_LIME;
+            case string_hash("dark_azure"): return DARK_AZURE;
 
             default: return TRANSPARENT_BLACK;
         }

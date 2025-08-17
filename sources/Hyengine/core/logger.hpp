@@ -5,6 +5,7 @@
 #include <string>
 
 #include "../library/glm.hpp"
+#include "Hyengine/common/sized_numerics.hpp"
 
 #define MAKE_PRINTABLE(type, func) inline std::ostream& operator << (std::ostream& lhs, const type& rhs) { \
 lhs << func; \
@@ -24,9 +25,8 @@ MAKE_PRINTABLE(glm::dvec4, '[' << rhs.x << ", " << rhs.y << ", " << rhs.z << ", 
 
 namespace hyengine
 {
-    using namespace hyengine;
 
-    enum class log_level : std::u8
+    enum class log_level : u8
     {
         ALL     = 3,
         NORMAL  = 2,
@@ -71,7 +71,7 @@ namespace hyengine
     [[nodiscard]] std::string stringify_bytes(const unsigned long bytes);
     [[nodiscard]] std::string stringify_count(const unsigned long count_num, std::string_view count_of);
 
-    [[nodiscard]] std::string stringify(const auto&... values)
+    [[nodiscard]] constexpr std::string stringify(const auto&... values)
     {
         std::stringstream format_stream;
         format_stream << std::fixed << std::setprecision(2);

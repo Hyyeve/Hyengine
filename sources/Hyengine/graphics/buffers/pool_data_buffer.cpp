@@ -9,7 +9,7 @@ namespace hyengine
 {
     using namespace hyengine;
 
-    pool_data_buffer::pool_data_buffer(): pool_allocator(0), temp_upload_buffer(nullptr), temp_upload_buffer_size(0), temp_upload_buffer_offset(0)
+    pool_data_buffer::pool_data_buffer(): pool_allocator(0)
     {
     }
 
@@ -18,12 +18,12 @@ namespace hyengine
         free();
     }
 
-    void pool_data_buffer::allocate(const GLenum target, const GLsizeiptr size)
+    void pool_data_buffer::allocate(const GLenum target, const GLsizeiptr size, const GLsizeiptr staging_size)
     {
         ZoneScoped;
         pool_buffer.allocate_for_gpu_writes(target, size);
         pool_allocator = pool_allocation_tracker(size);
-        //We don't know how much we'll need to upload at once, so don't allocate the upload buffer yet
+        reallocate_staging_buffer(staging_size);
         log_info(logger_tag, "Buffer ", pool_buffer.get_buffer_id(), " allocated as pool buffer.");
     }
 
@@ -37,6 +37,14 @@ namespace hyengine
     void pool_data_buffer::shrink_staging_buffer()
     {
         force_reallocate_staging_buffer = true;
+    }
+
+    void pool_data_buffer::reserve_staging_buffer_size(const u32 size)
+    {
+        if (staging_buffer.get_slice_size() < size)
+        {
+            reallocate_staging_buffer(size);
+        }
     }
 
     bool pool_data_buffer::try_allocate_space(const u32 size, u32& address)
@@ -56,29 +64,7 @@ namespace hyengine
 
     void pool_data_buffer::queue_upload(const u32& address, const void* const data, const u32 size)
     {
-        ZoneScoped;
-        const u32 temp_address = temp_upload_buffer_offset;
-        const bool has_temp_space = temp_upload_buffer_offset + size <= temp_upload_buffer_size;
-
-        if (!has_temp_space)
-        {
-            const u32 new_buffer_size = temp_upload_buffer_size * 2 + size;
-            GLbyte* new_temp_memory = new GLbyte[new_buffer_size];
-
-            if (temp_upload_buffer != nullptr)
-            {
-                memcpy(new_temp_memory, temp_upload_buffer, temp_upload_buffer_size);
-                delete[] temp_upload_buffer;
-            }
-
-            temp_upload_buffer = new_temp_memory;
-            temp_upload_buffer_size = new_buffer_size;
-        }
-
-        temp_upload_buffer_offset += size;
-
-        memcpy(temp_upload_buffer + temp_address, data, size);
-        pending_uploads.push_back({temp_address, 0, address, size});
+        pending_uploads.push_back({data, 0, address, size});
     }
 
     void pool_data_buffer::bind_state() const
@@ -129,6 +115,8 @@ namespace hyengine
             return;
         }
 
+        staging_buffer.block_ready();
+
         u32 staging_buffer_location = 0;
         for (upload_info& upload : pending_uploads)
         {
@@ -143,17 +131,14 @@ namespace hyengine
             reallocate_staging_buffer(staging_buffer_location);
         }
 
-        staging_buffer.block_ready();
 
         GLbyte* upload_buffer_pointer = static_cast<GLbyte*>(staging_buffer.get_mapped_slice_pointer());
 
         for (const upload_info& upload : pending_uploads)
         {
-            const GLbyte* temp_buffer_pointer = temp_upload_buffer + upload.temp_data_address;
-            memcpy(upload_buffer_pointer + upload.upload_buffer_address, temp_buffer_pointer, upload.size);
+            const GLbyte* source_pointer = static_cast<const GLbyte*>(upload.source);
+            memcpy(upload_buffer_pointer + upload.upload_buffer_address, source_pointer, upload.size);
         }
-
-        temp_upload_buffer_offset = 0;
 
         for (const upload_info& upload : pending_uploads)
         {
@@ -163,10 +148,37 @@ namespace hyengine
         pending_uploads.clear();
     }
 
+    void pool_data_buffer::block_ready()
+    {
+        ZoneScoped;
+        staging_buffer.block_ready();
+        current_staging_buffer_address = 0;
+    }
+
+    void pool_data_buffer::upload(const u32& address, const void* const data, const u32 size)
+    {
+        ZoneScoped;
+        const u32 upload_offset = current_staging_buffer_address;
+        current_staging_buffer_address += size;
+
+        const GLsizeiptr staging_buffer_size = staging_buffer.get_slice_size();
+        if (current_staging_buffer_address > staging_buffer_size || force_reallocate_staging_buffer)
+        {
+            reallocate_staging_buffer(current_staging_buffer_address * 2);
+            current_staging_buffer_address = 0;
+        }
+
+        GLbyte* upload_buffer_pointer = static_cast<GLbyte*>(staging_buffer.get_mapped_slice_pointer());
+        const GLbyte* source_pointer = static_cast<const GLbyte*>(data);
+        memcpy(upload_buffer_pointer + upload_offset, source_pointer, size);
+
+        pool_buffer.copy_buffer_range(staging_buffer.get_buffer_id(), staging_buffer.get_slice_offset() + upload_offset, address, size);
+    }
+
     void pool_data_buffer::reallocate_staging_buffer(const GLsizeiptr size)
     {
         ZoneScoped;
-        log_info(logger_tag, " No space in pool staging buffer, reallocating.");
+        log_info(logger_tag, "Allocating pool staging buffer to ", stringify_bytes(size), ".");
         staging_buffer.free();
         staging_buffer.allocate_for_cpu_writes(pool_buffer.get_target(), size);
         force_reallocate_staging_buffer = false;

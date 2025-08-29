@@ -12,7 +12,7 @@ namespace hyengine
         if (buffer_id > 0) free();
     }
 
-    void texture_buffer::allocate(const GLenum texture_type, const glm::uvec3 size, const GLsizei mipmap_count, const GLenum format, const i32 multisample_count)
+    void texture_buffer::allocate(const GLenum texture_type, const glm::uvec3& size, const GLsizei mipmap_count, const GLenum format, const i32 multisample_count)
     {
         ZoneScoped;
         if (buffer_id > 0)
@@ -89,25 +89,60 @@ namespace hyengine
         buffer_id = 0;
     }
 
-    void texture_buffer::copy_data(const texture_buffer& source) const
+    void texture_buffer::copy_data_from(const texture_buffer& source) const
     {
-        copy_data_mipmap(source, 0, 0);
+        copy_data_from(source, 0, 0);
     }
 
-    void texture_buffer::copy_data_partial(const texture_buffer& source, glm::uvec3 from_pos, glm::uvec3 to_pos, glm::uvec3 size) const
+    void texture_buffer::copy_data_from(const texture_buffer& source, const glm::uvec3& from_pos, const glm::uvec3& to_pos, const glm::uvec3& size) const
     {
-        copy_data_mipmap_partial(source, 0, 0, from_pos, to_pos, size);
+        copy_data_from(source, 0, 0, from_pos, to_pos, size);
     }
 
-    void texture_buffer::copy_data_mipmap(const texture_buffer& source, const i32 from_mipmap, const i32 to_mipmap) const
+    void texture_buffer::copy_data_from(const texture_buffer& source, const i32 from_mipmap, const i32 to_mipmap) const
     {
-        copy_data_mipmap_partial(source, from_mipmap, to_mipmap, {0, 0, 0}, {0, 0, 0}, internal_size);
+        copy_data_from(source, from_mipmap, to_mipmap, {0, 0, 0}, {0, 0, 0}, internal_size);
     }
 
-    void texture_buffer::copy_data_mipmap_partial(const texture_buffer& source, const i32 from_mipmap, const i32 to_mipmap, glm::uvec3 from_pos, glm::uvec3 to_pos, glm::uvec3 size) const
+    void texture_buffer::copy_data_from(const texture_buffer& source, const i32 from_mipmap, const i32 to_mipmap, const glm::uvec3& from_pos, const glm::uvec3& to_pos, const glm::uvec3& size) const
+    {
+        copy_texture_data(source.get_id(), source.get_type(), buffer_id, internal_texture_type, from_mipmap, to_mipmap, from_pos, to_pos, size);
+    }
+
+    void texture_buffer::copy_data_from(const GLuint source, const GLenum source_texture_type) const
+    {
+        copy_data_from(source, source_texture_type, {0, 0, 0}, {0, 0, 0}, internal_size);
+    }
+
+    void texture_buffer::copy_data_from(const GLuint source, const GLenum source_texture_type, const glm::uvec3& from_pos, const glm::uvec3& to_pos, const glm::uvec3& size) const
+    {
+       copy_data_from(source, source_texture_type, 0, 0, from_pos, to_pos, size);
+    }
+
+    void texture_buffer::copy_data_from(const GLuint source, const GLenum source_texture_type, const i32 from_mipmap, const i32 to_mipmap, const glm::uvec3& from_pos, const glm::uvec3& to_pos, const glm::uvec3& size) const
+    {
+        copy_texture_data(source, source_texture_type, buffer_id, get_type(), from_mipmap, to_mipmap, from_pos, to_pos, size);
+    }
+
+    void texture_buffer::copy_data_to(const GLuint dest, const GLenum dest_texture_type) const
+    {
+        copy_data_to(dest, dest_texture_type, 0, 0, {0, 0, 0}, {0, 0, 0}, internal_size);
+    }
+
+    void texture_buffer::copy_data_to(const GLuint dest, const GLenum dest_texture_type, const glm::uvec3& from_pos, const glm::uvec3& to_pos, const glm::uvec3& size) const
+    {
+        copy_data_to(dest, dest_texture_type, 0, 0, from_pos, to_pos, size);
+    }
+
+    void texture_buffer::copy_data_to(const GLuint dest, const GLenum dest_texture_type, const i32 from_mipmap, const i32 to_mipmap, const glm::uvec3& from_pos, const glm::uvec3& to_pos, const glm::uvec3& size) const
+    {
+        copy_texture_data(buffer_id, get_type(), dest, dest_texture_type, from_mipmap, to_mipmap, from_pos, to_pos, size);
+    }
+
+    void texture_buffer::copy_texture_data(const GLuint source, const GLenum source_type, const GLuint dest, const GLenum dest_type, const i32 source_level, const i32 dest_level, const glm::uvec3& source_pos, const glm::uvec3& dest_pos, const glm::uvec3& size)
     {
         ZoneScoped;
-        glCopyImageSubData(source.get_id(), source.get_type(), from_mipmap, from_pos.x, from_pos.y, from_pos.z, buffer_id, internal_texture_type, to_mipmap, to_pos.x, to_pos.y, to_pos.z, size.x, size.y, size.z);
+        glCopyImageSubData(source, source_type, source_level, source_pos.x, source_pos.y, source_pos.z, dest, dest_type, dest_level, dest_pos.x, dest_pos.y, dest_pos.z, size.x, size.y, size.z);
     }
 
     void texture_buffer::generate_mipmaps() const
@@ -141,7 +176,7 @@ namespace hyengine
     }
 
 
-    void texture_buffer::upload_data_3d_partial(const GLint mip_level, const glm::uvec3 offset, const glm::uvec3 size, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
+    void texture_buffer::upload_data_3d_partial(const GLint mip_level, const glm::uvec3& offset, const glm::uvec3& size, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
     {
         ZoneScoped;
         glTextureSubImage3D(buffer_id, mip_level, offset.x, offset.y, offset.z, size.x, size.y, size.z, data_format, data_type, data_pointer);

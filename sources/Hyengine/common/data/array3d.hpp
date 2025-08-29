@@ -2,7 +2,7 @@
 #include <array>
 #include <cassert>
 
-#include "sized_numerics.hpp"
+#include "../sized_numerics.hpp"
 
 namespace hyengine
 {

@@ -9,7 +9,7 @@ namespace hyengine
 {
     using namespace hyengine;
 
-    pool_data_buffer::pool_data_buffer(): pool_allocator(0)
+    pool_data_buffer::pool_data_buffer() : pool_allocator(0), current_staging_buffer_address(0)
     {
     }
 
@@ -62,11 +62,6 @@ namespace hyengine
         return pool_allocator.get_last_used_address();
     }
 
-    void pool_data_buffer::queue_upload(const u32& address, const void* const data, const u32 size)
-    {
-        pending_uploads.push_back({data, 0, address, size});
-    }
-
     void pool_data_buffer::bind_state() const
     {
         pool_buffer.bind_state();
@@ -100,52 +95,6 @@ namespace hyengine
     GLenum pool_data_buffer::get_target() const
     {
         return pool_buffer.get_target();
-    }
-
-    u32 pool_data_buffer::get_pending_upload_count() const
-    {
-        return pending_uploads.size();
-    }
-
-    void pool_data_buffer::submit_uploads()
-    {
-        ZoneScoped;
-        if (pending_uploads.empty())
-        {
-            return;
-        }
-
-        staging_buffer.block_ready();
-
-        u32 staging_buffer_location = 0;
-        for (upload_info& upload : pending_uploads)
-        {
-            upload.upload_buffer_address = staging_buffer_location;
-            staging_buffer_location += upload.size;
-        }
-
-        //Reallocate upload buffer if it's too small
-        const GLsizeiptr staging_buffer_size = staging_buffer.get_slice_size();
-        if (staging_buffer_location > staging_buffer_size || force_reallocate_staging_buffer)
-        {
-            reallocate_staging_buffer(staging_buffer_location);
-        }
-
-
-        GLbyte* upload_buffer_pointer = static_cast<GLbyte*>(staging_buffer.get_mapped_slice_pointer());
-
-        for (const upload_info& upload : pending_uploads)
-        {
-            const GLbyte* source_pointer = static_cast<const GLbyte*>(upload.source);
-            memcpy(upload_buffer_pointer + upload.upload_buffer_address, source_pointer, upload.size);
-        }
-
-        for (const upload_info& upload : pending_uploads)
-        {
-            pool_buffer.copy_buffer_range(staging_buffer.get_buffer_id(), staging_buffer.get_slice_offset() + upload.upload_buffer_address, upload.write_address, upload.size);
-        }
-
-        pending_uploads.clear();
     }
 
     void pool_data_buffer::block_ready()

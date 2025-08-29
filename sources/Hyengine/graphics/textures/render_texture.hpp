@@ -2,7 +2,7 @@
 
 #include "../../library/gl.hpp"
 #include "../../library/glm.hpp"
-#include "Hyengine/common/sized_numerics.hpp"
+#include "../../common/sized_numerics.hpp"
 
 
 namespace hyengine
@@ -21,8 +21,16 @@ namespace hyengine
         void allocate(const GLenum format, const glm::uvec2 size, const i32 multisample_count);
         void free();
 
-        void copy_data(const render_texture& source) const;
-        void copy_data_partial(const render_texture& source, glm::uvec2 from_pos, glm::uvec2 to_pos, glm::uvec2 size) const;
+        void copy_data_from(const render_texture& source) const;
+        void copy_data_from(const render_texture& source, glm::uvec2 from_pos, glm::uvec2 to_pos, glm::uvec2 size) const;
+
+        void copy_data_from(const GLuint source) const;
+        void copy_data_from(const GLuint source, glm::uvec2 from_pos, glm::uvec2 to_pos, glm::uvec2 size) const;
+
+        void copy_data_to(const GLuint dest) const;
+        void copy_data_to(const GLuint dest, glm::uvec2 from_pos, glm::uvec2 to_pos, glm::uvec2 size) const;
+
+        static void copy_render_texture_data(const GLuint source, const GLuint dest, const glm::uvec2 source_pos, const glm::uvec2 dest_pos, const glm::uvec2 size);
 
         [[nodiscard]] GLuint get_id() const;
         [[nodiscard]] glm::uvec2 get_size() const;
@@ -33,7 +41,7 @@ namespace hyengine
         const std::string logger_tag = "GPU Render Texture";
 
         GLuint gl_id = 0;
-        glm::ivec2 internal_size = {0, 0};
+        glm::uvec2 internal_size = {0, 0};
         i32 internal_samples = 0;
         GLenum internal_format = 0;
     };

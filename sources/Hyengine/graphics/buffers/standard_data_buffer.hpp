@@ -54,7 +54,9 @@ namespace hyengine
         void copy_slice_range(const GLuint source_buffer_id, const GLintptr read_offset, const GLintptr write_offset, const GLintptr bytes) const;
 
         void block_ready();
-        [[nodiscard]] bool await_ready(const unsigned long timeout_nanos);
+        void upload(const u32& address, const void* const data, const u32 size) const;
+
+        [[nodiscard]] bool await_ready(const u64 timeout_nanos);
 
         [[nodiscard]] u32 get_slice_offset() const;
 
@@ -85,7 +87,7 @@ namespace hyengine
         void decrement_slice();
 
         void sync_fence();
-        [[nodiscard]] bool sync_await(const unsigned long timeout_nanos) const;
+        [[nodiscard]] bool sync_await(const u64 timeout_nanos) const;
         void sync_block() const;
 
         u32 current_slice_index = 0;

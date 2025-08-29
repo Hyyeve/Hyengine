@@ -35,7 +35,7 @@ namespace hyengine
 
         if (slices < 1 || slices > 3)
         {
-            log_error("Couldn't allocate - slices must be between 1 and 3.", logger_tag);
+            log_error(logger_tag, "Couldn't allocate - slices must be between 1 and 3.");
             return;
         }
 
@@ -106,7 +106,7 @@ namespace hyengine
         sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     }
 
-    bool standard_data_buffer::sync_await(const unsigned long timeout_nanos) const
+    bool standard_data_buffer::sync_await(const u64 timeout_nanos) const
     {
         ZoneScoped;
         const GLsync& sync = buffer_slices[current_slice_index].fence;
@@ -128,13 +128,29 @@ namespace hyengine
 
     void standard_data_buffer::block_ready()
     {
+        ZoneScoped;
         sync_fence(); //Set sync point for everything done with previous buffer slice data
         increment_slice(); //Move to next buffer slice
         sync_block(); //Wait for buffer slice to finish being used
     }
 
-    bool standard_data_buffer::await_ready(const unsigned long timeout_nanos)
+    void standard_data_buffer::upload(const u32& address, const void* const data, const u32 size) const
     {
+        ZoneScoped;
+        if (mapped_pointer == nullptr)
+        {
+            log_error(logger_tag, "Buffer ", buffer_id, ", cannot be uploaded to directly! Not currently mapped.");
+            return;
+        }
+
+        GLbyte* dest_pointer = static_cast<GLbyte*>(get_mapped_slice_pointer());
+        const GLbyte* source_pointer = static_cast<const GLbyte*>(data);
+        memcpy(dest_pointer + address, source_pointer, size);
+    }
+
+    bool standard_data_buffer::await_ready(const u64 timeout_nanos)
+    {
+        ZoneScoped;
         sync_fence();
         increment_slice();
         const bool result = sync_await(timeout_nanos);

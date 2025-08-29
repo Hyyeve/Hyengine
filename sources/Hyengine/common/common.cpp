@@ -1,6 +1,8 @@
-#include "portability.hpp"
+#pragma once
+#include "common.hpp"
 
 #include <algorithm>
+#include <bit>
 #include <tracy/Tracy.hpp>
 
 namespace hyengine
@@ -44,6 +46,7 @@ namespace hyengine
 
     std::string ascii_to_lower(const std::string_view& str)
     {
+        ZoneScoped;
         std::string result = std::string(str);
         std::ranges::transform(result, result.begin(),[](const u8 character){ return std::tolower(character); });
         return result;
@@ -51,6 +54,7 @@ namespace hyengine
 
     std::string ascii_to_upper(const std::string_view& str)
     {
+        ZoneScoped;
         std::string result = std::string(str);
         std::ranges::transform(result, result.begin(),[](const u8 character){ return std::toupper(character); });
         return result;
@@ -59,6 +63,7 @@ namespace hyengine
     template<typename value_type, typename parse_func>
     value_type parse_integer(const std::string_view& str, const value_type default_val, const int radix, const parse_func func) noexcept
     {
+        ZoneScoped;
         char8* failure_check = nullptr;
         const value_type result = func(str.data(), &failure_check, radix);
         if (*failure_check) return default_val;
@@ -87,6 +92,7 @@ namespace hyengine
 
     f32 parse_f32(const std::string_view& str, const f32 default_val) noexcept
     {
+        ZoneScoped;
         char8* failure_check = nullptr;
         const f32 result = std::strtof(str.data(), &failure_check);
         if (*failure_check) return default_val;
@@ -95,6 +101,7 @@ namespace hyengine
 
     f64 parse_f64(const std::string_view& str, const f64 default_val) noexcept
     {
+        ZoneScoped;
         char8* failure_check = nullptr;
         const f64 result = std::strtod(str.data(), &failure_check);
         if (*failure_check) return default_val;
@@ -109,9 +116,18 @@ namespace hyengine
         {
             case string_hash("true"): return true;
             case string_hash("false"): return false;
+            case string_hash("yes"): return true;
+            case string_hash("no"): return false;
+            case string_hash("y"): return true;
+            case string_hash("n"): return false;
             case string_hash("1"): return true;
             case string_hash("0"): return false;
             default: return default_val;
         }
+    }
+
+    u8 bits_required_for_value(const u64 value)
+    {
+        return 64 - std::countl_zero(value);
     }
 }

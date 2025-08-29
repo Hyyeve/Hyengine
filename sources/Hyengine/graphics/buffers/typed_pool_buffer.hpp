@@ -101,11 +101,6 @@ namespace hyengine
             return internal_data_buffer.get_target();
         }
 
-        [[nodiscard]] u32 get_pending_upload_count() const
-        {
-            return internal_data_buffer.get_pending_upload_count();
-        }
-
     private:
         pool_data_buffer internal_data_buffer;
     };

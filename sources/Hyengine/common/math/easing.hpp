@@ -1,5 +1,5 @@
 #pragma once
-#include "sized_numerics.hpp"
+#include "../sized_numerics.hpp"
 
 namespace hyengine
 {

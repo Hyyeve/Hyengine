@@ -16,7 +16,7 @@ namespace hyengine
         explicit texture_buffer() = default;
         ~texture_buffer();
 
-        void allocate(const GLenum texture_type, const glm::uvec3 size, const GLsizei mipmap_count, const GLenum format, const i32 multisample_count);
+        void allocate(const GLenum texture_type, const glm::uvec3& size, const GLsizei mipmap_count, const GLenum format, const i32 multisample_count);
         void free();
 
         void allocate_as_view(const GLenum target, const GLenum format, GLuint source_id);
@@ -32,12 +32,22 @@ namespace hyengine
 
         void upload_data_1d_partial(const GLint mip_level, const GLint offset, const GLint width, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const;
         void upload_data_2d_partial(const GLint mip_level, const glm::uvec2 offset, const glm::uvec2 size, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const;
-        void upload_data_3d_partial(const GLint mip_level, const glm::uvec3 offset, const glm::uvec3 size, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const;
+        void upload_data_3d_partial(const GLint mip_level, const glm::uvec3& offset, const glm::uvec3& size, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const;
 
-        void copy_data(const texture_buffer& source) const;
-        void copy_data_partial(const texture_buffer& source, glm::uvec3 from_pos, glm::uvec3 to_pos, glm::uvec3 size) const;
-        void copy_data_mipmap(const texture_buffer& source, const i32 from_mipmap, const i32 to_mipmap) const;
-        void copy_data_mipmap_partial(const texture_buffer& source, const i32 from_mipmap, const i32 to_mipmap, glm::uvec3 from_pos, glm::uvec3 to_pos, glm::uvec3 size) const;
+        void copy_data_from(const texture_buffer& source) const;
+        void copy_data_from(const texture_buffer& source, const glm::uvec3& from_pos, const glm::uvec3& to_pos, const glm::uvec3& size) const;
+        void copy_data_from(const texture_buffer& source, const i32 from_mipmap, const i32 to_mipmap) const;
+        void copy_data_from(const texture_buffer& source, const i32 from_mipmap, const i32 to_mipmap, const glm::uvec3& from_pos, const glm::uvec3& to_pos, const glm::uvec3& size) const;
+
+        void copy_data_from(const GLuint source, const GLenum source_texture_type) const;
+        void copy_data_from(const GLuint source, const GLenum source_texture_type, const glm::uvec3& from_pos, const glm::uvec3& to_pos, const glm::uvec3& size) const;
+        void copy_data_from(const GLuint source, const GLenum source_texture_type, const i32 from_mipmap, const i32 to_mipmap, const glm::uvec3& from_pos, const glm::uvec3& to_pos, const glm::uvec3& size) const;
+
+        void copy_data_to(const GLuint dest, const GLenum dest_texture_type) const;
+        void copy_data_to(const GLuint dest, const GLenum dest_texture_type, const glm::uvec3& from_pos, const glm::uvec3& to_pos, const glm::uvec3& size) const;
+        void copy_data_to(const GLuint dest, const GLenum dest_texture_type, const i32 from_mipmap, const i32 to_mipmap, const glm::uvec3& from_pos, const glm::uvec3& to_pos, const glm::uvec3& size) const;
+
+        static void copy_texture_data(const GLuint source, const GLenum source_type, const GLuint dest, const GLenum dest_type, const i32 source_level, const i32 dest_level, const glm::uvec3& source_pos, const glm::uvec3& dest_pos, const glm::uvec3& size);
 
         void generate_mipmaps() const;
         void set_depth_stencil_mode(const GLenum mode) const;

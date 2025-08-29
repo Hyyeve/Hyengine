@@ -1,7 +1,5 @@
 #include "rectangle.hpp"
 
-#include <tracy/Tracy.hpp>
-
 namespace hyengine
 {
     using namespace glm;

@@ -3,7 +3,7 @@
 #include <ranges>
 #include <tracy/Tracy.hpp>
 
-#include "../core/portability.hpp"
+#include "../common/common.hpp"
 #include "../library/gl.hpp"
 
 namespace hyengine

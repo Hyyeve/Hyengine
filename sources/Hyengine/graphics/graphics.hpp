@@ -3,8 +3,8 @@
 #include "../library/glm.hpp"
 #include "../library/gl.hpp"
 
-#include "../common/rectangle.hpp"
-#include "Hyengine/common/sized_numerics.hpp"
+#include "../common/math/rectangle.hpp"
+#include "../common/sized_numerics.hpp"
 
 namespace hyengine
 {

@@ -1,9 +1,7 @@
-#include <memory>
-
-#include "../Hyengine/core/hyengine.hpp"
-#include "../Hyengine/graphics/font/font_meta.hpp"
+#include "Hyengine/core/hyengine.hpp"
+#include "Hyengine/graphics/font/font_meta.hpp"
 #include "Hyengine/common/colors.hpp"
-#include "Hyengine/common/math.hpp"
+#include "Hyengine/common/math/math.hpp"
 #include "Hyengine/core/file_io.hpp"
 #include "Hyengine/graphics/renderers/basic_renderer.hpp"
 #include "Hyengine/graphics/textures/texture_buffer.hpp"
@@ -96,7 +94,7 @@ int main()
     font_texture.bind(0);
     renderer.bind();
     renderer.block_ready();
-    renderer.rect({-1, -1}, {1, 1}, hyengine::WHITE);
+    renderer.rect({-1, -1}, {1, 1}, hyengine::colors::WHITE);
     renderer.finish();
     renderer.update_shader_uniforms(0.0, cam);
 

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "graphics.hpp"
-#include "../common/interpolatable.hpp"
-#include "Hyengine/common/frustum.hpp"
+#include "../common/math/interpolatable.hpp"
+#include "../common/math/frustum.hpp"
 
 
 namespace hyengine

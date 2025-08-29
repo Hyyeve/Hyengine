@@ -2,14 +2,17 @@ add_library(Hyengine STATIC)
 
 target_sources(Hyengine PRIVATE
 
-        common/line.cpp
-        common/rectangle.cpp
-        common/frustum.cpp
+        common/common.cpp
         common/pool_allocation_tracker.cpp
-        common/easing.cpp
         common/rectangle_stack.cpp
 
-        core/portability.cpp
+        common/data/bitvector.cpp
+
+        common/math/line.cpp
+        common/math/rectangle.cpp
+        common/math/frustum.cpp
+        common/math/easing.cpp
+
         core/file_io.cpp
         core/hyengine.cpp
         core/logger.cpp
@@ -46,25 +49,29 @@ target_sources(Hyengine PRIVATE
 )
 
 target_sources(Hyengine PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILES
-        common/math.hpp
-        common/array3d.hpp
-        common/nodes3d.hpp
-        common/line.hpp
-        common/rectangle.hpp
-        common/frustum.hpp
-        common/easing.hpp
+        common/common.hpp
         common/colors.hpp
         common/id_generator.hpp
-        common/interpolatable.hpp
         common/pool_allocation_tracker.hpp
-        common/ring_buffer.hpp
         common/rectangle_stack.hpp
         common/sized_numerics.hpp
+
+        common/math/math.hpp
+        common/math/line.hpp
+        common/math/rectangle.hpp
+        common/math/frustum.hpp
+        common/math/easing.hpp
+        common/math/interpolatable.hpp
+
+        common/data/array3d.hpp
+        common/data/nodes3d.hpp
+        common/data/palettized_vector.hpp
+        common/data/bitvector.hpp
+        common/data/ring_buffer.hpp
 
         core/hyengine.hpp
         core/logger.hpp
         core/file_io.hpp
-        core/portability.hpp
         core/ui_layout.hpp
 
         graphics/graphics.hpp

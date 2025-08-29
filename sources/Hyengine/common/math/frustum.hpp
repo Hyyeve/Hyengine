@@ -1,8 +1,8 @@
 #pragma once
 #include <array>
 
-#include "sized_numerics.hpp"
-#include "../library/glm.hpp"
+#include "../sized_numerics.hpp"
+#include "../../library/glm.hpp"
 
 namespace hyengine
 {

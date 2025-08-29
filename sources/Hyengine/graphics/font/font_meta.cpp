@@ -2,9 +2,9 @@
 #include "font_meta.hpp"
 #include <ranges>
 
-#include "Hyengine/core/file_io.hpp"
-#include "Hyengine/core/portability.hpp"
-#include "Hyengine/graphics/renderers/basic_renderer.hpp"
+#include "../../core/file_io.hpp"
+#include "../../common/common.hpp"
+#include "../../graphics/renderers/basic_renderer.hpp"
 
 namespace hyengine
 {

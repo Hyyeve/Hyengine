@@ -41,15 +41,40 @@ namespace hyengine
         gl_id = 0;
     }
 
-    void render_texture::copy_data(const render_texture& source) const
+    void render_texture::copy_data_from(const render_texture& source) const
     {
-        copy_data_partial(source, {0, 0}, {0, 0}, {internal_size.x, internal_size.y});
+        copy_data_from(source.get_id());
     }
 
-    void render_texture::copy_data_partial(const render_texture& source, const glm::uvec2 from_pos, const glm::uvec2 to_pos, const glm::uvec2 size) const
+    void render_texture::copy_data_from(const render_texture& source, glm::uvec2 from_pos, glm::uvec2 to_pos, glm::uvec2 size) const
+    {
+        copy_data_from(source.get_id(), from_pos, to_pos, size);
+    }
+
+    void render_texture::copy_data_from(const GLuint source) const
+    {
+        copy_data_from(source, {0, 0}, {0, 0}, internal_size);
+    }
+
+    void render_texture::copy_data_from(const GLuint source, const glm::uvec2 from_pos, const glm::uvec2 to_pos, const glm::uvec2 size) const
+    {
+        copy_render_texture_data(source, gl_id, from_pos, to_pos, size);
+    }
+
+    void render_texture::copy_data_to(const GLuint dest) const
+    {
+        copy_data_to(dest, {0, 0}, {0, 0}, internal_size);
+    }
+
+    void render_texture::copy_data_to(const GLuint dest, glm::uvec2 from_pos, glm::uvec2 to_pos, glm::uvec2 size) const
+    {
+        copy_render_texture_data(gl_id, dest, from_pos, to_pos, size);
+    }
+
+    void render_texture::copy_render_texture_data(const GLuint source, const GLuint dest,  const glm::uvec2 source_pos, const glm::uvec2 dest_pos, const glm::uvec2 size)
     {
         ZoneScoped;
-        glCopyImageSubData(source.get_id(), GL_RENDERBUFFER, 0, from_pos.x, from_pos.y, 0, gl_id, GL_RENDERBUFFER, 0, to_pos.x, to_pos.y, 0, size.x, size.y, 0);
+        glCopyImageSubData(source, GL_RENDERBUFFER, 0, source_pos.x, source_pos.y, 0, dest, GL_RENDERBUFFER, 0, dest_pos.x, dest_pos.y, 0, size.x, size.y, 0);
     }
 
     GLuint render_texture::get_id() const

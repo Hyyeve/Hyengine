@@ -101,6 +101,11 @@ namespace hyengine
             internal_data_buffer.block_ready();
         }
 
+        void upload(const u32& address, const TYPE* data, const u32 elements)
+        {
+            internal_data_buffer.upload(address, data, elements * sizeof(TYPE));
+        }
+
         [[nodiscard]] bool await_ready(const unsigned long timeout_nanos)
         {
             return internal_data_buffer.await_ready(timeout_nanos);

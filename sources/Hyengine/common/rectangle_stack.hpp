@@ -1,6 +1,6 @@
 #pragma once
 #include <stack>
-#include "rectangle.hpp"
+#include "math/rectangle.hpp"
 
 namespace hyengine
 {

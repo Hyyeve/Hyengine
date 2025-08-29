@@ -59,7 +59,9 @@ namespace hyengine
 
             //Only overwrite sampler state if there is one specifically assigned
             if (slot_data.sampler_id != 0)
+            {
                 glBindSampler(slot_data.slot, slot_data.sampler_id);
+            }
         }
     }
 }

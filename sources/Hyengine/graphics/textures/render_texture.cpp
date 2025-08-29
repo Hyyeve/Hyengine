@@ -3,6 +3,7 @@
 #include <tracy/Tracy.hpp>
 
 #include "../../core/logger.hpp"
+#include "Hyengine/common/common.hpp"
 
 namespace hyengine
 {

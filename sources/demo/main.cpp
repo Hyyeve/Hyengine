@@ -46,6 +46,7 @@ bool update(const hyengine::frame_loop::loop_data& data)
     }
 
     hyengine::process_inputs();
+    hyengine::flush_logs();
     return !window->should_close();
 }
 
@@ -55,7 +56,9 @@ void render(const hyengine::frame_loop::loop_data& data)
     cam.refresh(data.interpolation);
     renderer.update_shader_uniforms(data.interpolation, cam);
     renderer.draw();
+    hyengine::log_info("TEST", "TEST COOL MESSAGE !!!");
     window->swap_buffers();
+
 }
 
 int main()

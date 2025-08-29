@@ -8,7 +8,7 @@
 #include "../library/gl.hpp"
 #include "../library/glm.hpp"
 #include "../core/logger.hpp"
-#include "Hyengine/common/sized_numerics.hpp"
+#include "../common/sized_numerics.hpp"
 
 
 namespace hyengine

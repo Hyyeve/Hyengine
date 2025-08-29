@@ -8,99 +8,96 @@
 #include <tracy/Tracy.hpp>
 
 #include "../threading/threading.hpp"
+#include "Hyengine/common/common.hpp"
 
 namespace hyengine
 {
     using namespace hyengine;
 
+    class logging_flush_task final : public threadpool_task
+    {
+    public:
+        std::vector<std::string> data;
+
+        void execute() override
+        {
+            ZoneScopedN("Flush logs task");
+            constexpr std::string_view time_format = std::string_view("\u001B[36m\u001B[1m");
+            const std::time_t current_time = std::time(nullptr);
+
+            // ReSharper disable once CppDeprecatedEntity
+            const auto& now = std::localtime(&current_time);
+
+            const std::string timestamp = stringify('[', time_format, now->tm_hour, ":", now->tm_min, ":", now->tm_sec, ansi_codes::ANSI_RESET, "]");
+            for (const std::string& message : data)
+            {
+                if (message != ansi_codes::ANSI_DELETE_LINE) std::cout << timestamp;
+                std::cout << message;
+            }
+        }
+    };
+
     static std::mutex logging_lock;
     static log_level logging_level = log_level::NORMAL;
-    static std::string last_log;
+
     static i32 log_repeat_count = 0;
-    static std::stringstream message_buffer;
+    static std::string last_message;
+    static std::string last_tag;
+    static std::stringstream builder;
+    static std::vector<std::string> message_queue;
+    static bool has_buffered_messages = false;
 
-    std::string stringify_duration(const std::chrono::microseconds duration)
-    {
-        ZoneScoped;
-
-        const auto us = duration;
-        const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
-        const auto s = std::chrono::duration_cast<std::chrono::seconds>(duration);
-
-        std::stringstream format_stream;
-        format_stream << std::fixed << std::setprecision(2);
-
-        if (us.count() < 1000)
-        {
-            return std::to_string(us.count()) + "us";
-        }
-
-        if (ms.count() < 1000)
-        {
-            format_stream << static_cast<f64>(ms.count()) + static_cast<f64>(us.count() % 1000) / 1000.0;
-            const std::string ms_fractional = format_stream.str();
-            return ms_fractional + "ms";
-        }
-
-        format_stream << static_cast<f64>(s.count()) + static_cast<f64>(ms.count() % 1000) / 1000.0;
-        const std::string ms_fractional = format_stream.str();
-        return ms_fractional + "s";
-    }
-
-    std::string stringify_secs(const f64 seconds)
-    {
-        return stringify_millis(seconds * 1000);
-    }
-
-    std::string stringify_millis(const f64 millis)
-    {
-        return stringify_duration(std::chrono::microseconds{static_cast<long>(millis * 1000)});
-    }
-
-    std::string stringify_bytes(const unsigned long bytes)
-    {
-        ZoneScoped;
-        std::stringstream result;
-        result << std::fixed << std::setprecision(2);
-        const f64 bytes_fractional = bytes;
-        f64 bytes_scaled;
-        if (bytes < 1e3) bytes_scaled = bytes;
-        else if (bytes < 1e6) bytes_scaled = bytes_fractional / 1e3;
-        else if (bytes < 1e9) bytes_scaled = bytes_fractional / 1e6;
-        else bytes_scaled = bytes_fractional / 1e9;
-        result << bytes_scaled;
-
-        if (bytes < 1e3) result << " bytes";
-        else if (bytes < 1e6) result << " kb";
-        else if (bytes < 1e9) result << " mb";
-        else result << " gb";
-
-        return result.str();
-    }
-
-    std::string stringify_count(const unsigned long count_num, const std::string_view count_of)
-    {
-        std::stringstream result;
-        result << count_num << " " << count_of;
-        if (count_num != 1) result << "s";
-        return result.str();
-    }
-
+    static logging_flush_task* current_flush_task = nullptr;
 
     void set_log_level(const log_level level)
     {
+        logging_lock.lock();
         logging_level = level;
+        logging_lock.unlock();
     }
 
-    void write_info_stamp()
+    void flush_logs()
     {
         ZoneScoped;
-        constexpr std::string_view TIME_FORMAT = std::string_view("\u001B[36m\u001B[1m");
-        const std::time_t current_time = std::time(nullptr);
-        // ReSharper disable once CppDeprecatedEntity
-        const auto& now = std::localtime(&current_time);
-        std::cout << stringify('[', TIME_FORMAT, now->tm_hour, ":", now->tm_min, ":", now->tm_sec, ANSI_RESET, "][", ANSI_BOLD, ANSI_BRIGHT_BLUE, "T");
-        std::cout << std::setfill('0') << std::setw(3) << stringify(get_current_thread_id(), ANSI_RESET, ']');
+        logging_lock.lock();
+
+        if (!has_buffered_messages)
+        {
+            logging_lock.unlock();
+            return;
+        }
+
+        if (current_flush_task != nullptr && !current_flush_task->finished())
+        {
+            const bool didFinish = current_flush_task->await(500);
+            if (!didFinish)
+            {
+                logging_lock.unlock();
+                return;
+            }
+        }
+
+        delete current_flush_task;
+        current_flush_task = nullptr;
+
+        current_flush_task = new logging_flush_task();
+        current_flush_task->data = message_queue;
+        current_flush_task->enqueue();
+
+        message_queue.clear();
+        has_buffered_messages = false;
+
+        logging_lock.unlock();
+    }
+
+    inline void write_tag(const std::string_view format, const std::string_view color_code, const std::string_view tag)
+    {
+        builder << '[' << format << color_code << tag << ansi_codes::ANSI_RESET << ']';
+    }
+
+    inline void write_repeat_tag(const std::string_view color_code)
+    {
+        builder << ansi_codes::ANSI_RESET << " [" << ansi_codes::ANSI_BOLD << color_code << "+" << std::to_string(log_repeat_count) << ansi_codes::ANSI_RESET << ']';
     }
 
     void log(const std::string_view tag, const std::string_view msg, const std::string_view type, const std::string_view color_code)
@@ -109,55 +106,62 @@ namespace hyengine
 
         logging_lock.lock();
 
-        message_buffer.str({});
-        if (!type.empty()) message_buffer << '[' << ANSI_BOLD << color_code << type << ANSI_RESET << ']';
-        if (!tag.empty()) message_buffer << '[' << ANSI_PURPLE << tag << ANSI_RESET << ']';
-        message_buffer << ' ' << color_code << msg << ANSI_RESET;
+        const bool is_repeat = msg == last_message && tag == last_tag;
 
-        const std::string formatted = message_buffer.str();
-        if (formatted == last_log)
+        if (is_repeat)
         {
             log_repeat_count++;
-            std::cout << ANSI_DELETE_LINE;
-            write_info_stamp();
-            std::cout << formatted << ANSI_RESET << " [" << ANSI_BOLD << color_code << "+" << std::to_string(log_repeat_count) << ANSI_RESET << ']';
+            message_queue.emplace_back(ansi_codes::ANSI_DELETE_LINE);
         }
         else
         {
             log_repeat_count = 0;
-            last_log = formatted;
-            write_info_stamp();
-            std::cout << formatted;
+            last_message = msg;
+            last_tag = tag;
         }
 
-        std::cout << '\n';
+        builder << stringify("[", ansi_codes::ANSI_BOLD, ansi_codes::ANSI_BRIGHT_BLUE, "T", std::setfill('0'), std::setw(3), get_current_thread_id(), ansi_codes::ANSI_RESET, ']');
+
+        if (!type.empty()) write_tag(ansi_codes::ANSI_BOLD, color_code, type);
+        if (!tag.empty()) write_tag(ansi_codes::ANSI_RESET, ansi_codes::ANSI_PURPLE, tag);
+
+        builder << ' ' << color_code << msg << ansi_codes::ANSI_RESET;
+
+        if (is_repeat) write_repeat_tag(color_code);
+
+        builder << std::endl;
+
+        message_queue.push_back(builder.str());
+        builder.str("");
+
+        has_buffered_messages = true;
 
         logging_lock.unlock();
     }
 
     void log_debug(const std::string_view tag, const std::string_view msg)
     {
-        if (logging_level > log_level::NORMAL) log(tag, msg, "DEBG", ANSI_GREEN);
+        if (logging_level > log_level::NORMAL) log(tag, msg, "DEBG", ansi_codes::ANSI_GREEN);
     }
 
     void log_info(const std::string_view tag, const std::string_view msg)
     {
-        if (logging_level > log_level::REDUCED) log(tag, msg, "INFO", ANSI_BLUE);
+        if (logging_level > log_level::REDUCED) log(tag, msg, "INFO", ansi_codes::ANSI_BLUE);
     }
 
     void log_performance(const std::string_view tag, const std::string_view msg)
     {
-        if (logging_level > log_level::REDUCED) log(tag, msg, "PERF", ANSI_CYAN);
+        if (logging_level > log_level::REDUCED) log(tag, msg, "PERF", ansi_codes::ANSI_CYAN);
     }
 
     void log_warn(const std::string_view tag, const std::string_view msg)
     {
-        if (logging_level > log_level::NONE) log(tag, msg, "WARN", ANSI_BRIGHT_YELLOW);
+        if (logging_level > log_level::NONE) log(tag, msg, "WARN", ansi_codes::ANSI_BRIGHT_YELLOW);
     }
 
     void log_error(const std::string_view tag, const std::string_view msg)
     {
-        if (logging_level > log_level::NONE) log(tag, msg, "ERRR", ANSI_RED);
+        if (logging_level > log_level::NONE) log(tag, msg, "ERRR", ansi_codes::ANSI_RED);
     }
 
     void log_fatal(const std::string_view tag, const std::string_view msg)
@@ -168,6 +172,6 @@ namespace hyengine
 
     void log_secret(const std::string_view tag, const std::string_view msg)
     {
-        log(tag, msg, "SECRET", ANSI_BRIGHT_YELLOW);
+        log(tag, msg, "SECRET", ansi_codes::ANSI_BRIGHT_YELLOW);
     }
 }

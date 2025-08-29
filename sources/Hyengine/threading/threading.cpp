@@ -204,10 +204,10 @@ namespace hyengine
         queue_task(this);
     }
 
-    bool threadpool_task::await(const u64 timeout) const
+    bool threadpool_task::await(const u64 timeout_ms) const
     {
         ZoneScoped;
-        completion_future.wait_for(std::chrono::milliseconds(timeout));
+        completion_future.wait_for(std::chrono::milliseconds(timeout_ms));
         return finished();
     }
 

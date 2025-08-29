@@ -1,6 +1,4 @@
-#pragma once
 #include "shader_batching.hpp"
-
 #include <unordered_set>
 
 namespace hyengine {

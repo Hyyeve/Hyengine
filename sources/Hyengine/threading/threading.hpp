@@ -14,7 +14,7 @@ namespace hyengine
         virtual void execute() = 0;
 
         void enqueue(u32 depends_on_id = 0);
-        bool await(uint64_t timeout) const;
+        bool await(uint64_t timeout_ms) const;
         bool finished() const;
         void execute_blocking();
         u32 id();

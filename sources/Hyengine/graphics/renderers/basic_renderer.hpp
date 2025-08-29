@@ -2,7 +2,7 @@
 #include "../camera.hpp"
 #include "../buffers/vertex_format_buffer.hpp"
 #include "../buffers/typed_data_buffer.hpp"
-#include "Hyengine/graphics/shader.hpp"
+#include "../shader.hpp"
 
 namespace hyengine
 {

@@ -69,12 +69,8 @@ namespace hyengine
 
         if (current_flush_task != nullptr && !current_flush_task->finished())
         {
-            const bool didFinish = current_flush_task->await(500);
-            if (!didFinish)
-            {
-                logging_lock.unlock();
-                return;
-            }
+            logging_lock.unlock();
+            return;
         }
 
         delete current_flush_task;

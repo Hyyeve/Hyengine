@@ -6,3 +6,4 @@
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtx/norm.hpp>
+#include <glm/gtc/integer.hpp>

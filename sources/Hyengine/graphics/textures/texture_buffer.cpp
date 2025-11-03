@@ -4,6 +4,7 @@
 
 #include "../../core/logger.hpp"
 #include "../../library/gl.hpp"
+#include "Hyengine/graphics/gl_enums.hpp"
 
 namespace hyengine
 {
@@ -78,6 +79,8 @@ namespace hyengine
             }
         }
 
+        set_mipmap_max_level(internal_mipmaps - 1);
+
         log_info(logger_tag, "Allocated texture buffer ", buffer_id, ": ", type_info);
     }
 
@@ -87,6 +90,11 @@ namespace hyengine
         glDeleteTextures(1, &buffer_id);
         log_info(logger_tag, "Freed texture buffer ", buffer_id, ".");
         buffer_id = 0;
+    }
+
+    void texture_buffer::clear(const u32 level, const GLenum data_format, const GLenum data_type, const void* data) const
+    {
+        glClearTexImage(buffer_id, level, data_format, data_type, data);
     }
 
     void texture_buffer::copy_data_from(const texture_buffer& source) const
@@ -402,6 +410,21 @@ namespace hyengine
     GLenum texture_buffer::get_format() const
     {
         return internal_format;
+    }
+
+    bool texture_buffer::is_signed_integer_format() const
+    {
+        return texture_formats::is_signed_integer(internal_format);
+    }
+
+    bool texture_buffer::is_unsigned_integer_format() const
+    {
+        return texture_formats::is_unsigned_integer(internal_format);
+    }
+
+    bool texture_buffer::is_float_format() const
+    {
+        return texture_formats::is_floating_point(internal_format);
     }
 
     i32 texture_buffer::get_multisample_count() const

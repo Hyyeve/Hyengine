@@ -4,6 +4,7 @@
 
 #include "../../core/logger.hpp"
 #include "Hyengine/common/common.hpp"
+#include "Hyengine/graphics/gl_enums.hpp"
 
 namespace hyengine
 {
@@ -96,5 +97,20 @@ namespace hyengine
     i32 render_texture::get_multisample_count() const
     {
         return internal_samples;
+    }
+
+    bool render_texture::is_signed_integer_format() const
+    {
+        return texture_formats::is_signed_integer(internal_format);
+    }
+
+    bool render_texture::is_unsigned_integer_format() const
+    {
+        return texture_formats::is_unsigned_integer(internal_format);
+    }
+
+    bool render_texture::is_float_format() const
+    {
+        return texture_formats::is_floating_point(internal_format);
     }
 }

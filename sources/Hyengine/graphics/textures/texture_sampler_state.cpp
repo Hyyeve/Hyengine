@@ -1,7 +1,4 @@
-#pragma once
-
 #include "texture_sampler_state.hpp"
-
 #include <tracy/Tracy.hpp>
 
 namespace hyengine

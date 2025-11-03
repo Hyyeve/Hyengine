@@ -91,7 +91,7 @@ namespace hyengine
         delete_asset_directory(get_binary_asset_id("shader:dummy"));
     }
 
-    void shader::clear_shader_cache()
+    void shader::clear_shader_cache() const
     {
         delete_asset(binary_asset_id);
     }
@@ -182,7 +182,7 @@ namespace hyengine
 
     std::string shader::get_binary_asset_id(const std::string_view& normal_asset_id)
     {
-        return hyengine::stringify(cache_directory, ".", get_asset_name(normal_asset_id));
+        return hyengine::stringify(cache_directory, ":", get_asset_name(normal_asset_id));
     }
 
     static bool line_contains(const std::string_view line, const std::string_view str)

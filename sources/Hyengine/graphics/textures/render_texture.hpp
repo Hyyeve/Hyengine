@@ -36,6 +36,9 @@ namespace hyengine
         [[nodiscard]] glm::uvec2 get_size() const;
         [[nodiscard]] GLenum get_format() const;
         [[nodiscard]] i32 get_multisample_count() const;
+        [[nodiscard]] bool is_signed_integer_format() const;
+        [[nodiscard]] bool is_unsigned_integer_format() const;
+        [[nodiscard]] bool is_float_format() const;
 
     private:
         const std::string logger_tag = "GPU Render Texture";

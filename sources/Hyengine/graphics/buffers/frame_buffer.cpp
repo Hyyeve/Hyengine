@@ -205,6 +205,41 @@ namespace hyengine
         glBindFramebuffer(GL_READ_FRAMEBUFFER, buffer_id);
     }
 
+    void frame_buffer::clear_depth_stencil_attachment(const f32 depth, const i32 stencil) const
+    {
+        ZoneScoped;
+        glClearNamedFramebufferfi(buffer_id, GL_DEPTH_STENCIL, 0, depth, stencil);
+    }
+
+    void frame_buffer::clear_depth_attachment(const f32 depth) const
+    {
+        ZoneScoped;
+        glClearNamedFramebufferfv(buffer_id, GL_DEPTH, 0, &depth);
+    }
+
+    void frame_buffer::clear_stencil_attachment(const i32 stencil) const
+    {
+        ZoneScoped;
+        glClearNamedFramebufferiv(buffer_id, GL_STENCIL, 0, &stencil);
+    }
+
+    void frame_buffer::clear_color_attachment(const u8 drawbuffer_index, const glm::vec4 color) const
+    {
+        ZoneScoped;
+        glClearNamedFramebufferfv(buffer_id, GL_COLOR, drawbuffer_index, glm::value_ptr(color));
+    }
+
+    void frame_buffer::clear_color_attachment(const u8 drawbuffer_index, const glm::ivec4 data) const
+    {
+        ZoneScoped;
+        glClearNamedFramebufferiv(buffer_id, GL_COLOR, drawbuffer_index, glm::value_ptr(data));
+    }
+
+    void frame_buffer::clear_color_attachment(const u8 drawbuffer_index, const glm::uvec4 data) const
+    {
+        glClearNamedFramebufferuiv(buffer_id, GL_COLOR, drawbuffer_index, glm::value_ptr(data));
+    }
+
     GLuint frame_buffer::get_id() const
     {
         return buffer_id;

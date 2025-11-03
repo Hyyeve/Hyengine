@@ -14,7 +14,7 @@ include(cmake/Dependencies.cmake)
 include(cmake/Sources.cmake)
 
 set_target_properties(${H_TARGETS} PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
-add_custom_target(InstallProject "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --target install)
+add_custom_target(${H_PROJECT_NAME}InstallProject "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --target install)
 
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)

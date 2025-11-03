@@ -38,6 +38,13 @@ namespace hyengine
         void bind_to_draw() const;
         void bind_to_read() const;
 
+        void clear_depth_stencil_attachment(const f32 depth, const i32 stencil) const;
+        void clear_depth_attachment(const f32 depth) const;
+        void clear_stencil_attachment(const i32 stencil) const;
+        void clear_color_attachment(const u8 drawbuffer_index, const glm::vec4 color) const;
+        void clear_color_attachment(const u8 drawbuffer_index, const glm::ivec4 data) const;
+        void clear_color_attachment(const u8 drawbuffer_index, const glm::uvec4 data) const;
+
         [[nodiscard]] GLuint get_id() const;
 
     private:

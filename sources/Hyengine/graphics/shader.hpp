@@ -30,7 +30,7 @@ namespace hyengine
         void reload();
 
         static void clear_all_shader_caches();
-        void clear_shader_cache();
+        void clear_shader_cache() const;
 
         void use() const;
 
@@ -246,7 +246,7 @@ namespace hyengine
         void load_uniform_locations();
 
         constexpr static std::string_view logger_tag = "Shader";
-        constexpr static std::string_view cache_directory = "shader:bin";
+        constexpr static std::string_view cache_directory = "shader.bin";
 
         std::unordered_map<std::string, i32> uniform_locations;
 

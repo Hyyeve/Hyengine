@@ -137,7 +137,7 @@ namespace hyengine
         vertex_buffer.block_ready();
     }
 
-    void basic_renderer::update_shader_uniforms(const f32 interpolation_delta, const camera& cam)
+    void basic_renderer::update_shader_uniforms(const f32 interpolation_delta, const camera& cam) const
     {
         ZoneScoped;
         shader* current_shader = use_texture ? texture_shader.get() : basic_shader.get();
@@ -147,14 +147,14 @@ namespace hyengine
         current_shader->set_uniform("u_camera_pos", cam.get_position(interpolation_delta));
     }
 
-    void basic_renderer::reload_shaders()
+    void basic_renderer::reload_shaders() const
     {
         ZoneScoped;
         basic_shader->reload();
         texture_shader->reload();
     }
 
-    void basic_renderer::bind()
+    void basic_renderer::bind() const
     {
         ZoneScoped;
         vertex_format_buffer.bind_state();

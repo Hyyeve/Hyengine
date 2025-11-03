@@ -10,7 +10,7 @@ namespace hyengine
     {
     public:
         frame_buffer* buffer{};
-        render_texture* depth_stencil_attachment{};
+        texture_buffer* depth_stencil_attachment{};
         texture_buffer* color_attachment{};
 
         basic_framebuffer(const basic_framebuffer& other) = delete; //COPY CONSTRUCTOR
@@ -22,8 +22,13 @@ namespace hyengine
         explicit basic_framebuffer();
         ~basic_framebuffer();
 
-        void allocate(GLenum color_format, glm::uvec2 size, i32 multisample_count);
+        void allocate(const GLenum color_format, const glm::uvec2 size, const i32 multisample_count);
         void free();
+
+        void clear_depth_stencil(const f32 depth, const i32 stencil) const;
+        void clear_color(const glm::vec4 color) const;
+        void clear_color(const glm::ivec4 data) const;
+        void clear_color(const glm::uvec4 data) const;
 
         void bind_to_draw() const;
         void bind_to_read() const;
@@ -31,5 +36,6 @@ namespace hyengine
     private:
         const std::string logger_tag = "GPU Framebuffer";
         bool valid;
+        GLenum internal_format = -1;
     };
 }

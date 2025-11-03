@@ -26,7 +26,6 @@ namespace hyengine
     {
         std::string source_str;
         std::string type_str;
-        bool should_display = true;
 
         switch (source)
         {
@@ -79,17 +78,11 @@ namespace hyengine
                 type_str = "Pop Group";
                 break;
             case GL_DEBUG_TYPE_OTHER:
-                should_display = false;
                 type_str = "Other";
                 break;
             default:
                 type_str = "Unknown";
                 break;
-        }
-
-        if (!should_display)
-        {
-            return;
         }
 
         std::string id_str = "GL " + source_str + " > " + type_str;
@@ -98,16 +91,16 @@ namespace hyengine
         switch (severity)
         {
             case GL_DEBUG_SEVERITY_HIGH:
-                log_error(msg_str, id_str);
+                log_error(id_str, msg_str);
                 break;
             case GL_DEBUG_SEVERITY_MEDIUM:
-                log_warn(msg_str, id_str);
+                log_warn(id_str, msg_str);
                 break;
             case GL_DEBUG_SEVERITY_LOW:
-                log_info(msg_str, id_str);
+                log_info(id_str, msg_str);
                 break;
             default:
-                log_debug(msg_str, id_str);
+                log_debug(id_str,msg_str);
                 break;
         }
     }
@@ -116,6 +109,7 @@ namespace hyengine
     {
         glEnable(GL_DEBUG_OUTPUT);
         glDebugMessageCallback(handle_gl_error, nullptr);
+        log_info("Graphics", "Enabled GL debug messaging");
     }
 
     void set_scissor(const rectangle& rect)
@@ -133,7 +127,6 @@ namespace hyengine
     {
         set_scissor(position.x, position.y, size.x, size.y);
     }
-
 
     void enable_scissor_test()
     {

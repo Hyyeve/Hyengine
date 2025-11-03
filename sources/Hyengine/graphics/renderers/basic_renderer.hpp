@@ -32,10 +32,10 @@ namespace hyengine
         void finish();
         void block_ready();
 
-        void update_shader_uniforms(const f32 interpolation_delta, const camera& cam);
-        void reload_shaders();
+        void update_shader_uniforms(const f32 interpolation_delta, const camera& cam) const;
+        void reload_shaders() const;
 
-        void bind();
+        void bind() const;
         void draw() const;
 
     private:

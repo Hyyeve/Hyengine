@@ -23,6 +23,7 @@ target_sources(Hyengine PRIVATE
         graphics/shader.cpp
         graphics/shader_batching.cpp
         graphics/camera.cpp
+        graphics/gl_enums.cpp
 
         graphics/font/font_meta.cpp
 
@@ -80,6 +81,7 @@ target_sources(Hyengine PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILE
         graphics/shader_batching.hpp
         graphics/camera.hpp
         graphics/vertex_formats.hpp
+        graphics/gl_enums.hpp
 
         graphics/font/font_meta.hpp
 

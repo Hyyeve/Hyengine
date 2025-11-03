@@ -1,4 +1,3 @@
-#pragma once
 #include <vector>
 #include "../sized_numerics.hpp"
 #include "bitvector.hpp"

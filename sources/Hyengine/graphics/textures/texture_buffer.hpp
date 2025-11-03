@@ -19,6 +19,8 @@ namespace hyengine
         void allocate(const GLenum texture_type, const glm::uvec3& size, const GLsizei mipmap_count, const GLenum format, const i32 multisample_count);
         void free();
 
+        void clear(const u32 level, const GLenum data_format, const GLenum data_type, const void* data) const;
+
         void allocate_as_view(const GLenum target, const GLenum format, GLuint source_id);
         void allocate_as_view(const GLenum target, const GLenum format, GLuint source_id, GLuint layer);
         void allocate_as_view(const GLenum target, const GLenum format, const GLuint source_id, const GLuint first_mip, const GLuint mipmap_count, const GLuint first_layer, const GLuint layer_count);
@@ -88,6 +90,9 @@ namespace hyengine
         [[nodiscard]] GLenum get_type() const;
         [[nodiscard]] GLenum get_format() const;
         [[nodiscard]] i32 get_multisample_count() const;
+        [[nodiscard]] bool is_signed_integer_format() const;
+        [[nodiscard]] bool is_unsigned_integer_format() const;
+        [[nodiscard]] bool is_float_format() const;
 
     private:
         const std::string logger_tag = "GPU Texture";

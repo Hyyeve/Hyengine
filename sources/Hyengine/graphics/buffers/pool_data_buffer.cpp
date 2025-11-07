@@ -72,14 +72,14 @@ namespace hyengine
         pool_buffer.unbind_state();
     }
 
-    void pool_data_buffer::bind_buffer_base(const i32 binding) const
+    void pool_data_buffer::bind_buffer_base(const GLenum target, const i32 binding) const
     {
-        pool_buffer.bind_buffer_base(binding);
+        pool_buffer.bind_buffer_base(target, binding);
     }
 
-    void pool_data_buffer::bind_buffer_range(const i32 binding, const GLintptr offset, const GLsizeiptr size) const
+    void pool_data_buffer::bind_buffer_range(const GLenum target, const i32 binding, const GLintptr offset, const GLsizeiptr size) const
     {
-        pool_buffer.bind_buffer_range(binding, offset, size);
+        pool_buffer.bind_buffer_range(target, binding, offset, size);
     }
 
     GLsizeiptr pool_data_buffer::get_size() const

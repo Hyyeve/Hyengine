@@ -37,8 +37,8 @@ namespace hyengine
         void bind_state() const;
         void unbind_state() const;
 
-        void bind_buffer_base(const i32 binding) const;
-        void bind_buffer_range(const i32 binding, const GLintptr offset, const GLsizeiptr size) const;
+        void bind_buffer_base(GLenum target, i32 binding) const;
+        void bind_buffer_range(GLenum target, i32 binding, GLintptr offset, GLsizeiptr size) const;
 
         [[nodiscard]] GLsizeiptr get_size() const;
         [[nodiscard]] GLuint get_buffer_id() const;

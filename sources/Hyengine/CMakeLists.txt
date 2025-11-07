@@ -20,8 +20,8 @@ target_sources(Hyengine PRIVATE
 
         graphics/graphics.cpp
         graphics/native_window.cpp
-        graphics/shader.cpp
-        graphics/shader_batching.cpp
+        graphics/shaders/shader.cpp
+        graphics/shaders/shader_batching.cpp
         graphics/camera.cpp
         graphics/gl_enums.cpp
 
@@ -77,8 +77,8 @@ target_sources(Hyengine PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILE
 
         graphics/graphics.hpp
         graphics/native_window.hpp
-        graphics/shader.hpp
-        graphics/shader_batching.hpp
+        graphics/shaders/shader.hpp
+        graphics/shaders/shader_batching.hpp
         graphics/camera.hpp
         graphics/vertex_formats.hpp
         graphics/gl_enums.hpp

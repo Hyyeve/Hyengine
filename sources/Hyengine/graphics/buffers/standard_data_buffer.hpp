@@ -41,14 +41,14 @@ namespace hyengine
         void bind_state() const;
         void unbind_state() const;
 
-        void bind_buffer_base(const i32 binding) const;
-        void bind_buffer_range(const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const;
+        void bind_buffer_base(const GLenum target, const i32 binding) const;
+        void bind_buffer_range(const GLenum target, const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const;
 
         void copy_buffer_data(const GLuint source_buffer_id) const;
         void copy_buffer_range(const GLuint source_buffer_id, const GLintptr read_offset, const GLintptr write_offset, const GLintptr bytes) const;
 
-        void bind_slice_base(const i32 binding) const;
-        void bind_slice_range(const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const;
+        void bind_slice_base(const GLenum target, const i32 binding) const;
+        void bind_slice_range(const GLenum target, const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const;
 
         void copy_slice_data(const GLuint source_buffer_id) const;
         void copy_slice_range(const GLuint source_buffer_id, const GLintptr read_offset, const GLintptr write_offset, const GLintptr bytes) const;

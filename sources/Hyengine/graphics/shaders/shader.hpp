@@ -5,10 +5,10 @@
 #include <vector>
 #include <tracy/Tracy.hpp>
 
-#include "../library/gl.hpp"
-#include "../library/glm.hpp"
-#include "../core/logger.hpp"
-#include "../common/sized_numerics.hpp"
+#include "../../library/gl.hpp"
+#include "../../library/glm.hpp"
+#include "../../core/logger.hpp"
+#include "../../common/sized_numerics.hpp"
 
 
 namespace hyengine
@@ -37,6 +37,12 @@ namespace hyengine
         [[nodiscard]] bool valid() const;
         [[nodiscard]] bool active() const;
         [[nodiscard]] std::string get_asset_id() const;
+
+        i32 get_storage_block_binding(const std::string_view& name);
+        void set_storage_block_binding(const std::string_view& name, i32 binding);
+
+        i32 get_uniform_block_binding(const std::string_view& name);
+        void set_uniform_block_binding(const std::string_view& name, i32 binding);
 
         void set_uniform(const std::string_view& name, const bool value);
         void set_uniform(const std::string_view& name, const glm::bvec2 value);
@@ -243,12 +249,21 @@ namespace hyengine
         static GLuint load_binary_program(const std::string_view& asset_id);
         static void save_binary_program(const std::string_view& asset_id, const GLuint program);
 
-        void load_uniform_locations();
+        void load_interface_locations();
 
         constexpr static std::string_view logger_tag = "Shader";
         constexpr static std::string_view cache_directory = "shader.bin";
 
+        struct block_location_and_binding
+        {
+            i32 location;
+            i32 binding;
+        };
+
         std::unordered_map<std::string, i32> uniform_locations;
+        std::unordered_map<std::string, block_location_and_binding> storage_block_bindings;
+        std::unordered_map<std::string, block_location_and_binding> uniform_block_bindings;
+
 
         GLuint program_id = 0;
         std::string asset_id;

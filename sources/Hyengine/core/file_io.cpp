@@ -85,8 +85,8 @@ namespace hyengine
 
     std::filesystem::path get_asset_directory(const std::string_view& asset_id)
     {
-        const std::string relative_path = asset_id_to_relative_path(asset_id.substr(0, asset_id.find_last_of('.')));
-        return std::filesystem::path(get_primary_asset_directory()).append(relative_path);
+        const std::string relative_path = asset_id_to_relative_path(asset_id);
+        return std::filesystem::path(get_primary_asset_directory()).append(relative_path.substr(0, relative_path.find_last_of(std::filesystem::path::preferred_separator)));
     }
 
     std::string load_raw_asset_text(const std::string_view& id)
@@ -113,6 +113,11 @@ namespace hyengine
         buffer << file.rdbuf();
         file.close();
         return buffer.str();
+    }
+
+    bool has_directive(const std::string_view& text, const std::string_view& directive)
+    {
+        return !find_directive(text, directive).empty();
     }
 
     std::string find_directive(const std::string_view& text, const std::string_view& directive)

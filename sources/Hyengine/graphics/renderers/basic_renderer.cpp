@@ -2,8 +2,8 @@
 
 #include "../../common/colors.hpp"
 #include "../../core/logger.hpp"
-#include "../shader.hpp"
-#include "Hyengine/graphics/shader_batching.hpp"
+#include "../shaders/shader.hpp"
+#include "../shaders/shader_batching.hpp"
 
 namespace hyengine
 {

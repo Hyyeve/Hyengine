@@ -76,14 +76,14 @@ namespace hyengine
             internal_data_buffer.unbind_state();
         }
 
-        void bind_buffer_base(const i32 binding) const
+        void bind_buffer_base(const GLenum target, const i32 binding) const
         {
-            internal_data_buffer.bind_buffer_base(binding);
+            internal_data_buffer.bind_buffer_base(target, binding);
         }
 
-        void bind_buffer_range(const i32 binding, const GLintptr index, const GLsizeiptr elements) const
+        void bind_buffer_range(const GLenum target, const i32 binding, const GLintptr index, const GLsizeiptr elements) const
         {
-            internal_data_buffer.bind_buffer_range(binding, index * sizeof(TYPE), elements * sizeof(TYPE));
+            internal_data_buffer.bind_buffer_range(target, binding, index * sizeof(TYPE), elements * sizeof(TYPE));
         }
 
         [[nodiscard]] GLsizeiptr get_elements() const

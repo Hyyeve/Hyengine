@@ -56,14 +56,14 @@ namespace hyengine
             internal_data_buffer.unbind_state();
         }
 
-        void bind_buffer_base(const i32 binding) const
+        void bind_buffer_base(const GLenum target, const i32 binding) const
         {
-            internal_data_buffer.bind_buffer_base(binding);
+            internal_data_buffer.bind_buffer_base(target, binding);
         }
 
-        void bind_buffer_range(const i32 binding, const GLintptr index, const GLsizeiptr elements) const
+        void bind_buffer_range(const GLenum target, const i32 binding, const GLintptr index, const GLsizeiptr elements) const
         {
-            internal_data_buffer.bind_buffer_range(binding, index * sizeof(TYPE), elements * sizeof(TYPE));
+            internal_data_buffer.bind_buffer_range(target, binding, index * sizeof(TYPE), elements * sizeof(TYPE));
         }
 
         void copy_buffer_data(const GLuint source_buffer_id) const
@@ -76,14 +76,14 @@ namespace hyengine
             internal_data_buffer.copy_buffer_range(source_buffer_id, read_index * sizeof(TYPE), write_index * sizeof(TYPE), elements * sizeof(TYPE));
         }
 
-        void bind_slice_base(const i32 binding) const
+        void bind_slice_base(const GLenum target, const i32 binding) const
         {
-            internal_data_buffer.bind_slice_base(binding);
+            internal_data_buffer.bind_slice_base(target, binding);
         }
 
-        void bind_slice_range(const i32 binding, const GLintptr index, const GLsizeiptr elements) const
+        void bind_slice_range(const GLenum target, const i32 binding, const GLintptr index, const GLsizeiptr elements) const
         {
-            internal_data_buffer.bind_slice_range(binding, index * sizeof(TYPE), elements * sizeof(TYPE));
+            internal_data_buffer.bind_slice_range(target, binding, index * sizeof(TYPE), elements * sizeof(TYPE));
         }
 
         void copy_slice_data(const GLuint source_buffer_id) const

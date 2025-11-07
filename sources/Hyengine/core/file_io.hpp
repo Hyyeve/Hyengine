@@ -50,6 +50,7 @@ namespace hyengine
     std::string get_asset_name(const std::string_view& asset_id);
     std::string_view get_asset_extension(const std::string_view& type);
 
+    bool has_directive(const std::string_view& text, const std::string_view& directive);
     std::string find_directive(const std::string_view& text, const std::string_view& directive);
     void replace_directive(std::string& text, const std::string_view& directive, const std::string_view& replacement);
     bool asset_exists(const std::string_view& asset_id);

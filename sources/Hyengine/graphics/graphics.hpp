@@ -8,13 +8,25 @@
 
 namespace hyengine
 {
-    struct gl_draw_indirect_cmd
+    #pragma pack(push, 1)
+    struct gl_draw_arrays_indirect_cmd
     {
         u32 vertex_count;
         u32 instance_count;
         u32 vertex_begin;
         u32 instance_begin;
     };
+
+    struct gl_draw_elements_indirect_cmd
+    {
+        u32 vertex_count;
+        u32 instance_count;
+        u32 index_begin;
+        i32 vertex_begin;
+        u32 instance_begin;
+    };
+
+    #pragma pack(pop)
 
     struct render_viewport
     {

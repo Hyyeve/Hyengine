@@ -216,23 +216,23 @@ namespace hyengine
         glBindBuffer(buffer_target, 0);
     }
 
-    void standard_data_buffer::bind_slice_base(const i32 binding) const
+    void standard_data_buffer::bind_slice_base(const GLenum target, const i32 binding) const
     {
-        bind_slice_range(binding, 0, slice_size);
+        bind_slice_range(target, binding, 0, slice_size);
     }
 
-    void standard_data_buffer::bind_slice_range(const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const
+    void standard_data_buffer::bind_slice_range(const GLenum target, const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const
     {
-        bind_buffer_range(binding, get_slice_offset() + offset, bytes);
+        bind_buffer_range(target, binding, get_slice_offset() + offset, bytes);
     }
 
-    void standard_data_buffer::bind_buffer_base(const i32 binding) const
+    void standard_data_buffer::bind_buffer_base(const GLenum target, const i32 binding) const
     {
         ZoneScoped;
-        glBindBufferBase(buffer_target, binding, buffer_id);
+        glBindBufferBase(target, binding, buffer_id);
     }
 
-    void standard_data_buffer::bind_buffer_range(const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const
+    void standard_data_buffer::bind_buffer_range(const GLenum target, const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const
     {
         ZoneScoped;
         if (offset + bytes > total_size)
@@ -241,7 +241,7 @@ namespace hyengine
             return;
         }
 
-        glBindBufferRange(buffer_target, binding, buffer_id, offset, bytes);
+        glBindBufferRange(target, binding, buffer_id, offset, bytes);
     }
 
     void standard_data_buffer::copy_slice_data(const GLuint source_buffer_id) const

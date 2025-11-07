@@ -26,6 +26,7 @@ namespace hyengine
     {
         std::string source_str;
         std::string type_str;
+        bool ignore = false;
 
         switch (source)
         {
@@ -46,6 +47,7 @@ namespace hyengine
                 break;
             case GL_DEBUG_SOURCE_OTHER:
                 source_str = "Other";
+                ignore = true;
                 break;
             default:
                 source_str = "Unknown";
@@ -84,6 +86,8 @@ namespace hyengine
                 type_str = "Unknown";
                 break;
         }
+
+        if (ignore) return;
 
         std::string id_str = "GL " + source_str + " > " + type_str;
         std::string msg_str = std::string(message);

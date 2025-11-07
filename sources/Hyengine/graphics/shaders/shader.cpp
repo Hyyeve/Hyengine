@@ -7,7 +7,7 @@
 #include <vector>
 #include <tracy/Tracy.hpp>
 
-#include "../core/file_io.hpp"
+#include "../../core/file_io.hpp"
 
 namespace hyengine
 {
@@ -39,6 +39,42 @@ namespace hyengine
         return asset_id;
     }
 
+    i32 shader::get_storage_block_binding(const std::string_view& name)
+    {
+        const std::string name_str = std::string(name);
+        return storage_block_bindings.contains(name_str) ? storage_block_bindings[name_str].binding : -1;
+    }
+
+    void shader::set_storage_block_binding(const std::string_view& name, const i32 binding)
+    {
+        const std::string name_str = std::string(name);
+        if (!storage_block_bindings.contains(name_str))
+        {
+            log_warn(logger_tag, "Failed to set shader storage block binding for '", name_str, "'`");
+            return;
+        }
+
+        glShaderStorageBlockBinding(program_id, storage_block_bindings[name_str].location, binding);
+    }
+
+    i32 shader::get_uniform_block_binding(const std::string_view& name)
+    {
+        const std::string name_str = std::string(name);
+        return uniform_block_bindings.contains(name_str) ? uniform_block_bindings[name_str].binding : -1;
+    }
+
+    void shader::set_uniform_block_binding(const std::string_view& name, i32 binding)
+    {
+        const std::string name_str = std::string(name);
+        if (!uniform_block_bindings.contains(name_str))
+        {
+            log_warn(logger_tag, "Failed to set shader uniform block binding for '", name_str, "'`");
+            return;
+        }
+
+        glUniformBlockBinding(program_id, uniform_block_bindings[name_str].location, binding);
+    }
+
     void shader::use() const
     {
         glUseProgram(program_id);
@@ -58,7 +94,7 @@ namespace hyengine
 
         if (program_id != 0)
         {
-            load_uniform_locations();
+            load_interface_locations();
             log_info(logger_tag, hyengine::stringify("Loaded shader ", asset_id, " and located ", uniform_locations.size(), " uniforms"));
         }
         else
@@ -147,8 +183,10 @@ namespace hyengine
     bool validate_program(const GLuint program)
     {
         GLint success = GL_TRUE;
+
         glValidateProgram(program);
         glGetProgramiv(program, GL_VALIDATE_STATUS, &success);
+
         if (success != GL_TRUE)
         {
             log_program_info("\n ---------- Failed to validate program: \n", program);
@@ -163,7 +201,9 @@ namespace hyengine
         for (const GLuint shader : shaders)
         {
             if (shader != 0)
+            {
                 glAttachShader(program, shader);
+            }
         }
 
         glLinkProgram(program);
@@ -190,6 +230,53 @@ namespace hyengine
         return line.find(str) != std::string::npos;
     }
 
+    bool update_line_type(const std::string_view line, i32* line_type)
+    {
+        const std::string type = ascii_to_lower(find_directive(line, "shader_type"));
+        if (type.empty()) return false;
+        switch (string_hash(type))
+        {
+            case string_hash("vertex"):
+            {
+                *line_type = 0;
+                break;
+            }
+            case string_hash("fragment"):
+            {
+                *line_type = 1;
+                break;
+            }
+            case string_hash("compute"):
+            {
+                *line_type = 2;
+                break;
+            }
+            case string_hash("geometry"):
+            {
+                *line_type = 3;
+                break;
+            }
+            case string_hash("tess_control"):
+            {
+                *line_type = 4;
+                break;
+            }
+            case string_hash("tess_eval"):
+            {
+                *line_type = 5;
+                break;
+            }
+            case string_hash("shared"):
+            {
+                *line_type = 6;
+                break;
+            }
+            default: break;
+        }
+
+        return true;
+    }
+
     GLuint shader::load_program(const std::string_view& asset_id, const std::string_view& binary_asset_id)
     {
         ZoneScoped;
@@ -202,45 +289,34 @@ namespace hyengine
         std::istringstream text(raw_text);
 
         std::string line;
-        std::array<std::stringstream, 7> stage_sources{};
+        std::array<std::stringstream, 7> stage_sources {};
 
         i32 current_line_type = -1;
-        i32 previous_line_type = current_line_type;
         while (getline(text, line))
         {
-            if (line_contains(line, "#SHADER|VERTEX")) current_line_type = 0;
-            else if (line_contains(line, "#SHADER|FRAGMENT")) current_line_type = 1;
-            else if (line_contains(line, "#SHADER|COMPUTE")) current_line_type = 2;
-            else if (line_contains(line, "#SHADER|GEOMETRY")) current_line_type = 3;
-            else if (line_contains(line, "#SHADER|TESS_CONTROL")) current_line_type = 4;
-            else if (line_contains(line, "#SHADER|TESS_EVAL")) current_line_type = 5;
-            else if (line_contains(line, "#SHADER|SHARED")) current_line_type = 6;
-
-            if (current_line_type == -1 || current_line_type != previous_line_type)
-            {
-                previous_line_type = current_line_type;
-                continue; //Skip including the type define lines
-            }
-
+            const bool did_change = update_line_type(line, &current_line_type);
+            if (did_change) continue; //Skip including the type define lines
             stage_sources[current_line_type] << line << '\n';
         }
 
         const std::string share = stage_sources[6].str();
 
         std::vector<GLuint> shaders;
-        if (!stage_sources[0].str().empty()) shaders.push_back(compile_shader(share, stage_sources[0].str(), GL_VERTEX_SHADER));
-        if (!stage_sources[1].str().empty()) shaders.push_back(compile_shader(share, stage_sources[1].str(), GL_FRAGMENT_SHADER));
-        if (!stage_sources[2].str().empty()) shaders.push_back(compile_shader(share, stage_sources[2].str(), GL_COMPUTE_SHADER));
-        if (!stage_sources[3].str().empty()) shaders.push_back(compile_shader(share, stage_sources[3].str(), GL_GEOMETRY_SHADER));
-        if (!stage_sources[4].str().empty()) shaders.push_back(compile_shader(share, stage_sources[4].str(), GL_TESS_CONTROL_SHADER));
-        if (!stage_sources[5].str().empty()) shaders.push_back(compile_shader(share, stage_sources[5].str(), GL_TESS_EVALUATION_SHADER));
+        {
+            if (!stage_sources[0].str().empty()) shaders.push_back(compile_shader(share, stage_sources[0].str(), GL_VERTEX_SHADER));
+            if (!stage_sources[1].str().empty()) shaders.push_back(compile_shader(share, stage_sources[1].str(), GL_FRAGMENT_SHADER));
+            if (!stage_sources[2].str().empty()) shaders.push_back(compile_shader(share, stage_sources[2].str(), GL_COMPUTE_SHADER));
+            if (!stage_sources[3].str().empty()) shaders.push_back(compile_shader(share, stage_sources[3].str(), GL_GEOMETRY_SHADER));
+            if (!stage_sources[4].str().empty()) shaders.push_back(compile_shader(share, stage_sources[4].str(), GL_TESS_CONTROL_SHADER));
+            if (!stage_sources[5].str().empty()) shaders.push_back(compile_shader(share, stage_sources[5].str(), GL_TESS_EVALUATION_SHADER));
+        }
 
         const GLuint program = link_program(shaders);
 
         for (const GLuint shader : shaders)
         {
-            if (shader != 0)
-                glDeleteShader(shader);
+            //If we wanted to be super efficient about shader compilation, we should really keep these around for re-use.
+            if (shader != 0) glDeleteShader(shader);
         }
 
         save_binary_program(binary_asset_id, program);
@@ -289,22 +365,55 @@ namespace hyengine
         save_raw_asset(asset_id, binary_data.data(), binary_data.size());
     }
 
-    void shader::load_uniform_locations()
+    void shader::load_interface_locations()
     {
-        i32 count = 0;
-        constexpr std::array<GLenum, 1> properties = {GL_NAME_LENGTH};
-        std::array<GLint, 1> name_length{};
+        i32 uniform_count = 0;
+        i32 ssbo_count = 0;
+        i32 ubo_count = 0;
+        i32 atcbo_count = 0;
+
+        constexpr GLenum name_length_prop = GL_NAME_LENGTH;
+        constexpr GLenum buffer_binding_prop = GL_BUFFER_BINDING;
+        GLint name_length = 0;
         std::string name_buf;
 
-        glGetProgramiv(program_id, GL_ACTIVE_UNIFORMS, &count);
+        glGetProgramInterfaceiv(program_id, GL_UNIFORM, GL_ACTIVE_RESOURCES, &uniform_count);
+        glGetProgramInterfaceiv(program_id, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &ssbo_count);
+        glGetProgramInterfaceiv(program_id, GL_UNIFORM_BLOCK, GL_ACTIVE_RESOURCES, &ubo_count);
+        glGetProgramInterfaceiv(program_id, GL_ATOMIC_COUNTER_BUFFER, GL_ACTIVE_RESOURCES, &atcbo_count);
 
-        for (i32 i = 0; i < count; i++)
+        for (u32 index = 0; index < uniform_count; index++)
         {
-            glGetProgramResourceiv(program_id, GL_UNIFORM, i, 1, properties.data(), 1, nullptr, name_length.data());
-            name_buf.resize(name_length[0] - 1);
-            glGetProgramResourceName(program_id, GL_UNIFORM, i, name_length[0], nullptr, name_buf.data());
+            glGetProgramResourceiv(program_id, GL_UNIFORM, index, 1, &name_length_prop, 1, nullptr, &name_length);
+            name_buf.resize(name_length - 1);
+
+            glGetProgramResourceName(program_id, GL_UNIFORM, index, name_length, nullptr, name_buf.data());
             const i32 location = glGetUniformLocation(program_id, name_buf.data());
             uniform_locations[name_buf] = location;
+
+            if (location != index) log_debug(logger_tag, "Uniform location found that doesn't match index");
+        }
+
+        for (i32 index = 0; index < ssbo_count; index++)
+        {
+            i32 binding = 0;
+            glGetProgramResourceiv(program_id, GL_SHADER_STORAGE_BLOCK, index, 1, &name_length_prop, 1, nullptr, &name_length);
+            name_buf.resize(name_length - 1);
+
+            glGetProgramResourceName(program_id, GL_SHADER_STORAGE_BLOCK, index, name_length, nullptr, name_buf.data());
+            glGetProgramResourceiv(program_id, GL_SHADER_STORAGE_BLOCK, index, 1, &buffer_binding_prop, 1, nullptr, &binding);
+            storage_block_bindings[name_buf] = {index, binding};
+        }
+
+        for (i32 index = 0; index < ubo_count; index++)
+        {
+            i32 binding = 0;
+            glGetProgramResourceiv(program_id, GL_UNIFORM_BLOCK, index, 1, &name_length_prop, 1, nullptr, &name_length);
+            name_buf.resize(name_length - 1);
+
+            glGetProgramResourceName(program_id, GL_UNIFORM_BLOCK, index, name_length, nullptr, name_buf.data());
+            glGetProgramResourceiv(program_id, GL_UNIFORM_BLOCK, index, 1, &buffer_binding_prop, 1, nullptr, &binding);
+            uniform_block_bindings[name_buf] = {index, binding};
         }
     }
 

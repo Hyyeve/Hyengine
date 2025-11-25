@@ -13,18 +13,18 @@ namespace hyengine
         {
             switch (format)
             {
-                case R8I:
-                case R16I:
-                case R32I:
-                case RG8I:
+                case R8_I:
+                case R16_I:
+                case R32_I:
+                case RG8_I:
                 case RG16:
-                case RG32I:
-                case RGB8I:
-                case RGB16I:
-                case RGB32I:
-                case RGBA8I:
-                case RGBA16I:
-                case RGBA32I:
+                case RG32_I:
+                case RGB8_I:
+                case RGB16_I:
+                case RGB32_I:
+                case RGBA8_I:
+                case RGBA16_I:
+                case RGBA32_I:
                 {
                     return true;
                 }
@@ -37,19 +37,19 @@ namespace hyengine
         {
             switch (format)
             {
-                case R8UI:
-                case R16UI:
-                case R32UI:
-                case RG8UI:
+                case R8_UI:
+                case R16_UI:
+                case R32_UI:
+                case RG8_UI:
                 case RG16:
-                case RG32UI:
-                case RGB8UI:
-                case RGB16UI:
-                case RGB32UI:
-                case RGBA8UI:
-                case RGBA16UI:
-                case RGBA32UI:
-                case RGB10_A2UI:
+                case RG32_UI:
+                case RGB8_UI:
+                case RGB16_UI:
+                case RGB32_UI:
+                case RGBA8_UI:
+                case RGBA16_UI:
+                case RGBA32_UI:
+                case RGB10_A2_UI:
                 {
                     return true;
                 }

@@ -1,6 +1,5 @@
 #include "frustum.hpp"
 #include <tracy/Tracy.hpp>
-
 #include "../sized_numerics.hpp"
 
 namespace hyengine

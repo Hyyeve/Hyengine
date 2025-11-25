@@ -8,9 +8,9 @@ namespace hyengine
     class texture_buffer
     {
     public:
-        texture_buffer(const texture_buffer& other) = delete; //COPY CONSTRUCTOR
-        texture_buffer(texture_buffer&& other) = delete; //MOVE CONSTRUCTOR
-        texture_buffer& operator=(const texture_buffer& other) = delete; //COPY ASSIGNMENT
+        texture_buffer(const texture_buffer& other) = delete;                //COPY CONSTRUCTOR
+        texture_buffer(texture_buffer&& other) = delete;                     //MOVE CONSTRUCTOR
+        texture_buffer& operator=(const texture_buffer& other) = delete;     //COPY ASSIGNMENT
         texture_buffer& operator=(texture_buffer&& other) noexcept = delete; //MOVE ASSIGNMENT
 
         explicit texture_buffer() = default;

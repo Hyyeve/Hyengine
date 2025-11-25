@@ -7,9 +7,7 @@
 
 namespace hyengine
 {
-    basic_renderer::basic_renderer(): draw_count(0), write_index(0)
-    {
-    }
+    basic_renderer::basic_renderer() : draw_count(0), write_index(0) {}
 
     basic_renderer::~basic_renderer()
     {

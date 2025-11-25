@@ -1,8 +1,8 @@
 #include "shader_batching.hpp"
 #include <unordered_set>
 
-namespace hyengine {
-
+namespace hyengine
+{
     static std::unordered_map<std::string, std::shared_ptr<shader>> shared_shader_lookup;
 
     std::shared_ptr<shader> create_shader_instance(const std::string_view& asset_id, const bool require_unique)

@@ -77,10 +77,10 @@ namespace hyengine
         for (slice_data& slice : buffer_slices)
         {
             slice.start_address = 0;
-            if (slice.fence != nullptr) glDeleteSync(slice.fence);
+            if (slice.fence != nullptr)
+                glDeleteSync(slice.fence);
             slice.fence = nullptr;
         }
-
     }
 
     void standard_data_buffer::map_storage(const GLbitfield mapping_flags)
@@ -98,40 +98,79 @@ namespace hyengine
         mapped_pointer = nullptr;
     }
 
-    void standard_data_buffer::sync_fence()
+    void standard_data_buffer::bind_state() const
     {
         ZoneScoped;
-        GLsync& sync = buffer_slices[current_slice_index].fence;
-        if (sync != nullptr) glDeleteSync(sync);
-        sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        glBindBuffer(buffer_target, buffer_id);
     }
 
-    bool standard_data_buffer::sync_await(const u64 timeout_nanos) const
+    void standard_data_buffer::unbind_state() const
     {
         ZoneScoped;
-        const GLsync& sync = buffer_slices[current_slice_index].fence;
-        if (sync == nullptr) return true;
-        const GLenum waitReturn = glClientWaitSync(sync, 0, timeout_nanos);
-        if (waitReturn == GL_ALREADY_SIGNALED || waitReturn == GL_CONDITION_SATISFIED) return true;
-
-        return false;
+        glBindBuffer(buffer_target, 0);
     }
 
-    void standard_data_buffer::sync_block() const
+    void standard_data_buffer::bind_buffer_base(const GLenum target, const i32 binding) const
     {
         ZoneScoped;
-        while (!sync_await(GL_TIMEOUT_IGNORED))
+        glBindBufferBase(target, binding, buffer_id);
+    }
+
+    void standard_data_buffer::bind_buffer_range(const GLenum target, const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const
+    {
+        ZoneScoped;
+        if (offset + bytes > total_size)
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            log_warn(logger_tag, "Can't bind range - requested start and size would overflow", " (buffer ", buffer_id, ")");
+            return;
         }
+
+        glBindBufferRange(target, binding, buffer_id, offset, bytes);
+    }
+
+    void standard_data_buffer::copy_buffer_data(const GLuint source_buffer_id) const
+    {
+        copy_buffer_range(source_buffer_id, 0, 0, total_size);
+    }
+
+    void standard_data_buffer::copy_buffer_range(const GLuint source_buffer_id, const GLintptr read_offset, const GLintptr write_offset, const GLsizeiptr bytes) const
+    {
+        ZoneScoped;
+        if (write_offset + bytes > total_size)
+        {
+            log_warn(logger_tag, "Can't copy range - requested start and size would overflow", " (buffer ", buffer_id, ")");
+            return;
+        }
+
+        glCopyNamedBufferSubData(source_buffer_id, buffer_id, read_offset, write_offset, bytes);
+    }
+
+    void standard_data_buffer::bind_slice_base(const GLenum target, const i32 binding) const
+    {
+        bind_slice_range(target, binding, 0, slice_size);
+    }
+
+    void standard_data_buffer::bind_slice_range(const GLenum target, const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const
+    {
+        bind_buffer_range(target, binding, get_slice_offset() + offset, bytes);
+    }
+
+    void standard_data_buffer::copy_slice_data(const GLuint source_buffer_id) const
+    {
+        copy_slice_range(source_buffer_id, 0, 0, slice_size);
+    }
+
+    void standard_data_buffer::copy_slice_range(const GLuint source_buffer_id, const GLintptr read_offset, const GLintptr write_offset, const GLsizeiptr bytes) const
+    {
+        copy_buffer_range(source_buffer_id, read_offset, get_slice_offset() + write_offset, bytes);
     }
 
     void standard_data_buffer::block_ready()
     {
         ZoneScoped;
-        sync_fence(); //Set sync point for everything done with previous buffer slice data
+        sync_fence();      //Set sync point for everything done with previous buffer slice data
         increment_slice(); //Move to next buffer slice
-        sync_block(); //Wait for buffer slice to finish being used
+        sync_block();      //Wait for buffer slice to finish being used
     }
 
     void standard_data_buffer::upload(const u32& address, const void* const data, const u32 size) const
@@ -156,16 +195,6 @@ namespace hyengine
         const bool result = sync_await(timeout_nanos);
         if (!result) decrement_slice(); //A failed await should leave us on the previous slice
         return result;
-    }
-
-    void standard_data_buffer::increment_slice()
-    {
-        current_slice_index = (current_slice_index + 1) % slice_count;
-    }
-
-    void standard_data_buffer::decrement_slice()
-    {
-        current_slice_index = (static_cast<long>(current_slice_index) - 1) % slice_count;
     }
 
     u32 standard_data_buffer::get_slice_offset() const
@@ -204,70 +233,42 @@ namespace hyengine
         return slice_size;
     }
 
-    void standard_data_buffer::bind_state() const
+    void standard_data_buffer::increment_slice()
+    {
+        current_slice_index = (current_slice_index + 1) % slice_count;
+    }
+
+    void standard_data_buffer::decrement_slice()
+    {
+        current_slice_index = (static_cast<long>(current_slice_index) - 1) % slice_count;
+    }
+
+    void standard_data_buffer::sync_fence()
     {
         ZoneScoped;
-        glBindBuffer(buffer_target, buffer_id);
+        GLsync& sync = buffer_slices[current_slice_index].fence;
+        if (sync != nullptr)
+            glDeleteSync(sync);
+        sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     }
 
-    void standard_data_buffer::unbind_state() const
+    bool standard_data_buffer::sync_await(const u64 timeout_nanos) const
     {
         ZoneScoped;
-        glBindBuffer(buffer_target, 0);
+        const GLsync& sync = buffer_slices[current_slice_index].fence;
+        if (sync == nullptr) return true;
+        const GLenum wait_return = glClientWaitSync(sync, 0, timeout_nanos);
+        if (wait_return == GL_ALREADY_SIGNALED || wait_return == GL_CONDITION_SATISFIED) return true;
+
+        return false;
     }
 
-    void standard_data_buffer::bind_slice_base(const GLenum target, const i32 binding) const
-    {
-        bind_slice_range(target, binding, 0, slice_size);
-    }
-
-    void standard_data_buffer::bind_slice_range(const GLenum target, const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const
-    {
-        bind_buffer_range(target, binding, get_slice_offset() + offset, bytes);
-    }
-
-    void standard_data_buffer::bind_buffer_base(const GLenum target, const i32 binding) const
+    void standard_data_buffer::sync_block() const
     {
         ZoneScoped;
-        glBindBufferBase(target, binding, buffer_id);
-    }
-
-    void standard_data_buffer::bind_buffer_range(const GLenum target, const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const
-    {
-        ZoneScoped;
-        if (offset + bytes > total_size)
+        while (!sync_await(GL_TIMEOUT_IGNORED))
         {
-            log_warn(logger_tag, "Can't bind range - requested start and size would overflow", " (buffer ", buffer_id, ")");
-            return;
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
-
-        glBindBufferRange(target, binding, buffer_id, offset, bytes);
-    }
-
-    void standard_data_buffer::copy_slice_data(const GLuint source_buffer_id) const
-    {
-        copy_slice_range(source_buffer_id, 0, 0, slice_size);
-    }
-
-    void standard_data_buffer::copy_slice_range(const GLuint source_buffer_id, const GLintptr read_offset, const GLintptr write_offset, const GLsizeiptr bytes) const
-    {
-        copy_buffer_range(source_buffer_id, read_offset, get_slice_offset() + write_offset, bytes);
-    }
-
-    void standard_data_buffer::copy_buffer_data(const GLuint source_buffer_id) const
-    {
-        copy_buffer_range(source_buffer_id, 0, 0, total_size);
-    }
-
-    void standard_data_buffer::copy_buffer_range(const GLuint source_buffer_id, const GLintptr read_offset, const GLintptr write_offset, const GLsizeiptr bytes) const
-    {
-        ZoneScoped;
-        if (write_offset + bytes > total_size)
-        {
-            log_warn(logger_tag, "Can't copy range - requested start and size would overflow", " (buffer ", buffer_id, ")");
-            return;
-        }
-
-        glCopyNamedBufferSubData(source_buffer_id, buffer_id, read_offset, write_offset, bytes);
     }
 }

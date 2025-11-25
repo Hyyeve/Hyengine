@@ -78,7 +78,7 @@ namespace hyengine
 
     std::string stringify_millis(const f64 millis)
     {
-        return stringify_duration(std::chrono::microseconds{static_cast<long>(millis * 1000)});
+        return stringify_duration(std::chrono::microseconds {static_cast<long>(millis * 1000)});
     }
 
     std::string stringify_bytes(const unsigned long bytes)
@@ -119,7 +119,7 @@ namespace hyengine
     {
         ZoneScoped;
         std::string result = std::string(str);
-        std::ranges::transform(result, result.begin(),[](const u8 character){ return std::tolower(character); });
+        std::ranges::transform(result, result.begin(), [](const u8 character) { return std::tolower(character); });
         return result;
     }
 
@@ -127,11 +127,11 @@ namespace hyengine
     {
         ZoneScoped;
         std::string result = std::string(str);
-        std::ranges::transform(result, result.begin(),[](const u8 character){ return std::toupper(character); });
+        std::ranges::transform(result, result.begin(), [](const u8 character) { return std::toupper(character); });
         return result;
     }
 
-    template<typename value_type, typename parse_func>
+    template <typename value_type, typename parse_func>
     value_type parse_integer(const std::string_view& str, const value_type default_val, const int radix, const parse_func func) noexcept
     {
         ZoneScoped;

@@ -1,13 +1,10 @@
 #include "frame_buffer.hpp"
-
 #include <tracy/Tracy.hpp>
-
 #include "../../core/logger.hpp"
 
 namespace hyengine
 {
     using namespace hyengine;
-
 
     frame_buffer::frame_buffer() = default;
 
@@ -30,6 +27,15 @@ namespace hyengine
         is_valid = false;
 
         log_info(logger_tag, "Allocated framebuffer ", buffer_id, ".");
+    }
+
+    void frame_buffer::free()
+    {
+        ZoneScoped;
+        glDeleteFramebuffers(1, &buffer_id);
+        log_info(logger_tag, "Freed framebuffer ", buffer_id, ".");
+        buffer_id = 0;
+        is_valid = false;
     }
 
     void frame_buffer::attach_texture(const texture_buffer& texture, const GLenum attachment_binding)
@@ -169,16 +175,7 @@ namespace hyengine
         }
 
         glBlitNamedFramebuffer(source.get_id(), buffer_id, source_rect.x, source_rect.y, source_rect.z, source_rect.w, // NOLINT(*-narrowing-conversions)
-                               dest_rect.x, dest_rect.y, dest_rect.z, dest_rect.w, mask, filter); // NOLINT(*-narrowing-conversions)
-    }
-
-    void frame_buffer::free()
-    {
-        ZoneScoped;
-        glDeleteFramebuffers(1, &buffer_id);
-        log_info(logger_tag, "Freed framebuffer ", buffer_id, ".");
-        buffer_id = 0;
-        is_valid = false;
+                               dest_rect.x, dest_rect.y, dest_rect.z, dest_rect.w, mask, filter);                      // NOLINT(*-narrowing-conversions)
     }
 
     void frame_buffer::bind_to_draw() const

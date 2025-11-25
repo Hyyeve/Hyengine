@@ -58,12 +58,10 @@ void render(const hyengine::frame_loop::loop_data& data)
     renderer.draw();
     hyengine::log_info("TEST", "TEST COOL MESSAGE !!!");
     window->swap_buffers();
-
 }
 
 int main()
 {
-
     hyengine::window_config config;
     config.gl_profile_compatibility = true;
     config.vsync = false;

@@ -1,5 +1,6 @@
 #include "texture_set.hpp"
 
+#include "Hyengine/graphics/gl_enums.hpp"
 #include "Hyengine/graphics/graphics.hpp"
 
 namespace hyengine
@@ -41,7 +42,7 @@ namespace hyengine
 
     u32 texture_set::max_slots()
     {
-        return get_max_texture_units();
+        return get_gl_const_i32(gl_i32_consts::MAX_COMBINED_TEXTURE_IMAGE_UNITS);
     }
 
     void texture_set::clear()

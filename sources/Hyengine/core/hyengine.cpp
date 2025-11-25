@@ -2,6 +2,7 @@
 
 #include "hyengine.hpp"
 
+#include <iostream>
 #include <tracy/Tracy.hpp>
 
 #include "logger.hpp"
@@ -12,19 +13,14 @@ namespace hyengine
 {
     using namespace hyengine;
 
-    const std::string logger_tag = "Hyengine";
-
-    f64 time()
-    {
-        return glfwGetTime();
-    }
+    const std::string LOGGER_TAG = "Hyengine";
 
     native_window* initialize_graphics(const window_config& main_window_config)
     {
         ZoneScopedC(0x0077FF);
         if (!try_init_glfw())
         {
-            log_error(logger_tag, "Failed to initialize glfw");
+            log_error(LOGGER_TAG, "Failed to initialize glfw");
             return nullptr;
         }
 
@@ -32,7 +28,7 @@ namespace hyengine
 
         if (!window->exists())
         {
-            log_error(logger_tag, "Failed to create main window");
+            log_error(LOGGER_TAG, "Failed to create main window");
             delete window;
             return nullptr;
         }
@@ -43,7 +39,7 @@ namespace hyengine
 
         if (!try_load_glad())
         {
-            log_error(logger_tag, "Failed to load glad");
+            log_error(LOGGER_TAG, "Failed to load glad");
             delete window;
             return nullptr;
         }
@@ -55,89 +51,97 @@ namespace hyengine
         return window;
     }
 
-    void run_frame_loop(const frame_loop::config& config)
+    f64 time()
     {
-        ZoneScopedNC("Hyengine Game Loop", 0x7700FF);
+        return glfwGetTime();
+    }
 
-        log_info(config.name, "Launching frame loop");
-
+    void launch_frame_loop(const frame_loop::config& config)
+    {
+        log_info(config.name, "Launching frame loop '", config.name, "'");
         config.launch();
+    }
 
-        const f64 update_step_time = 1.0 / config.target_ups;
-        const f64 max_frame_time = config.max_frame_time;
-        const f64 min_frame_time = 1.0 / config.target_fps;
+    void spin_frame_loop(frame_loop::config config)
+    {
+        log_info(config.name, "Entering frame loop");
 
-        f64 runtime = 0.0;
+        frame_loop::loop_data loop_data {};
+
         f64 current_time = time();
-        f64 accumulator = 0.0;
-
-        const f64 start_time = current_time;
-
-        unsigned long update_count = 0;
-        unsigned long frame_count = 0;
-        u32 updates_last_frame = 0;
-
-        log_info(config.name, "Starting updates / rendering");
+        f64 runtime = 0.0f;
+        f64 update_accumulator = 0.0f;
+        f64 frame_accumulator = 0.0f;
+        loop_data.loop_config = &config;
 
         while (true)
         {
+            const bool should_update = config.should_update;
+            const bool should_render = config.should_render;
+            const f64 update_step_time = 1.0 / config.target_ups;
+            const f64 max_frame_time = config.max_frame_time;
+            const f64 min_frame_time = 1.0 / config.target_fps;
+            u32 update_budget = config.max_updates_per_frame;
+
             const f64 new_time = time();
-            f64 frame_time = new_time - current_time;
-            const f64 ups_last_frame = updates_last_frame / frame_time;
-
-            if (updates_last_frame > 0 && ups_last_frame < config.target_ups)
-            {
-                log_warn(config.name, "Last update step took longer than expected! (", stringify_secs(frame_time), " for ", stringify_count(updates_last_frame, "update"), ")");
-            }
-
-            updates_last_frame = 0;
-
-            if (frame_time > max_frame_time)
-            {
-                log_warn(config.name, "Last frame took too long! ", stringify_secs(frame_time), ", but max allowed is ", stringify_secs(max_frame_time));
-                frame_time = max_frame_time;
-            }
-
-            if (frame_time < min_frame_time) continue;
-
+            f64 delta_time = new_time - current_time;
             current_time = new_time;
-            accumulator += frame_time;
 
-            bool should_continue = true;
+            loop_data.delta_time = update_step_time;
 
-            while (accumulator >= update_step_time)
+            if (delta_time > max_frame_time)
+            {
+                log_warn(config.name, "Last frame took too long! ", stringify_secs(delta_time), ", but max allowed is ", stringify_secs(max_frame_time));
+                delta_time = max_frame_time;
+            }
+
+            if (should_update) update_accumulator += delta_time;
+            while (update_accumulator >= update_step_time && update_budget > 0 && should_update)
             {
                 ZoneScopedNC("Update", 0xFF0077);
                 FrameMarkStart("Update");
-                should_continue = config.update({runtime, update_step_time, 0});
+                config.update(loop_data);
                 FrameMarkEnd("Update");
 
-                if (!should_continue) break;
+                if (config.should_exit) return;
 
+                update_budget--;
                 runtime += update_step_time;
-                accumulator -= update_step_time;
-                update_count++;
-                updates_last_frame++;
+                update_accumulator -= update_step_time;
             }
 
-            if (!should_continue) break;
-
-
+            if (should_render) frame_accumulator += delta_time;
+            if (frame_accumulator >= min_frame_time && should_render)
             {
                 FrameMarkStart("Render");
                 ZoneScopedNC("Render", 0x0077FF);
-                const f64 i32erpolation_delta = accumulator / update_step_time;
-                config.render({runtime + frame_time * i32erpolation_delta, frame_time, i32erpolation_delta});
-                frame_count++;
+                const f64 interpolation_delta = glm::fract(update_accumulator) / update_step_time;
+                const f64 interpolated_runtime = runtime + update_step_time * interpolation_delta;
+                config.render({interpolated_runtime, frame_accumulator, interpolation_delta});
+                frame_accumulator = 0;
                 FrameMarkEnd("Render");
             }
 
             FrameMarkNamed("Hyengine Game Loop");
         }
+    }
 
+    void exit_frame_loop(const frame_loop::config& config)
+    {
         log_info(config.name, "Exiting frame loop");
-        const f64 total_runtime = current_time - start_time;
+        config.exit();
+    }
 
-        log_info(config.name, "Total runtime: ", stringify_secs(total_runtime));
+    void run_frame_loop(const frame_loop::config& config)
+    {
+        ZoneScopedNC("Hyengine Game Loop", 0x7700FF);
+
+        const f64 start_time = time();
+
+        launch_frame_loop(config);
+        spin_frame_loop(config);
+        exit_frame_loop(config);
+
+        log_info(config.name, "Ran for: ", stringify_secs(time() - start_time));
     }
 }

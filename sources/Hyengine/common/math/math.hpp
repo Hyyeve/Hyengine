@@ -1,7 +1,6 @@
 #pragma once
 
 #include <tracy/Tracy.hpp>
-
 #include "../sized_numerics.hpp"
 #include "../../library/glm.hpp"
 

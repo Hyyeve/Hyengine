@@ -12,7 +12,7 @@
 
 namespace hyengine
 {
-    constexpr std::string_view raw_directory = "assets";
+    constexpr std::string_view ROOT_DIRECTORY = "assets";
     constexpr std::string_view LOGGER_TAG = "FileIO";
 
     std::string asset_id_to_relative_path(const std::string_view& asset_id)
@@ -69,12 +69,12 @@ namespace hyengine
 
     constexpr std::string_view get_primary_asset_directory()
     {
-        return raw_directory;
+        return ROOT_DIRECTORY;
     }
 
     constexpr std::string_view get_fallback_asset_directory()
     {
-        return raw_directory;
+        return ROOT_DIRECTORY;
     }
 
     std::filesystem::path get_asset_path(const std::string_view& asset_id)
@@ -87,6 +87,16 @@ namespace hyengine
     {
         const std::string relative_path = asset_id_to_relative_path(asset_id);
         return std::filesystem::path(get_primary_asset_directory()).append(relative_path.substr(0, relative_path.find_last_of(std::filesystem::path::preferred_separator)));
+    }
+
+    std::string load_asset_text(const std::string_view& id)
+    {
+        if (should_preprocess(get_asset_type(id)))
+        {
+            return load_preprocessed_asset_text(id);
+        }
+
+        return load_raw_asset_text(id);
     }
 
     std::string load_raw_asset_text(const std::string_view& id)
@@ -113,63 +123,6 @@ namespace hyengine
         buffer << file.rdbuf();
         file.close();
         return buffer.str();
-    }
-
-    bool has_directive(const std::string_view& text, const std::string_view& directive)
-    {
-        return !find_directive(text, directive).empty();
-    }
-
-    std::string find_directive(const std::string_view& text, const std::string_view& directive)
-    {
-        ZoneScoped;
-        std::smatch regex_match;
-        const std::string search_text = std::string(text);
-        if (std::regex_search(search_text.cbegin(), search_text.cend(), regex_match, directive_data_pattern(directive)))
-        {
-            return regex_match.str(1);
-        }
-
-        return "";
-    }
-
-    void replace_directive(std::string& text, const std::string_view& directive, const std::string_view& replacement)
-    {
-        ZoneScoped;
-        std::smatch regex_match;
-        if (std::regex_search(text.cbegin(), text.cend(), regex_match, directive_line_pattern(directive)))
-        {
-            text.erase(regex_match.position(), regex_match.length());
-            text.insert(regex_match.position(), replacement);
-            text.insert(regex_match.position(), "\n");
-        }
-    }
-
-    bool asset_exists(const std::string_view& asset_id)
-    {
-        return std::filesystem::exists(get_asset_path(asset_id));
-    }
-
-    std::string inject_text_includes(const std::string_view& text)
-    {
-        ZoneScoped;
-        std::smatch include_match;
-        std::string new_text(text);
-
-        for (i32 i = 0; i < std::numeric_limits<char>::max(); i++)
-        {
-            std::string include_asset = find_directive(new_text, "include");
-            if (!include_asset.empty())
-            {
-                std::string asset_text = load_raw_asset_text(include_asset);
-                replace_directive(new_text, "include", asset_text);
-                continue;
-            }
-
-            break;
-        }
-
-        return new_text;
     }
 
     std::string load_preprocessed_asset_text(const std::string_view& id)
@@ -213,7 +166,6 @@ namespace hyengine
 
         return data;
     }
-
 
     asset_image_data load_asset_image(const std::string_view& id)
     {
@@ -312,6 +264,7 @@ namespace hyengine
         std::filesystem::remove_all(path);
     }
 
+
     void delete_asset_directory(const std::string_view& asset_id)
     {
         ZoneScoped;
@@ -326,13 +279,60 @@ namespace hyengine
         std::filesystem::remove_all(directory);
     }
 
-    std::string load_asset_text(const std::string_view& id)
+    std::string inject_text_includes(const std::string_view& text)
     {
-        if (should_preprocess(get_asset_type(id)))
+        ZoneScoped;
+        std::smatch include_match;
+        std::string new_text(text);
+
+        for (i32 i = 0; i < std::numeric_limits<char>::max(); i++)
         {
-            return load_preprocessed_asset_text(id);
+            std::string include_asset = find_directive(new_text, "include");
+            if (!include_asset.empty())
+            {
+                std::string asset_text = load_raw_asset_text(include_asset);
+                replace_directive(new_text, "include", asset_text);
+                continue;
+            }
+
+            break;
         }
 
-        return load_raw_asset_text(id);
+        return new_text;
+    }
+
+    bool has_directive(const std::string_view& text, const std::string_view& directive)
+    {
+        return !find_directive(text, directive).empty();
+    }
+
+    std::string find_directive(const std::string_view& text, const std::string_view& directive)
+    {
+        ZoneScoped;
+        std::smatch regex_match;
+        const std::string search_text = std::string(text);
+        if (std::regex_search(search_text.cbegin(), search_text.cend(), regex_match, directive_data_pattern(directive)))
+        {
+            return regex_match.str(1);
+        }
+
+        return "";
+    }
+
+    void replace_directive(std::string& text, const std::string_view& directive, const std::string_view& replacement)
+    {
+        ZoneScoped;
+        std::smatch regex_match;
+        if (std::regex_search(text.cbegin(), text.cend(), regex_match, directive_line_pattern(directive)))
+        {
+            text.erase(regex_match.position(), regex_match.length());
+            text.insert(regex_match.position(), replacement);
+            text.insert(regex_match.position(), "\n");
+        }
+    }
+
+    bool asset_exists(const std::string_view& asset_id)
+    {
+        return std::filesystem::exists(get_asset_path(asset_id));
     }
 }

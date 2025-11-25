@@ -25,7 +25,7 @@ namespace hyengine
             u32 size;
         };
 
-        std::list<allocation_block> allocations{};
+        std::list<allocation_block> allocations {};
         u32 total_pool_size;
         u32 remaining_available_size;
     };

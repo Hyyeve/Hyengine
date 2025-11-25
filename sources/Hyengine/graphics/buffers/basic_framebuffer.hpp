@@ -9,13 +9,13 @@ namespace hyengine
     class basic_framebuffer
     {
     public:
-        frame_buffer* buffer{};
-        texture_buffer* depth_stencil_attachment{};
-        texture_buffer* color_attachment{};
+        frame_buffer* buffer {};
+        texture_buffer* depth_stencil_attachment {};
+        texture_buffer* color_attachment {};
 
-        basic_framebuffer(const basic_framebuffer& other) = delete; //COPY CONSTRUCTOR
-        basic_framebuffer(basic_framebuffer&& other) = delete; //MOVE CONSTRUCTOR
-        basic_framebuffer& operator=(const basic_framebuffer& other) = delete; //COPY ASSIGNMENT
+        basic_framebuffer(const basic_framebuffer& other) = delete;                //COPY CONSTRUCTOR
+        basic_framebuffer(basic_framebuffer&& other) = delete;                     //MOVE CONSTRUCTOR
+        basic_framebuffer& operator=(const basic_framebuffer& other) = delete;     //COPY ASSIGNMENT
         basic_framebuffer& operator=(basic_framebuffer&& other) noexcept = delete; //MOVE ASSIGNMENT
 
 

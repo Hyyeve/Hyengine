@@ -13,11 +13,9 @@ namespace hyengine
             const rectangle& prev = stack.top();
             switch (mode)
             {
-                case rectangle_stack::stack_mode::UNION:
-                    scissor = prev.union_with(rect);
+                case rectangle_stack::stack_mode::UNION: scissor = prev.union_with(rect);
                     break;
-                default:
-                    scissor = prev.intersection_with(rect);
+                default: scissor = prev.intersection_with(rect);
                     break;
             }
         }

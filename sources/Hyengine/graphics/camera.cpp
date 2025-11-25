@@ -37,14 +37,14 @@ namespace hyengine
         position += vec3(delta.x * right.x + delta.y * up.x + delta.z * forward.x, delta.x * right.y + delta.y * up.y + delta.z * forward.y, delta.x * right.z + delta.y * up.z + delta.z * forward.z);
     }
 
-    void camera::move_planar(const vec3& delta)
-    {
-        position += vec3(delta.x * right.x + delta.y * up.x + delta.z * forward.x, delta.x * right.y + delta.y * up.y + delta.z * forward.y, delta.x * right.z + delta.y * up.z + delta.z * forward.z);
-    }
-
     void camera::move_relative(const f32 delta_horizontal, const f32 delta_vertical, const f32 delta_axial)
     {
         position += vec3(delta_horizontal * right.x + delta_vertical * up.x + delta_axial * forward.x, delta_horizontal * right.y + delta_vertical * up.y + delta_axial * forward.y, delta_horizontal * right.z + delta_vertical * up.z + delta_axial * forward.z);
+    }
+
+    void camera::move_planar(const vec3& delta)
+    {
+        position += vec3(delta.x * right.x + delta.y * up.x + delta.z * forward.x, delta.x * right.y + delta.y * up.y + delta.z * forward.y, delta.x * right.z + delta.y * up.z + delta.z * forward.z);
     }
 
     void camera::move_planar(const f32 delta_horizontal, const f32 delta_vertical, const f32 delta_axial)
@@ -131,6 +131,36 @@ namespace hyengine
         zoom_target.stabilize();
     }
 
+    vec3 camera::screen_to_world(const vec3& point, const render_viewport screen) const
+    {
+        return unProject(point, view_matrix, projection_matrix, vec4(screen.x_offset, screen.y_offset, screen.width, screen.height));
+    }
+
+    vec3 camera::screen_to_world(const vec2 point, const render_viewport screen) const
+    {
+        return screen_to_world(vec3(point, 0), screen);
+    }
+
+    vec3 camera::world_to_screen(const vec3& point, const render_viewport screen) const
+    {
+        return project(point, view_matrix, projection_matrix, vec4(screen.x_offset, screen.y_offset, screen.width, screen.height));
+    }
+
+    vec3 camera::screen_to_world(const vec3& point) const
+    {
+        return screen_to_world(point, get_viewport());
+    }
+
+    vec3 camera::screen_to_world(const vec2 point) const
+    {
+        return screen_to_world(vec3(point, 0));
+    }
+
+    vec3 camera::world_to_screen(const vec3& point) const
+    {
+        return world_to_screen(point, get_viewport());
+    }
+
     const mat4& camera::get_view() const
     {
         return view_matrix;
@@ -179,35 +209,5 @@ namespace hyengine
     frustum camera::get_frustum() const
     {
         return cam_frustum;
-    }
-
-    vec3 camera::screen_to_world(const vec3& point, const render_viewport screen) const
-    {
-        return unProject(point, view_matrix, projection_matrix, vec4(screen.x_offset, screen.y_offset, screen.width, screen.height));
-    }
-
-    vec3 camera::screen_to_world(const vec2 point, const render_viewport screen) const
-    {
-        return screen_to_world(vec3(point, 0), screen);
-    }
-
-    vec3 camera::world_to_screen(const vec3& point, const render_viewport screen) const
-    {
-        return project(point, view_matrix, projection_matrix, vec4(screen.x_offset, screen.y_offset, screen.width, screen.height));
-    }
-
-    vec3 camera::screen_to_world(const vec3& point) const
-    {
-        return screen_to_world(point, get_viewport());
-    }
-
-    vec3 camera::screen_to_world(const vec2 point) const
-    {
-        return screen_to_world(vec3(point, 0));
-    }
-
-    vec3 camera::world_to_screen(const vec3& point) const
-    {
-        return world_to_screen(point, get_viewport());
     }
 }

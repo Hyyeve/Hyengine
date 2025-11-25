@@ -7,9 +7,7 @@
 
 namespace hyengine
 {
-    font_meta::font_meta(const std::string_view& asset_id) noexcept : asset_id(asset_id)
-    {
-    }
+    font_meta::font_meta(const std::string_view& asset_id) noexcept : asset_id(asset_id) {}
 
     font_meta::~font_meta()
     {

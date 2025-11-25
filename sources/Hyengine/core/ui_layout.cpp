@@ -267,7 +267,10 @@ namespace hyengine
 
     void position_tree(ui_object& root)
     {
-        for (ui_axis& axis : root.transform) axis.computed_absolute_position = axis.positioning.current;
+        for (ui_axis& axis : root.transform)
+        {
+            axis.computed_absolute_position = axis.positioning.current;
+        }
 
         position_elements(root);
 

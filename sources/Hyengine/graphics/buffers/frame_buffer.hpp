@@ -1,8 +1,8 @@
 #pragma once
-#include "../textures/render_texture.hpp"
-#include "../textures/texture_buffer.hpp"
 #include "../../library/gl.hpp"
 #include "../../library/glm.hpp"
+#include "../textures/render_texture.hpp"
+#include "../textures/texture_buffer.hpp"
 
 namespace hyengine
 {
@@ -12,9 +12,9 @@ namespace hyengine
     class frame_buffer
     {
     public:
-        frame_buffer(const frame_buffer& other) = delete; //COPY CONSTRUCTOR
-        frame_buffer(frame_buffer&& other) = delete; //MOVE CONSTRUCTOR
-        frame_buffer& operator=(const frame_buffer& other) = delete; //COPY ASSIGNMENT
+        frame_buffer(const frame_buffer& other) = delete;                //COPY CONSTRUCTOR
+        frame_buffer(frame_buffer&& other) = delete;                     //MOVE CONSTRUCTOR
+        frame_buffer& operator=(const frame_buffer& other) = delete;     //COPY ASSIGNMENT
         frame_buffer& operator=(frame_buffer&& other) noexcept = delete; //MOVE ASSIGNMENT
 
         explicit frame_buffer();

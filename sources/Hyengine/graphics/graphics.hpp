@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../library/glm.hpp"
 #include "../library/gl.hpp"
+#include "../library/glm.hpp"
 
-#include "../common/math/rectangle.hpp"
 #include "../common/sized_numerics.hpp"
+#include "../common/math/rectangle.hpp"
 
 namespace hyengine
 {
@@ -25,7 +25,6 @@ namespace hyengine
         i32 vertex_begin;
         u32 instance_begin;
     };
-
     #pragma pack(pop)
 
     struct render_viewport
@@ -63,10 +62,10 @@ namespace hyengine
 
     namespace blending_configs
     {
-        constexpr blending_config alpha_blend = {GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA};
-        constexpr blending_config additive_blend = {GL_ONE, GL_ONE, GL_ONE, GL_ONE};
-        constexpr blending_config subtractive_blend = {GL_ONE, GL_ONE, GL_ONE, GL_ONE, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT};
-        constexpr blending_config overwrite_blend = {GL_ONE, GL_ZERO, GL_ONE, GL_ZERO};
+        constexpr blending_config ALPHA_BLEND = {GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA};
+        constexpr blending_config ADDITIVE_BLEND = {GL_ONE, GL_ONE, GL_ONE, GL_ONE};
+        constexpr blending_config SUBTRACTIVE_BLEND = {GL_ONE, GL_ONE, GL_ONE, GL_ONE, GL_FUNC_REVERSE_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT};
+        constexpr blending_config OVERWRITE_BLEND = {GL_ONE, GL_ZERO, GL_ONE, GL_ZERO};
     }
 
     [[nodiscard]] bool try_init_glfw();
@@ -83,9 +82,11 @@ namespace hyengine
 
     void set_viewport(const render_viewport& viewport);
     [[nodiscard]] const render_viewport& get_viewport();
-    [[nodiscard]] render_viewport create_letterbox_viewport(const render_viewport& to_fit, const i32 target_width, const i32 target_height, const bool fill);
+    [[nodiscard]] render_viewport create_fitted_viewport(const render_viewport& to_fit, const i32 target_width, const i32 target_height, const bool fill);
 
     void set_gl_flag_enabled(const GLenum setting, const bool enable);
+    [[nodiscard]] bool get_gl_flag_enabled(const GLenum setting);
+    [[nodiscard]] i32 get_gl_const_i32(const GLenum constant);
 
     void set_blending_config(const blending_config& config, const u32 buffer_slot = 0);
     void set_blending_enabled(const bool enable);
@@ -104,6 +105,4 @@ namespace hyengine
     void set_clear_depth(const f32 depth);
     void set_clear_stencil(const i32 stencil);
     void clear_buffers(const GLbitfield mask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-    [[nodiscard]] u32 get_max_texture_units();
 }

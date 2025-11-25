@@ -6,7 +6,6 @@
 
 namespace hyengine
 {
-
     /* MULTIBUFFERING ORDER OF OPERATIONS
 
     Sync fence current slice
@@ -21,9 +20,9 @@ namespace hyengine
     class standard_data_buffer
     {
     public:
-        standard_data_buffer(const standard_data_buffer& other) = delete; //COPY CONSTRUCTOR
-        standard_data_buffer(standard_data_buffer&& other) = delete; //MOVE CONSTRUCTOR
-        standard_data_buffer& operator=(const standard_data_buffer& other) = delete; //COPY ASSIGNMENT
+        standard_data_buffer(const standard_data_buffer& other) = delete;                //COPY CONSTRUCTOR
+        standard_data_buffer(standard_data_buffer&& other) = delete;                     //MOVE CONSTRUCTOR
+        standard_data_buffer& operator=(const standard_data_buffer& other) = delete;     //COPY ASSIGNMENT
         standard_data_buffer& operator=(standard_data_buffer&& other) noexcept = delete; //MOVE ASSIGNMENT
 
         explicit standard_data_buffer() = default;
@@ -68,10 +67,10 @@ namespace hyengine
         [[nodiscard]] GLsizeiptr get_size() const;
         [[nodiscard]] GLsizeiptr get_slice_size() const;
 
-        template <typename TYPE>
-        TYPE& data(u32 index)
+        template <typename type>
+        type& data(u32 index)
         {
-            return static_cast<TYPE*>(get_mapped_slice_pointer())[index];
+            return static_cast<type*>(get_mapped_slice_pointer())[index];
         }
 
     private:

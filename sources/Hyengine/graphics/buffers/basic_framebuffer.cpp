@@ -1,7 +1,5 @@
 #include "basic_framebuffer.hpp"
-
 #include <tracy/Tracy.hpp>
-
 #include "../../core/logger.hpp"
 
 namespace hyengine
@@ -9,10 +7,7 @@ namespace hyengine
     using namespace hyengine;
 
 
-    basic_framebuffer::basic_framebuffer():
-        buffer(new frame_buffer()), depth_stencil_attachment(new texture_buffer()), color_attachment(new texture_buffer()), valid(false)
-    {
-    }
+    basic_framebuffer::basic_framebuffer() : buffer(new frame_buffer()), depth_stencil_attachment(new texture_buffer()), color_attachment(new texture_buffer()), valid(false) {}
 
     basic_framebuffer::~basic_framebuffer()
     {

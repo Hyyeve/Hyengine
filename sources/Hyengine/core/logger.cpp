@@ -67,7 +67,7 @@ namespace hyengine
             return;
         }
 
-        if (current_flush_task != nullptr && !current_flush_task->finished())
+        if (current_flush_task != nullptr && !current_flush_task->completed())
         {
             logging_lock.unlock();
             return;
@@ -162,8 +162,8 @@ namespace hyengine
 
     void log_fatal(const std::string_view tag, const std::string_view msg)
     {
-        constexpr std::string_view FATAL_FORMAT = std::string_view("\u001B[91m\u001B[1m\u001B[4m");
-        log(tag, msg, "FATAL", FATAL_FORMAT);
+        constexpr std::string_view fatal_format = std::string_view("\u001B[91m\u001B[1m\u001B[4m");
+        log(tag, msg, "FATAL", fatal_format);
     }
 
     void log_secret(const std::string_view tag, const std::string_view msg)

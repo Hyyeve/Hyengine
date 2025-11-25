@@ -4,7 +4,7 @@ namespace hyengine
 {
     using namespace glm;
 
-    rectangle::rectangle(const vec2 position, const vec2 size) : position(position), size(size)
+    rectangle::rectangle(const vec2 initial_position, const vec2 initial_size) : position(initial_position), size(initial_size)
     {
         check_flipped();
     }
@@ -82,7 +82,7 @@ namespace hyengine
 
     rectangle rectangle::expanded_by(vec4 left_right_top_bottom) const
     {
-        return rectangle{
+        return rectangle {
             vec2(position.x - left_right_top_bottom.x, position.y - left_right_top_bottom.z),
             vec2(size + left_right_top_bottom.xz() + left_right_top_bottom.yw())
         };
@@ -90,7 +90,7 @@ namespace hyengine
 
     rectangle rectangle::expanded_to(const rectangle& other) const
     {
-        return rectangle{
+        return rectangle {
             position,
             max(size, other.size)
         };
@@ -98,7 +98,7 @@ namespace hyengine
 
     rectangle rectangle::shrunk_by(const vec4 left_right_top_bottom) const
     {
-        return rectangle{
+        return rectangle {
             vec2(position.x + left_right_top_bottom.x, position.y + left_right_top_bottom.z),
             vec2(size.x - left_right_top_bottom.x - left_right_top_bottom.y, size.y - left_right_top_bottom.z - left_right_top_bottom.w)
         };
@@ -106,7 +106,7 @@ namespace hyengine
 
     rectangle rectangle::shrunk_to(const rectangle& other) const
     {
-        return rectangle{
+        return rectangle {
             position,
             min(size, other.size)
         };
@@ -126,6 +126,16 @@ namespace hyengine
         return {new_position, new_size};
     }
 
+    bool rectangle::contains(const vec2 poi32) const
+    {
+        return poi32.x >= position.x && poi32.x <= position.x + size.x && poi32.y >= position.y && poi32.y <= position.y + size.y;
+    }
+
+    bool rectangle::intersects(const rectangle& other) const
+    {
+        return position.x < other.position.x + other.size.x && position.x + size.x > other.position.x && position.y < other.position.y + other.size.y && position.y + size.y > other.position.y;
+    }
+
     bool rectangle::is_inside(const rectangle& other) const
     {
         return position.x >= other.position.x && position.x + size.x <= other.position.x + other.size.x && position.y >= other.position.y && position.y + size.y <= other.position.y + other.size.y;
@@ -134,16 +144,6 @@ namespace hyengine
     bool rectangle::is_smaller_than(const rectangle& other) const
     {
         return size.x < other.size.x && size.y < other.size.y;
-    }
-
-    bool rectangle::intersects(const rectangle& other) const
-    {
-        return position.x < other.position.x + other.size.x && position.x + size.x > other.position.x && position.y < other.position.y + other.size.y && position.y + size.y > other.position.y;
-    }
-
-    bool rectangle::contains(const vec2 poi32) const
-    {
-        return poi32.x >= position.x && poi32.x <= position.x + size.x && poi32.y >= position.y && poi32.y <= position.y + size.y;
     }
 
     void rectangle::check_flipped()

@@ -4,9 +4,7 @@
 
 namespace hyengine
 {
-    pool_allocation_tracker::pool_allocation_tracker(const u32 size): total_pool_size(size), remaining_available_size(total_pool_size)
-    {
-    }
+    pool_allocation_tracker::pool_allocation_tracker(const u32 size) : total_pool_size(size), remaining_available_size(total_pool_size) {}
 
     bool pool_allocation_tracker::try_allocate(const u32 size, u32& address)
     {

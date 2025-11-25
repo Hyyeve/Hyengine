@@ -1,6 +1,4 @@
 #pragma once
-#include <tracy/Tracy.hpp>
-
 #include "../../library/glm.hpp"
 
 namespace hyengine

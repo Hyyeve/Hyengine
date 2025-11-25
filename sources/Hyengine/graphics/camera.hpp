@@ -1,9 +1,8 @@
 #pragma once
 
 #include "graphics.hpp"
-#include "../common/math/interpolatable.hpp"
 #include "../common/math/frustum.hpp"
-
+#include "../common/math/interpolatable.hpp"
 
 namespace hyengine
 {
@@ -12,13 +11,9 @@ namespace hyengine
     public:
         explicit camera(const glm::vec3& position, const glm::quat& rotation);
 
-        explicit camera(glm::vec3 position) : camera(position, glm::quat(1, 0, 0, 0))
-        {
-        }
+        explicit camera(glm::vec3 position) : camera(position, glm::quat(1, 0, 0, 0)) {}
 
-        camera() : camera(glm::vec3(0))
-        {
-        }
+        camera() : camera(glm::vec3(0)) {}
 
         void move_to(const glm::vec3& to);
         void move_to(f32 x, f32 y, f32 z);

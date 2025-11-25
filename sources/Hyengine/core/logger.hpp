@@ -1,10 +1,8 @@
 #pragma once
-#include <chrono>
-#include <iomanip>
 #include "../common/common.hpp"
 
-#include "../library/glm.hpp"
 #include "../common/sized_numerics.hpp"
+#include "../library/glm.hpp"
 
 #define MAKE_PRINTABLE(type, func) inline std::ostream& operator << (std::ostream& lhs, const type& rhs) { \
 lhs << func; \
@@ -26,10 +24,7 @@ namespace hyengine
 {
     enum class log_level : u8
     {
-        ALL     = 3,
-        NORMAL  = 2,
-        REDUCED = 1,
-        NONE    = 0
+        ALL = 3, NORMAL = 2, REDUCED = 1, NONE = 0
     };
 
     namespace ansi_codes

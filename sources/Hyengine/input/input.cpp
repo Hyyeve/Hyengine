@@ -9,7 +9,7 @@ namespace hyengine
 {
     using namespace glm;
 
-    const static std::string logger_tag = "Input";
+    const static std::string LOGGER_TAG = "Input";
 
     virtual_controller disconnected_controller;
     std::array<virtual_controller, 16> controller_hardware;
@@ -99,7 +99,7 @@ namespace hyengine
         glfwSetCursorPosCallback(window, glfw_mouse_position_callback);
         glfwSetJoystickCallback(glfw_joystick_connection_callback);
 
-        log_info(logger_tag, "Bound hardware input callbacks to window @", reinterpret_cast<size_t>(window));
+        log_info(LOGGER_TAG, "Bound hardware input callbacks to window @", reinterpret_cast<size_t>(window));
     }
 
     void poll_controllers()

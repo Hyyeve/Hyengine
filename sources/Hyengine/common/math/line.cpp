@@ -52,31 +52,31 @@ namespace hyengine
         return mix(start, end, percent);
     }
 
-    f32 distance_of(const vec2 poi32)
+    f32 distance_of(const vec2 point)
     {
         vec2 start;
         vec2 end;
         vec2 delta_line = end - start;
-        vec2 delta_poi32 = poi32 - start;
-        f32 h = dot(delta_poi32, delta_line) / dot(delta_line, delta_line);
-        return length(delta_poi32 - h * delta_line);
+        vec2 delta_point = point - start;
+        f32 h = dot(delta_point, delta_line) / dot(delta_line, delta_line);
+        return length(delta_point - h * delta_line);
     }
 
-    //Note: 0 < interpolation_percent < 1 only guarantees that the poi32 is within the bounding box of the line segment.
-    f32 line::percent_of(const vec2 poi32) const
+    //Note: 0 < interpolation_percent < 1 only guarantees that the point is within the bounding box of the line segment.
+    f32 line::percent_of(const vec2 point) const
     {
         vec2 delta = end - start;
-        vec2 poi32_delta = poi32 - start;
-        if (length2(poi32_delta) < 1e-7) return 0;
-        return dot(poi32_delta, delta) / dot(delta, delta);
+        vec2 point_delta = point - start;
+        if (length2(point_delta) < 1e-7) return 0;
+        return dot(point_delta, delta) / dot(delta, delta);
     }
 
-    f32 line::sdf(const vec2 poi32) const
+    f32 line::sdf(const vec2 point) const
     {
-        const vec2 poi32_start = poi32 - start;
+        const vec2 point_start = point - start;
         const vec2 start_end = end - start;
-        f32 h = clamp(dot(poi32_start, start_end) / dot(start_end, start_end), 0.0f, 1.0f);
-        return glm::length(poi32_start - start_end * h);
+        f32 h = clamp(dot(point_start, start_end) / dot(start_end, start_end), 0.0f, 1.0f);
+        return glm::length(point_start - start_end * h);
     }
 
     f32 line::length() const
@@ -104,6 +104,24 @@ namespace hyengine
         return min(start.y, end.y);
     }
 
+    vec2 line::vector() const
+    {
+        return end - start;
+    }
+
+    vec2 line::direction() const
+    {
+        vec2 ex = vector();
+        if (glm::length(ex) == 0) return vec2(0);
+        return normalize(ex);
+    }
+
+    vec2 line::normal() const
+    {
+        vec2 dir = direction();
+        return {dir.y, -dir.x};
+    }
+
     //Treats the lines as infinitely long - must be checked to see if it's on the line segments.
     vec2 line::intersection_with(const line& other) const
     {
@@ -121,30 +139,12 @@ namespace hyengine
         if (det == 0)
         {
             //Parallel lines - no real intersection, but for physics purposes we still want to return a reasonable value.
-            //This is the midpoi32 between the two closest poi32s on the lines.
+            //This is the midpoint between the two closest points on the lines.
             vec2 greater_min = max(min(start, end), min(other.start, other.end));
             vec2 lower_max = min(max(start, end), max(other.start, other.end));
             return mix(greater_min, lower_max, 0.5);
         }
 
         return {(delta_bx * c1 - delta_ax * c2) / det, (delta_ay * c2 - delta_by * c1) / det};
-    }
-
-    vec2 line::direction() const
-    {
-        vec2 ex = vector();
-        if (glm::length(ex) == 0) return vec2(0);
-        return normalize(ex);
-    }
-
-    vec2 line::vector() const
-    {
-        return end - start;
-    }
-
-    vec2 line::normal() const
-    {
-        vec2 dir = direction();
-        return {dir.y, -dir.x};
     }
 }

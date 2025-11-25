@@ -5,11 +5,10 @@
 #include <vector>
 #include <tracy/Tracy.hpp>
 
+#include "../../common/sized_numerics.hpp"
+#include "../../core/logger.hpp"
 #include "../../library/gl.hpp"
 #include "../../library/glm.hpp"
-#include "../../core/logger.hpp"
-#include "../../common/sized_numerics.hpp"
-
 
 namespace hyengine
 {
@@ -76,7 +75,7 @@ namespace hyengine
         void set_sampler_slot(const std::string_view& name, i32 slot);
 
 
-        #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(std::string(name)); location != uniform_locations.end()) { setter; } else log_warn(logger_tag, "Failed to set uniform array '", name, "'");
+        #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(std::string(name)); location != uniform_locations.end()) { setter; } else if(valid()) log_warn(logger_tag, "Failed to set uniform array '", name, "'");
 
         template <std::size_t size>
         void set_uniform(const std::string_view& name, std::array<bool, size> values)

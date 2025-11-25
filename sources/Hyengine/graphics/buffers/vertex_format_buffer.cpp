@@ -8,6 +8,31 @@ namespace hyengine
 {
     vertex_format_buffer::vertex_format_buffer() = default;
 
+    vertex_format_buffer::~vertex_format_buffer()
+    {
+        free();
+    }
+
+    void vertex_format_buffer::allocate()
+    {
+        ZoneScoped;
+        if (buffer_id > 0)
+        {
+            log_warn(logger_tag, "Attempted to initialize already initialized format buffer!", " (buffer ", buffer_id, ")");
+        }
+        glCreateVertexArrays(1, &buffer_id);
+    }
+
+    void vertex_format_buffer::free()
+    {
+        ZoneScoped;
+        if (buffer_id > 0)
+        {
+            glDeleteVertexArrays(1, &buffer_id);
+            buffer_id = 0;
+        }
+    }
+
     void vertex_format_buffer::bind_state() const
     {
         ZoneScoped;
@@ -35,30 +60,5 @@ namespace hyengine
     GLuint vertex_format_buffer::get_id() const
     {
         return buffer_id;
-    }
-
-    vertex_format_buffer::~vertex_format_buffer()
-    {
-        free();
-    }
-
-    void vertex_format_buffer::allocate()
-    {
-        ZoneScoped;
-        if (buffer_id > 0)
-        {
-            log_warn(logger_tag, "Attempted to initialize already initialized format buffer!", " (buffer ", buffer_id, ")");
-        }
-        glCreateVertexArrays(1, &buffer_id);
-    }
-
-    void vertex_format_buffer::free()
-    {
-        ZoneScoped;
-        if (buffer_id > 0)
-        {
-            glDeleteVertexArrays(1, &buffer_id);
-            buffer_id = 0;
-        }
     }
 }

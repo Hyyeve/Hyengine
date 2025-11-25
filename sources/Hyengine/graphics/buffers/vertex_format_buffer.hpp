@@ -10,9 +10,9 @@ namespace hyengine
     class vertex_format_buffer
     {
     public:
-        vertex_format_buffer(const vertex_format_buffer& other) = delete; //COPY CONSTRUCTOR
-        vertex_format_buffer(vertex_format_buffer&& other) = delete; //MOVE CONSTRUCTOR
-        vertex_format_buffer& operator=(const vertex_format_buffer& other) = delete; //COPY ASSIGNMENT
+        vertex_format_buffer(const vertex_format_buffer& other) = delete;                //COPY CONSTRUCTOR
+        vertex_format_buffer(vertex_format_buffer&& other) = delete;                     //MOVE CONSTRUCTOR
+        vertex_format_buffer& operator=(const vertex_format_buffer& other) = delete;     //COPY ASSIGNMENT
         vertex_format_buffer& operator=(vertex_format_buffer&& other) noexcept = delete; //MOVE ASSIGNMENT
 
         explicit vertex_format_buffer();

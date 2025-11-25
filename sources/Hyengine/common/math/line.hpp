@@ -23,9 +23,9 @@ namespace hyengine
 
         #undef OP
 
-        [[nodiscard]] glm::vec2 point_at(f32 percent) const;
-        [[nodiscard]] f32 percent_of(glm::vec2 poi32) const;
-        [[nodiscard]] f32 sdf(glm::vec2 poi32) const;
+        [[nodiscard]] glm::vec2 point_at(const f32 percent) const;
+        [[nodiscard]] f32 percent_of(const glm::vec2 point) const;
+        [[nodiscard]] f32 sdf(const glm::vec2 point) const;
         [[nodiscard]] f32 length() const;
         [[nodiscard]] f32 left() const;
         [[nodiscard]] f32 right() const;

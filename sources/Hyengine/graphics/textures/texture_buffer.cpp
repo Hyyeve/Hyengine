@@ -1,7 +1,5 @@
 #include "texture_buffer.hpp"
-
 #include <tracy/Tracy.hpp>
-
 #include "../../core/logger.hpp"
 #include "../../library/gl.hpp"
 #include "Hyengine/graphics/gl_enums.hpp"
@@ -97,10 +95,81 @@ namespace hyengine
         glClearTexImage(buffer_id, level, data_format, data_type, data);
     }
 
+    void texture_buffer::allocate_as_view(const GLenum target, const GLenum format, const GLuint source_id)
+    {
+        allocate_as_view(target, format, source_id, 0, 1, 0, 1);
+    }
+
+    void texture_buffer::allocate_as_view(const GLenum target, const GLenum format, const GLuint source_id, const GLuint layer)
+    {
+        allocate_as_view(target, format, source_id, 0, 1, layer, 1);
+    }
+
+    void texture_buffer::allocate_as_view(const GLenum target, const GLenum format, const GLuint source_id, const GLuint first_mip, const GLuint mipmap_count, const GLuint first_layer, const GLuint layer_count)
+    {
+        ZoneScoped;
+        if (buffer_id != 0)
+        {
+            log_warn(logger_tag, "Attempted to initialize already initialized texture buffer!", " (buffer ", buffer_id, ")");
+            return;
+        }
+
+        internal_format = format;
+        internal_texture_type = target;
+
+        glGenTextures(1, &buffer_id);
+        glTextureView(buffer_id, internal_texture_type, source_id, internal_format, first_mip, mipmap_count, first_layer, layer_count);
+        log_debug(logger_tag, "Allocated texture view (", buffer_id, ") of texture ", source_id);
+    }
+
+    void texture_buffer::upload_data_1d(const GLint mip_level, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
+    {
+        upload_data_1d_partial(mip_level, 0, internal_size.x, data_format, data_type, data_pointer);
+    }
+
+    void texture_buffer::upload_data_2d(const GLint mip_level, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
+    {
+        upload_data_2d_partial(mip_level, {0, 0}, {internal_size.x, internal_size.y}, data_format, data_type, data_pointer);
+    }
+
+    void texture_buffer::upload_data_3d(const GLint mip_level, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
+    {
+        upload_data_3d_partial(mip_level, {0, 0, 0}, internal_size, data_format, data_type, data_pointer);
+    }
+
+    void texture_buffer::upload_data_1d_array_layer(const GLint mip_level, const GLint layer, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
+    {
+        upload_data_2d_partial(mip_level, {0, layer}, {internal_size.x, 1}, data_format, data_type, data_pointer);
+    }
+
+    void texture_buffer::upload_data_2d_array_layer(const GLint mip_level, const GLint layer, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
+    {
+        upload_data_3d_partial(mip_level, {0, 0, layer}, {internal_size.x, internal_size.y, 1}, data_format, data_type, data_pointer);
+    }
+
+    void texture_buffer::upload_data_1d_partial(const GLint mip_level, const GLint offset, const GLint width, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
+    {
+        ZoneScoped;
+        glTextureSubImage1D(buffer_id, mip_level, offset, width, data_format, data_type, data_pointer);
+    }
+
+    void texture_buffer::upload_data_2d_partial(const GLint mip_level, const glm::uvec2 offset, const glm::uvec2 size, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
+    {
+        ZoneScoped;
+        glTextureSubImage2D(buffer_id, mip_level, offset.x, offset.y, size.x, size.y, data_format, data_type, data_pointer);
+    }
+
+    void texture_buffer::upload_data_3d_partial(const GLint mip_level, const glm::uvec3& offset, const glm::uvec3& size, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
+    {
+        ZoneScoped;
+        glTextureSubImage3D(buffer_id, mip_level, offset.x, offset.y, offset.z, size.x, size.y, size.z, data_format, data_type, data_pointer);
+    }
+
     void texture_buffer::copy_data_from(const texture_buffer& source) const
     {
         copy_data_from(source, 0, 0);
     }
+
 
     void texture_buffer::copy_data_from(const texture_buffer& source, const glm::uvec3& from_pos, const glm::uvec3& to_pos, const glm::uvec3& size) const
     {
@@ -112,6 +181,7 @@ namespace hyengine
         copy_data_from(source, from_mipmap, to_mipmap, {0, 0, 0}, {0, 0, 0}, internal_size);
     }
 
+
     void texture_buffer::copy_data_from(const texture_buffer& source, const i32 from_mipmap, const i32 to_mipmap, const glm::uvec3& from_pos, const glm::uvec3& to_pos, const glm::uvec3& size) const
     {
         copy_texture_data(source.get_id(), source.get_type(), buffer_id, internal_texture_type, from_mipmap, to_mipmap, from_pos, to_pos, size);
@@ -122,9 +192,10 @@ namespace hyengine
         copy_data_from(source, source_texture_type, {0, 0, 0}, {0, 0, 0}, internal_size);
     }
 
+
     void texture_buffer::copy_data_from(const GLuint source, const GLenum source_texture_type, const glm::uvec3& from_pos, const glm::uvec3& to_pos, const glm::uvec3& size) const
     {
-       copy_data_from(source, source_texture_type, 0, 0, from_pos, to_pos, size);
+        copy_data_from(source, source_texture_type, 0, 0, from_pos, to_pos, size);
     }
 
     void texture_buffer::copy_data_from(const GLuint source, const GLenum source_texture_type, const i32 from_mipmap, const i32 to_mipmap, const glm::uvec3& from_pos, const glm::uvec3& to_pos, const glm::uvec3& size) const
@@ -157,79 +228,6 @@ namespace hyengine
     {
         ZoneScoped;
         glGenerateTextureMipmap(buffer_id);
-    }
-
-
-    void texture_buffer::upload_data_1d_partial(const GLint mip_level, const GLint offset, const GLint width, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
-    {
-        ZoneScoped;
-        glTextureSubImage1D(buffer_id, mip_level, offset, width, data_format, data_type, data_pointer);
-    }
-
-    void texture_buffer::upload_data_1d(const GLint mip_level, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
-    {
-        upload_data_1d_partial(mip_level, 0, internal_size.x, data_format, data_type, data_pointer);
-    }
-
-
-    void texture_buffer::upload_data_2d_partial(const GLint mip_level, const glm::uvec2 offset, const glm::uvec2 size, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
-    {
-        ZoneScoped;
-        glTextureSubImage2D(buffer_id, mip_level, offset.x, offset.y, size.x, size.y, data_format, data_type, data_pointer);
-    }
-
-    void texture_buffer::upload_data_2d(const GLint mip_level, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
-    {
-        upload_data_2d_partial(mip_level, {0, 0}, {internal_size.x, internal_size.y}, data_format, data_type, data_pointer);
-    }
-
-
-    void texture_buffer::upload_data_3d_partial(const GLint mip_level, const glm::uvec3& offset, const glm::uvec3& size, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
-    {
-        ZoneScoped;
-        glTextureSubImage3D(buffer_id, mip_level, offset.x, offset.y, offset.z, size.x, size.y, size.z, data_format, data_type, data_pointer);
-    }
-
-    void texture_buffer::upload_data_3d(const GLint mip_level, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
-    {
-        upload_data_3d_partial(mip_level, {0, 0, 0}, internal_size, data_format, data_type, data_pointer);
-    }
-
-    void texture_buffer::upload_data_1d_array_layer(const GLint mip_level, const GLint layer, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
-    {
-        upload_data_2d_partial(mip_level, {0, layer}, {internal_size.x, 1}, data_format, data_type, data_pointer);
-    }
-
-    void texture_buffer::upload_data_2d_array_layer(const GLint mip_level, const GLint layer, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
-    {
-        upload_data_3d_partial(mip_level, {0, 0, layer}, {internal_size.x, internal_size.y, 1}, data_format, data_type, data_pointer);
-    }
-
-    void texture_buffer::allocate_as_view(const GLenum target, const GLenum format, const GLuint source_id)
-    {
-        allocate_as_view(target, format, source_id, 0, 1, 0, 1);
-    }
-
-    void texture_buffer::allocate_as_view(const GLenum target, const GLenum format, const GLuint source_id, const GLuint layer)
-    {
-        allocate_as_view(target, format, source_id, 0, 1, layer, 1);
-    }
-
-    void texture_buffer::allocate_as_view(const GLenum target, const GLenum format, const GLuint source_id, const GLuint first_mip, const GLuint mipmap_count, const GLuint first_layer, const GLuint layer_count)
-    {
-        ZoneScoped;
-        if (buffer_id != 0)
-        {
-            log_warn(logger_tag, "Attempted to initialize already initialized texture buffer!", " (buffer ", buffer_id, ")");
-            return;
-        }
-
-        internal_format = format;
-        internal_texture_type = target;
-
-        glGenTextures(1, &buffer_id);
-        glTextureView(buffer_id, internal_texture_type, source_id, internal_format, first_mip, mipmap_count, first_layer, layer_count);
-        log_debug(logger_tag, "Allocated texture view (", buffer_id, ") of texture ", source_id);
     }
 
 
@@ -412,6 +410,11 @@ namespace hyengine
         return internal_format;
     }
 
+    i32 texture_buffer::get_multisample_count() const
+    {
+        return internal_multisample;
+    }
+
     bool texture_buffer::is_signed_integer_format() const
     {
         return texture_formats::is_signed_integer(internal_format);
@@ -425,10 +428,5 @@ namespace hyengine
     bool texture_buffer::is_float_format() const
     {
         return texture_formats::is_floating_point(internal_format);
-    }
-
-    i32 texture_buffer::get_multisample_count() const
-    {
-        return internal_multisample;
     }
 }

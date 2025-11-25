@@ -8,11 +8,10 @@
 
 namespace hyengine
 {
-    template<typename data_type>
+    template <typename data_type>
     class palettized_vector
     {
     public:
-
         void clear()
         {
             ZoneScoped;
@@ -95,7 +94,7 @@ namespace hyengine
 
         [[nodiscard]] u64 get(const u32 index) const
         {
-             return packed_ids.extract_bits(index * bits_per_id, bits_per_id);
+            return packed_ids.extract_bits(index * bits_per_id, bits_per_id);
         }
 
         void set(const u32 index, const u64 palette_id)

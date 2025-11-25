@@ -12,9 +12,9 @@ namespace hyengine
     class pool_data_buffer
     {
     public:
-        pool_data_buffer(const pool_data_buffer& other) = delete; //COPY CONSTRUCTOR
-        pool_data_buffer(pool_data_buffer&& other) = delete; //MOVE CONSTRUCTOR
-        pool_data_buffer& operator=(const pool_data_buffer& other) = delete; //COPY ASSIGNMENT
+        pool_data_buffer(const pool_data_buffer& other) = delete;                //COPY CONSTRUCTOR
+        pool_data_buffer(pool_data_buffer&& other) = delete;                     //MOVE CONSTRUCTOR
+        pool_data_buffer& operator=(const pool_data_buffer& other) = delete;     //COPY ASSIGNMENT
         pool_data_buffer& operator=(pool_data_buffer&& other) noexcept = delete; //MOVE ASSIGNMENT
 
         explicit pool_data_buffer();

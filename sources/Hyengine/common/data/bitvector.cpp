@@ -1,7 +1,7 @@
-#include <vector>
-#include "../sized_numerics.hpp"
 #include "bitvector.hpp"
+#include <vector>
 #include <tracy/Tracy.hpp>
+#include "../sized_numerics.hpp"
 
 namespace hyengine
 {

@@ -1,4 +1,7 @@
-add_library(Hyengine STATIC)
+add_library(Hyengine STATIC
+        graphics/shaders/shader_buffer_set.cpp
+        graphics/shaders/shader_buffer_set.hpp
+)
 
 target_sources(Hyengine PRIVATE
 

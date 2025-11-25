@@ -5,10 +5,10 @@
         return interpolatable(current_value op rhs.current_value); \
     } \
     \
-    interpolatable operator op(const T& rhs) const { \
+    interpolatable operator op(const type& rhs) const { \
         return interpolatable(current_value op rhs); \
     } \
-    friend interpolatable operator op(const T& lhs, const interpolatable& rhs) { \
+    friend interpolatable operator op(const type& lhs, const interpolatable& rhs) { \
         return interpolatable(lhs op rhs.current_value); \
     }
 
@@ -18,18 +18,18 @@
         return *this; \
     } \
     \
-    interpolatable& operator op(const T& rhs) { \
+    interpolatable& operator op(const type& rhs) { \
         current_value op rhs; \
         return *this; \
     }
 
 namespace hyengine
 {
-    template <class T>
+    template <class type>
     struct interpolator
     {
-        template <typename P>
-        [[nodiscard]] static T interpolate(const T& a, const T& b, P percent)
+        template <typename ptype>
+        [[nodiscard]] static type interpolate(const type& a, const type& b, ptype percent)
         {
             return a + (b - a) * percent;
         }
@@ -38,32 +38,31 @@ namespace hyengine
     template <>
     struct interpolator<glm::quat>
     {
-        template <typename P>
-        [[nodiscard]] static glm::quat interpolate(const glm::quat& a, const glm::quat& b, P percent)
+        template <typename ptype>
+        [[nodiscard]] static glm::quat interpolate(const glm::quat& a, const glm::quat& b, ptype percent)
         {
             return glm::slerp(a, b, percent);
         }
     };
 
-    template <class T, class I = interpolator<T>>
+    template <class type, class interpolator = interpolator<type>>
     class interpolatable
     {
     public:
-        T previous_value;
-        T current_value;
+        type previous_value;
+        type current_value;
 
         // ReSharper disable once CppNonExplicitConvertingConstructor
-        interpolatable(T value) : previous_value(value), current_value(value) // NOLINT(*-explicit-constructor)
-        {
-        }
+        interpolatable(type value) : previous_value(value), current_value(value) // NOLINT(*-explicit-constructor)
+        {}
 
         // ReSharper disable once CppNonExplicitConversionOperator
-        operator T() // NOLINT(*-explicit-constructor)
+        operator type() // NOLINT(*-explicit-constructor)
         {
             return current_value;
         }
 
-        interpolatable& operator=(const T& rhs)
+        interpolatable& operator=(const type& rhs)
         {
             current_value = rhs;
             return *this;
@@ -94,26 +93,26 @@ namespace hyengine
         DEF_ASSIGN_OPERATOR(<<=)
         DEF_ASSIGN_OPERATOR(>>=)
 
-        template <typename P>
-        [[nodiscard]] T interpolated(const P percent) const
+        template <typename ptype>
+        [[nodiscard]] type interpolated(const ptype percent) const
         {
-            return I::interpolate(previous_value, current_value, percent);
+            return interpolator::interpolate(previous_value, current_value, percent);
         }
 
-        template <typename P>
-        void interpolate_previous_to(const P percent)
+        template <typename ptype>
+        void interpolate_previous_to(const ptype percent)
         {
             previous_value = interpolated(percent);
         }
 
-        template <typename P>
-        void interpolate_current_to(const P percent)
+        template <typename ptype>
+        void interpolate_current_to(const ptype percent)
         {
             current_value = interpolated(percent);
         }
 
-        template <typename P>
-        void stabilize_to(const P percent)
+        template <typename ptype>
+        void stabilize_to(const ptype percent)
         {
             current_value = interpolated(percent);
             previous_value = current_value;

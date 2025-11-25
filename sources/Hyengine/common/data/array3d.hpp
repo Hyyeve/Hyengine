@@ -36,6 +36,6 @@ namespace hyengine
             return data[idx];
         }
 
-        std::array<data_type, side_length * side_length * side_length> data{};
+        std::array<data_type, side_length * side_length * side_length> data {};
     };
 }

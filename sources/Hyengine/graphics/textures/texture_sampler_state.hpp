@@ -9,9 +9,9 @@ namespace hyengine
     class texture_sampler_state
     {
     public:
-        texture_sampler_state(const texture_sampler_state& other) = delete; //COPY CONSTRUCTOR
-        texture_sampler_state(texture_sampler_state&& other) = delete; //MOVE CONSTRUCTOR
-        texture_sampler_state& operator=(const texture_sampler_state& other) = delete; //COPY ASSIGNMENT
+        texture_sampler_state(const texture_sampler_state& other) = delete;                //COPY CONSTRUCTOR
+        texture_sampler_state(texture_sampler_state&& other) = delete;                     //MOVE CONSTRUCTOR
+        texture_sampler_state& operator=(const texture_sampler_state& other) = delete;     //COPY ASSIGNMENT
         texture_sampler_state& operator=(texture_sampler_state&& other) noexcept = delete; //MOVE ASSIGNMENT
 
         explicit texture_sampler_state() = default;

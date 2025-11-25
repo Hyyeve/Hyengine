@@ -1,7 +1,7 @@
 #pragma once
 #include "../camera.hpp"
-#include "../buffers/vertex_format_buffer.hpp"
 #include "../buffers/typed_data_buffer.hpp"
+#include "../buffers/vertex_format_buffer.hpp"
 #include "../shaders/shader.hpp"
 
 namespace hyengine
@@ -11,9 +11,9 @@ namespace hyengine
     public:
         explicit basic_renderer();
 
-        basic_renderer(const basic_renderer& other) = delete; //COPY CONSTRUCTOR
-        basic_renderer(basic_renderer&& other) = delete; //MOVE CONSTRUCTOR
-        basic_renderer& operator=(const basic_renderer& other) = delete; //COPY ASSIGNMENT
+        basic_renderer(const basic_renderer& other) = delete;                //COPY CONSTRUCTOR
+        basic_renderer(basic_renderer&& other) = delete;                     //MOVE CONSTRUCTOR
+        basic_renderer& operator=(const basic_renderer& other) = delete;     //COPY ASSIGNMENT
         basic_renderer& operator=(basic_renderer&& other) noexcept = delete; //MOVE ASSIGNMENT
 
         ~basic_renderer();

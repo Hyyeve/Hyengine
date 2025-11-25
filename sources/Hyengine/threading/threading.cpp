@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <functional>
+#include <iostream>
 #include <mutex>
 #include <thread>
 #include <unordered_set>
@@ -9,6 +10,7 @@
 #include <tracy/Tracy.hpp>
 
 #include "../core/logger.hpp"
+#include "Hyengine/common/colors.hpp"
 
 namespace hyengine
 {
@@ -19,97 +21,94 @@ namespace hyengine
     static std::mutex thread_id_lock;
 
     static std::vector<std::thread> threads;
-    static std::pmr::unordered_set<u32> pending_task_ids;
-    static std::list<threadpool_task*> tasks;
-    static std::mutex task_lock;
-    static atomic_bool threads_active = false;
 
-    static std::mutex task_sleep_lock;
-    static std::condition_variable task_sleep_condition;
+    static std::mutex threadpool_work_lock;
+    static std::condition_variable threadpool_work_condition;
 
-    u32 next_task_id()
+    static bool should_threads_exit;
+    static std::vector<threadpool_task*> waiting_tasks; //Tasks that cannot be executed yet due to waiting on dependencies
+    static std::list<threadpool_task*> ready_tasks;     //Tasks that are not waiting on dependencies and can be dequeued
+
+    void thread_loop()
     {
-        static atomic_u32 next_task_id = 0;
-        next_task_id += 1;
-        if (next_task_id == 0) next_task_id = 1; //Could overflow, but zero is our "invalid task" value
-        return next_task_id;
-    }
-
-    threadpool_task* next_task()
-    {
-        threadpool_task* task = nullptr;
-        task_lock.lock();
-
-        if (!tasks.empty())
-        {
-            task = tasks.back();
-            tasks.pop_back();
-
-            const i32 max_rotations = tasks.size();
-            i32 rotation_count = 0;
-            while (pending_task_ids.contains(task->dependency()))
-            {
-                if (rotation_count >= max_rotations)
-                {
-                    //If we've gotten here, either we have a dependency loop, or everything is waiting on tasks that are currently executing.
-                    //Put it back in the list and give up.
-                    tasks.push_front(task);
-                    task = nullptr;
-                    break;
-                }
-
-                //Task we pulled is dependent on something that's pending - push it back into the queue and grab a new one
-                tasks.push_front(task);
-                task = tasks.back();
-                tasks.pop_back();
-                rotation_count++;
-            }
-        }
-
-        task_lock.unlock();
-        return task;
-    }
-
-    void mark_finished(threadpool_task* task)
-    {
-        task_lock.lock();
-        pending_task_ids.erase(task->id());
-        task_lock.unlock();
-    }
-
-    void process_tasks()
-    {
-        ZoneScoped;
+        ZoneScopedC(0x00FF77);
         while (true)
         {
-            threadpool_task* task = next_task();
+            const bool did_execute_task = execute_next_task();
+            if (did_execute_task) continue; //work until no more tasks available
 
-            if (task != nullptr)
+            //Exit / work conditions could be changed here; thread would block until changes written
+
+            std::unique_lock lock(threadpool_work_lock); //block until we get the lock
+
+            //Exit/work conditions can't be changed here - would block and wait for this thread to check them
+
+            if (should_threads_exit) break; //check if we should exit
+            if (ready_tasks.empty())        //check if a task has been added since we finished the last one to prevent deadlock
             {
-                task->execute_blocking();
-                mark_finished(task);
-                continue;
+                threadpool_work_condition.wait(lock); //Lock released here, exit/work conditions can be changed and thread will see notifications
             }
 
-            //Make sure we stop executing tasks and join if threads active has been set to false
-            //Otherwise we could block on the wait condition indefinitely
-            if (!threads_active)
-            {
-                break;
-            }
+            //Lock is re-locked here by waking thread
 
-            std::unique_lock lock(task_sleep_lock);
-            task_sleep_condition.wait(lock);
+            lock.unlock(); //Release the lock while we do work
         }
+    }
+
+    void update_waiting_tasks()
+    {
+        ZoneScoped;
+        threadpool_work_lock.lock();
+        erase_if(waiting_tasks, [](threadpool_task* task)
+        {
+            const bool is_ready = task->dependencies_completed();
+            if (is_ready) ready_tasks.push_back(task);
+            return is_ready;
+        });
+        threadpool_work_lock.unlock();
+    }
+
+    //True if a task was executed
+    bool execute_next_task()
+    {
+        threadpool_task* next_task = nullptr;
+        threadpool_work_lock.lock();
+        if (!ready_tasks.empty())
+        {
+            next_task = ready_tasks.front();
+            ready_tasks.pop_front();
+        }
+        threadpool_work_lock.unlock();
+
+        if (next_task == nullptr)
+        {
+            return false;
+        }
+
+        next_task->try_execute_task();
+        update_waiting_tasks();
+
+        return true;
+    }
+
+    bool has_next_task()
+    {
+        bool result = true;
+        threadpool_work_lock.lock();
+        if (ready_tasks.empty()) result = false;
+        threadpool_work_lock.unlock();
+        return result;
     }
 
     void release_threadpool()
     {
         ZoneScoped;
-        task_sleep_lock.lock();
-        threads_active = false;
-        task_sleep_lock.unlock();
-        task_sleep_condition.notify_all();
+
+        threadpool_work_lock.lock();
+        should_threads_exit = true;
+        threadpool_work_lock.unlock();
+
+        threadpool_work_condition.notify_all();
 
         for (std::thread& thread : threads)
         {
@@ -119,15 +118,18 @@ namespace hyengine
         threads.clear();
     }
 
+
     void create_threadpool()
     {
         ZoneScoped;
+        threadpool_work_lock.lock();
+
         if (!threads.empty())
         {
             return;
         }
 
-        threads_active = true;
+        should_threads_exit = false;
 
         //We want one task thread per logical core, leaving two cores free for the main thread and OS
         //If there isn't any logical cores available (or the hardware concurrency hint is unavailable) we just make 3.
@@ -143,11 +145,12 @@ namespace hyengine
                 char* thread_name = new char[16];
                 snprintf(thread_name, 16, " Worker %i ", i);
                 tracy::SetThreadName(thread_name);
-                process_tasks();
+                thread_loop();
             });
         }
-    }
 
+        threadpool_work_lock.unlock();
+    }
 
     u32 get_current_thread_id()
     {
@@ -169,74 +172,72 @@ namespace hyengine
         return id;
     }
 
-    void queue_task(threadpool_task* task)
+    void threadpool_task::enqueue()
     {
-        task_lock.lock();
-        task_sleep_lock.lock();
+        if (!state_ready()) return; //Task already running or completed
 
-        tasks.push_front(task);
-        pending_task_ids.insert(task->id());
+        threadpool_work_lock.lock();
+        const bool ready = dependencies_completed();
 
-        task_sleep_lock.unlock();
-        task_lock.unlock();
-
-        //Make sure a thread is awake to process the task
-        task_sleep_condition.notify_one();
-    }
-
-    void threadpool_task::enqueue(const u32 depends_on_id)
-    {
-        if (is_running)
+        if (ready)
         {
-            log_error(LOGGER_TAG, "Can't queue; this task object is already running!");
-            return;
+            ready_tasks.push_back(this);
+        }
+        else
+        {
+            waiting_tasks.push_back(this);
         }
 
-        is_finished = false;
-        is_running = true;
-
-        completion_promise = std::promise<void>();
-        completion_future = completion_promise.get_future();
-
-        task_id = next_task_id();
-        depends_on = depends_on_id;
-
-        queue_task(this);
+        threadpool_work_lock.unlock();
+        threadpool_work_condition.notify_one();
     }
 
-    bool threadpool_task::await(const u64 timeout_ms) const
+    bool threadpool_task::completed() const
+    {
+        return state == execution_state::COMPLETED;
+    }
+
+    void threadpool_task::await_completed()
+    {
+        ZoneScoped;
+        const bool executed_immediately = try_execute_task();
+        if (executed_immediately) return;
+        completion_future.wait();
+    }
+
+    bool threadpool_task::await_timeout(const u32 timeout_ms) const
     {
         ZoneScoped;
         completion_future.wait_for(std::chrono::milliseconds(timeout_ms));
-        return finished();
+        return completed();
     }
 
-    bool threadpool_task::finished() const
-    {
-        return is_finished;
-    }
-
-    void threadpool_task::execute_blocking()
+    bool threadpool_task::try_execute_task()
     {
         ZoneScoped;
-        is_running = true;
-        is_finished = false;
+        if (dependencies_completed() && state_ready())
+        {
+            state = execution_state::RUNNING;
+            execute();
+            state = execution_state::COMPLETED;
+            completion_promise.set_value();
+            return true;
+        }
 
-        execute();
-
-        is_running = false;
-        is_finished = true;
-
-        completion_promise.set_value();
+        return false;
     }
 
-    u32 threadpool_task::id()
+    bool threadpool_task::dependencies_completed() const
     {
-        return task_id;
+        for (const threadpool_task* dependent : depends_on)
+        {
+            if (!dependent->completed()) return false;
+        }
+        return true;
     }
 
-    u32 threadpool_task::dependency()
+    bool threadpool_task::state_ready() const
     {
-        return depends_on;
+        return state == execution_state::WAITING;
     }
 }

@@ -1,5 +1,5 @@
-#include <cmath>
 #include "easing.hpp"
+#include <cmath>
 #include "math.hpp"
 
 namespace hyengine

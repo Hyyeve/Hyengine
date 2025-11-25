@@ -2,6 +2,7 @@
 
 #include <array>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <utility>
 #include <vector>
@@ -11,73 +12,13 @@
 
 namespace hyengine
 {
-   using namespace glm;
+    using namespace glm;
 
-    shader::shader(const std::string_view& asset_id) noexcept : asset_id(asset_id), binary_asset_id(get_binary_asset_id(this->asset_id))
-    {
-    }
+    shader::shader(const std::string_view& asset_id) noexcept : asset_id(asset_id), binary_asset_id(get_binary_asset_id(this->asset_id)) {}
 
     shader::~shader()
     {
         unload();
-    }
-
-    bool shader::valid() const
-    {
-        return program_id != 0;
-    }
-
-    bool shader::active() const
-    {
-        i32 current_program = 0;
-        glGetIntegerv(GL_CURRENT_PROGRAM, &current_program);
-        return current_program == program_id;
-    }
-
-    std::string shader::get_asset_id() const
-    {
-        return asset_id;
-    }
-
-    i32 shader::get_storage_block_binding(const std::string_view& name)
-    {
-        const std::string name_str = std::string(name);
-        return storage_block_bindings.contains(name_str) ? storage_block_bindings[name_str].binding : -1;
-    }
-
-    void shader::set_storage_block_binding(const std::string_view& name, const i32 binding)
-    {
-        const std::string name_str = std::string(name);
-        if (!storage_block_bindings.contains(name_str))
-        {
-            log_warn(logger_tag, "Failed to set shader storage block binding for '", name_str, "'`");
-            return;
-        }
-
-        glShaderStorageBlockBinding(program_id, storage_block_bindings[name_str].location, binding);
-    }
-
-    i32 shader::get_uniform_block_binding(const std::string_view& name)
-    {
-        const std::string name_str = std::string(name);
-        return uniform_block_bindings.contains(name_str) ? uniform_block_bindings[name_str].binding : -1;
-    }
-
-    void shader::set_uniform_block_binding(const std::string_view& name, i32 binding)
-    {
-        const std::string name_str = std::string(name);
-        if (!uniform_block_bindings.contains(name_str))
-        {
-            log_warn(logger_tag, "Failed to set shader uniform block binding for '", name_str, "'`");
-            return;
-        }
-
-        glUniformBlockBinding(program_id, uniform_block_bindings[name_str].location, binding);
-    }
-
-    void shader::use() const
-    {
-        glUseProgram(program_id);
     }
 
     void shader::load()
@@ -132,6 +73,80 @@ namespace hyengine
         delete_asset(binary_asset_id);
     }
 
+    void shader::use() const
+    {
+        glUseProgram(program_id);
+    }
+
+    bool shader::valid() const
+    {
+        return program_id != 0;
+    }
+
+    bool shader::active() const
+    {
+        i32 current_program = 0;
+        glGetIntegerv(GL_CURRENT_PROGRAM, &current_program);
+        return current_program == program_id;
+    }
+
+    std::string shader::get_asset_id() const
+    {
+        return asset_id;
+    }
+
+    i32 shader::get_storage_block_binding(const std::string_view& name)
+    {
+        const std::string name_str = std::string(name);
+        return storage_block_bindings.contains(name_str) ? storage_block_bindings[name_str].binding : -1;
+    }
+
+    void shader::set_storage_block_binding(const std::string_view& name, const i32 binding)
+    {
+        const std::string name_str = std::string(name);
+        if (!storage_block_bindings.contains(name_str))
+        {
+            log_warn(logger_tag, "Failed to set shader storage block binding for '", name_str, "'`");
+            return;
+        }
+
+        glShaderStorageBlockBinding(program_id, storage_block_bindings[name_str].location, binding);
+    }
+
+    i32 shader::get_uniform_block_binding(const std::string_view& name)
+    {
+        const std::string name_str = std::string(name);
+        return uniform_block_bindings.contains(name_str) ? uniform_block_bindings[name_str].binding : -1;
+    }
+
+    void shader::set_uniform_block_binding(const std::string_view& name, const i32 binding)
+    {
+        const std::string name_str = std::string(name);
+        if (!uniform_block_bindings.contains(name_str))
+        {
+            log_warn(logger_tag, "Failed to set shader uniform block binding for '", name_str, "'`");
+            return;
+        }
+
+        glUniformBlockBinding(program_id, uniform_block_bindings[name_str].location, binding);
+    }
+
+    void log_shader_compile_info(const GLuint shader)
+    {
+        i32 log_length = 0;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_length);
+
+        std::string log;
+        log.resize(max(log_length, 0));
+
+        glGetShaderInfoLog(shader, log_length, nullptr, log.data());
+
+        log.insert(0, "\n ---------- Failed to compile shader ---------- \n");
+        log.insert(log.length() - 1, " --------------------------------------------- ");
+
+        glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, log.length(), log.data());
+    }
+
     static GLuint compile_shader(const std::string& share, const std::string& source, const GLuint type)
     {
         const std::string combined = share + "\n" + source;
@@ -146,18 +161,7 @@ namespace hyengine
 
         if (success != GL_TRUE)
         {
-            i32 log_length = 0;
-            glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_length);
-
-            std::string log;
-            log.resize(max(log_length, 0));
-
-            glGetShaderInfoLog(shader, log_length, nullptr, log.data());
-
-            log.insert(0, "\n ---------- Failed to compile shader: \n ");
-            log.insert(log.length() - 1, " ---------------------------------------- ");
-
-            glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, log.length(), log.data());
+            log_shader_compile_info(shader);
             return 0;
         }
 
@@ -175,7 +179,7 @@ namespace hyengine
         glGetProgramInfoLog(program, log_length, nullptr, log.data());
 
         log.insert(0, header);
-        log.insert(log.length() - 1, "\n ---------------------------------------- ");
+        log.insert(log.length() - 1, " -------------------------------------------- ");
 
         glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, log.length(), log.data());
     }
@@ -189,7 +193,7 @@ namespace hyengine
 
         if (success != GL_TRUE)
         {
-            log_program_info("\n ---------- Failed to validate program: \n", program);
+            log_program_info("\n -------- Failed to validate program -------- \n", program);
             return false;
         }
         return true;
@@ -213,7 +217,7 @@ namespace hyengine
 
         if (success != GL_TRUE)
         {
-            log_program_info("\n ---------- Failed to link program: \n", program);
+            log_program_info("\n ---------- Failed to link program ---------- \n", program);
             return 0;
         }
 
@@ -225,32 +229,31 @@ namespace hyengine
         return hyengine::stringify(cache_directory, ":", get_asset_name(normal_asset_id));
     }
 
-    static bool line_contains(const std::string_view line, const std::string_view str)
-    {
-        return line.find(str) != std::string::npos;
-    }
-
     bool update_line_type(const std::string_view line, i32* line_type)
     {
         const std::string type = ascii_to_lower(find_directive(line, "shader_type"));
         if (type.empty()) return false;
         switch (string_hash(type))
         {
+            case string_hash("vert"):
             case string_hash("vertex"):
             {
                 *line_type = 0;
                 break;
             }
+            case string_hash("frag"):
             case string_hash("fragment"):
             {
                 *line_type = 1;
                 break;
             }
+            case string_hash("comp"):
             case string_hash("compute"):
             {
                 *line_type = 2;
                 break;
             }
+            case string_hash("geom"):
             case string_hash("geometry"):
             {
                 *line_type = 3;
@@ -266,6 +269,7 @@ namespace hyengine
                 *line_type = 5;
                 break;
             }
+            case string_hash("share"):
             case string_hash("shared"):
             {
                 *line_type = 6;
@@ -295,7 +299,7 @@ namespace hyengine
         while (getline(text, line))
         {
             const bool did_change = update_line_type(line, &current_line_type);
-            if (did_change) continue; //Skip including the type define lines
+            if (did_change || current_line_type == -1) continue; //Skip including the type define lines
             stage_sources[current_line_type] << line << '\n';
         }
 
@@ -316,7 +320,8 @@ namespace hyengine
         for (const GLuint shader : shaders)
         {
             //If we wanted to be super efficient about shader compilation, we should really keep these around for re-use.
-            if (shader != 0) glDeleteShader(shader);
+            if (shader != 0)
+                glDeleteShader(shader);
         }
 
         save_binary_program(binary_asset_id, program);
@@ -417,7 +422,7 @@ namespace hyengine
         }
     }
 
-    #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(std::string(name)); location != uniform_locations.end()) { setter; } else log_warn(logger_tag, "Failed to set uniform '",  name, "'");
+    #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(std::string(name)); location != uniform_locations.end()) { setter; } else if(valid()) { log_warn(logger_tag, "Failed to set uniform '",  name, "'"); }
 
     void shader::set_uniform(const std::string_view& name, const bool value)
     {

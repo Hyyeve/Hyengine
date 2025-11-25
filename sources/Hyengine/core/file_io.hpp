@@ -39,7 +39,6 @@ namespace hyengine
         save_raw_asset(id, &value, sizeof(data));
     }
 
-
     void delete_asset(const std::string_view& asset_id);
     void delete_asset_directory(const std::string_view& asset_id);
 

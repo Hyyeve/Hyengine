@@ -1,17 +1,12 @@
 #include "pool_data_buffer.hpp"
-
 #include <tracy/Tracy.hpp>
-
 #include "../../core/logger.hpp"
-
 
 namespace hyengine
 {
     using namespace hyengine;
 
-    pool_data_buffer::pool_data_buffer() : pool_allocator(0), current_staging_buffer_address(0)
-    {
-    }
+    pool_data_buffer::pool_data_buffer() : pool_allocator(0), current_staging_buffer_address(0) {}
 
     pool_data_buffer::~pool_data_buffer()
     {
@@ -62,6 +57,33 @@ namespace hyengine
         return pool_allocator.get_last_used_address();
     }
 
+    void pool_data_buffer::block_ready()
+    {
+        ZoneScoped;
+        staging_buffer.block_ready();
+        current_staging_buffer_address = 0;
+    }
+
+    void pool_data_buffer::upload(const u32& address, const void* const data, const u32 size)
+    {
+        ZoneScoped;
+        const u32 upload_offset = current_staging_buffer_address;
+        current_staging_buffer_address += size;
+
+        const GLsizeiptr staging_buffer_size = staging_buffer.get_slice_size();
+        if (current_staging_buffer_address > staging_buffer_size || force_reallocate_staging_buffer)
+        {
+            reallocate_staging_buffer(current_staging_buffer_address * 2);
+            current_staging_buffer_address = 0;
+        }
+
+        GLbyte* upload_buffer_pointer = static_cast<GLbyte*>(staging_buffer.get_mapped_slice_pointer());
+        const GLbyte* source_pointer = static_cast<const GLbyte*>(data);
+        memcpy(upload_buffer_pointer + upload_offset, source_pointer, size);
+
+        pool_buffer.copy_buffer_range(staging_buffer.get_buffer_id(), staging_buffer.get_slice_offset() + upload_offset, address, size);
+    }
+
     void pool_data_buffer::bind_state() const
     {
         pool_buffer.bind_state();
@@ -95,33 +117,6 @@ namespace hyengine
     GLenum pool_data_buffer::get_target() const
     {
         return pool_buffer.get_target();
-    }
-
-    void pool_data_buffer::block_ready()
-    {
-        ZoneScoped;
-        staging_buffer.block_ready();
-        current_staging_buffer_address = 0;
-    }
-
-    void pool_data_buffer::upload(const u32& address, const void* const data, const u32 size)
-    {
-        ZoneScoped;
-        const u32 upload_offset = current_staging_buffer_address;
-        current_staging_buffer_address += size;
-
-        const GLsizeiptr staging_buffer_size = staging_buffer.get_slice_size();
-        if (current_staging_buffer_address > staging_buffer_size || force_reallocate_staging_buffer)
-        {
-            reallocate_staging_buffer(current_staging_buffer_address * 2);
-            current_staging_buffer_address = 0;
-        }
-
-        GLbyte* upload_buffer_pointer = static_cast<GLbyte*>(staging_buffer.get_mapped_slice_pointer());
-        const GLbyte* source_pointer = static_cast<const GLbyte*>(data);
-        memcpy(upload_buffer_pointer + upload_offset, source_pointer, size);
-
-        pool_buffer.copy_buffer_range(staging_buffer.get_buffer_id(), staging_buffer.get_slice_offset() + upload_offset, address, size);
     }
 
     void pool_data_buffer::reallocate_staging_buffer(const GLsizeiptr size)

@@ -5,11 +5,11 @@
 
 namespace hyengine
 {
-    template <typename T, i32 capacity>
+    template <typename type, i32 capacity>
     class ring_buffer
     {
     public:
-        void push(T value)
+        void push(type value)
         {
             elements[write_index] = value;
             write_index++;
@@ -17,15 +17,15 @@ namespace hyengine
             max_read_index++;
         }
 
-        [[nodiscard]] T read()
+        [[nodiscard]] type read()
         {
-            T elem = elements[read_index];
+            type elem = elements[read_index];
             read_index++;
             read_index %= capacity;
             return elem;
         }
 
-        [[nodiscard]] T operator[](const size_t index) const
+        [[nodiscard]] type operator[](const size_t index) const
         {
             return elements[index % capacity];
         }
@@ -41,7 +41,7 @@ namespace hyengine
         }
 
     private:
-        std::array<T, capacity> elements;
+        std::array<type, capacity> elements;
         i32 write_index = 0;
         i32 read_index = 0;
         i32 max_read_index = -1;

@@ -73,7 +73,7 @@ namespace hyengine
         copy_render_texture_data(gl_id, dest, from_pos, to_pos, size);
     }
 
-    void render_texture::copy_render_texture_data(const GLuint source, const GLuint dest,  const glm::uvec2 source_pos, const glm::uvec2 dest_pos, const glm::uvec2 size)
+    void render_texture::copy_render_texture_data(const GLuint source, const GLuint dest, const glm::uvec2 source_pos, const glm::uvec2 dest_pos, const glm::uvec2 size)
     {
         ZoneScoped;
         glCopyImageSubData(source, GL_RENDERBUFFER, 0, source_pos.x, source_pos.y, 0, dest, GL_RENDERBUFFER, 0, dest_pos.x, dest_pos.y, 0, size.x, size.y, 0);

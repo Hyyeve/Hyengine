@@ -1,25 +1,25 @@
 #include "graphics.hpp"
-#include <stack>
 #include <string>
 
+#include "gl_enums.hpp"
 #include "../common/colors.hpp"
 #include "../core/logger.hpp"
 #include "../library/gl.hpp"
 
 namespace hyengine
 {
-    using namespace glm;
-
-    bool try_load_glad()
-    {
-        ZoneScoped;
-        return gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)) != 0;
-    }
+    constexpr std::string_view LOGGER_TAG = "Graphics";
 
     bool try_init_glfw()
     {
         ZoneScoped;
         return glfwInit() == GLFW_TRUE;
+    }
+
+    bool try_load_glad()
+    {
+        ZoneScoped;
+        return gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)) != 0;
     }
 
     static void handle_gl_error(GLenum source, GLenum type, GLuint /*id*/, GLenum severity, GLsizei /*length*/, const GLchar* message, const void* /*userParam*/)
@@ -30,60 +30,42 @@ namespace hyengine
 
         switch (source)
         {
-            case GL_DEBUG_SOURCE_API:
-                source_str = "API";
+            case GL_DEBUG_SOURCE_API: source_str = "API";
                 break;
-            case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
-                source_str = "Window System";
+            case GL_DEBUG_SOURCE_WINDOW_SYSTEM: source_str = "Window System";
                 break;
-            case GL_DEBUG_SOURCE_SHADER_COMPILER:
-                source_str = "Shader Compiler";
+            case GL_DEBUG_SOURCE_SHADER_COMPILER: source_str = "Shader Compiler";
                 break;
-            case GL_DEBUG_SOURCE_THIRD_PARTY:
-                source_str = "Third Party";
+            case GL_DEBUG_SOURCE_THIRD_PARTY: source_str = "Third Party";
                 break;
-            case GL_DEBUG_SOURCE_APPLICATION:
-                source_str = "Application";
+            case GL_DEBUG_SOURCE_APPLICATION: source_str = "Application";
                 break;
-            case GL_DEBUG_SOURCE_OTHER:
-                source_str = "Other";
-                ignore = true;
+            case GL_DEBUG_SOURCE_OTHER: source_str = "Other";
                 break;
-            default:
-                source_str = "Unknown";
+            default: source_str = "Unknown";
                 break;
         }
         switch (type)
         {
-            case GL_DEBUG_TYPE_ERROR:
-                type_str = "Error";
+            case GL_DEBUG_TYPE_ERROR: type_str = "Error";
                 break;
-            case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-                type_str = "Deprecated Behavior";
+            case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: type_str = "Deprecated Behavior";
                 break;
-            case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-                type_str = "Undefined Behavior";
+            case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: type_str = "Undefined Behavior";
                 break;
-            case GL_DEBUG_TYPE_PORTABILITY:
-                type_str = "Portability";
+            case GL_DEBUG_TYPE_PORTABILITY: type_str = "Portability";
                 break;
-            case GL_DEBUG_TYPE_PERFORMANCE:
-                type_str = "Performance";
+            case GL_DEBUG_TYPE_PERFORMANCE: type_str = "Performance";
                 break;
-            case GL_DEBUG_TYPE_MARKER:
-                type_str = "Marker";
+            case GL_DEBUG_TYPE_MARKER: type_str = "Marker";
                 break;
-            case GL_DEBUG_TYPE_PUSH_GROUP:
-                type_str = "Push Group";
+            case GL_DEBUG_TYPE_PUSH_GROUP: type_str = "Push Group";
                 break;
-            case GL_DEBUG_TYPE_POP_GROUP:
-                type_str = "Pop Group";
+            case GL_DEBUG_TYPE_POP_GROUP: type_str = "Pop Group";
                 break;
-            case GL_DEBUG_TYPE_OTHER:
-                type_str = "Other";
+            case GL_DEBUG_TYPE_OTHER: type_str = "Other";
                 break;
-            default:
-                type_str = "Unknown";
+            default: type_str = "Unknown";
                 break;
         }
 
@@ -94,31 +76,34 @@ namespace hyengine
 
         switch (severity)
         {
-            case GL_DEBUG_SEVERITY_HIGH:
-                log_error(id_str, msg_str);
+            case GL_DEBUG_SEVERITY_HIGH: log_error(id_str, msg_str);
                 break;
-            case GL_DEBUG_SEVERITY_MEDIUM:
-                log_warn(id_str, msg_str);
+            case GL_DEBUG_SEVERITY_MEDIUM: log_warn(id_str, msg_str);
                 break;
-            case GL_DEBUG_SEVERITY_LOW:
-                log_info(id_str, msg_str);
+            case GL_DEBUG_SEVERITY_LOW: log_info(id_str, msg_str);
                 break;
-            default:
-                log_debug(id_str,msg_str);
+            default: log_debug(id_str, msg_str);
                 break;
         }
     }
 
     void enable_gl_debug()
     {
-        glEnable(GL_DEBUG_OUTPUT);
+        set_gl_flag_enabled(gl_flags::DEBUG_OUTPUT, true);
         glDebugMessageCallback(handle_gl_error, nullptr);
-        log_info("Graphics", "Enabled GL debug messaging");
+        log_info(LOGGER_TAG, "Enabled GL debug messaging");
     }
 
-    void set_scissor(const rectangle& rect)
+    void enable_scissor_test()
     {
-        set_scissor(rect.position, rect.size);
+        ZoneScoped;
+        set_gl_flag_enabled(gl_flags::SCISSOR_TEST, true);
+    }
+
+    void disable_scissor_test()
+    {
+        ZoneScoped;
+        set_gl_flag_enabled(gl_flags::SCISSOR_TEST, false);
     }
 
     void set_scissor(const i32 x, const i32 y, const i32 width, const i32 height)
@@ -127,30 +112,23 @@ namespace hyengine
         glScissor(x, y, width, height);
     }
 
-    void set_scissor(ivec2 position, ivec2 size)
+    void set_scissor(glm::ivec2 position, glm::ivec2 size)
     {
         set_scissor(position.x, position.y, size.x, size.y);
     }
 
-    void enable_scissor_test()
+    void set_scissor(const rectangle& rect)
     {
-        ZoneScoped;
-        glEnable(GL_SCISSOR_TEST);
+        set_scissor(rect.position, rect.size);
     }
 
-    void disable_scissor_test()
-    {
-        ZoneScoped;
-        glDisable(GL_SCISSOR_TEST);
-    }
-
-    static render_viewport current_viewport{};
+    static render_viewport current_viewport {};
 
     void set_viewport(const render_viewport& viewport)
     {
         ZoneScoped;
         current_viewport = viewport;
-        glViewport(viewport.x_offset, viewport.y_offset, viewport.width, viewport.height);
+        glViewport(viewport.x_offset, viewport.y_offset, static_cast<i32>(viewport.width), static_cast<i32>(viewport.height));
     }
 
     const render_viewport& get_viewport()
@@ -158,37 +136,74 @@ namespace hyengine
         return current_viewport;
     }
 
-    render_viewport create_letterbox_viewport(const render_viewport& to_fit, const i32 target_width, const i32 target_height, const bool fill)
+    render_viewport create_fitted_viewport(const render_viewport& to_fit, const i32 target_width, const i32 target_height, const bool fill)
     {
-        const f32 aspectA = to_fit.height * target_width;
-        const f32 aspectB = target_height * to_fit.width;
+        const u32 aspect_a = to_fit.height * target_width;
+        const u32 aspect_b = target_height * to_fit.width;
 
-        render_viewport result{};
+        render_viewport result {};
 
-        if (aspectA > aspectB != fill)
+        if ((aspect_a > aspect_b) != fill)
         {
             result.width = to_fit.width;
-            result.height = aspectB / target_width;
+            result.height = aspect_b / target_width;
         }
         else
         {
-            result.width = aspectA / target_height;
+            result.width = aspect_a / target_height;
             result.height = to_fit.height;
         }
 
-        result.x_offset = (to_fit.width - result.width) / 2;
-        result.y_offset = (to_fit.height - result.height) / 2;
+        result.x_offset = (static_cast<i32>(to_fit.width) - static_cast<i32>(result.width)) / 2;
+        result.y_offset = (static_cast<i32>(to_fit.height) - static_cast<i32>(result.height)) / 2;
 
         return result;
     }
 
+    static std::unordered_map<GLenum, bool> cached_gl_flags;
+
     void set_gl_flag_enabled(const GLenum setting, const bool enable)
     {
         ZoneScoped;
+        if (cached_gl_flags.contains(setting))
+        {
+            const bool current = cached_gl_flags[setting];
+            if (current == enable)
+            {
+                log_debug(LOGGER_TAG, "GL flag already set to target value");
+                return;
+            }
+        }
+
         if (enable)
+        {
             glEnable(setting);
+        }
         else
+        {
             glDisable(setting);
+        }
+
+        cached_gl_flags[setting] = enable;
+    }
+
+    bool get_gl_flag_enabled(const GLenum setting)
+    {
+        if (cached_gl_flags.contains(setting)) return cached_gl_flags[setting];
+        const bool value = glIsEnabled(setting);
+        cached_gl_flags[setting] = value;
+        return value;
+    }
+
+    i32 get_gl_const_i32(const GLenum constant)
+    {
+        static std::unordered_map<GLenum, u32> cached_constants;
+        if (cached_constants.contains(constant)) return cached_constants.at(constant);
+
+        glm::ivec4 values;
+        glGetIntegerv(constant, glm::value_ptr(values));
+        cached_constants[constant] = values.x;
+        return values.x;
     }
 
     void set_blending_config(const blending_config& config, const u32 buffer_slot)
@@ -202,7 +217,7 @@ namespace hyengine
     void set_blending_enabled(const bool enable)
     {
         ZoneScoped;
-        set_gl_flag_enabled(GL_BLEND, enable);
+        set_gl_flag_enabled(gl_flags::BLENDING, enable);
     }
 
     void set_stencil_config(const stencil_config& config, const GLenum facing)
@@ -215,12 +230,12 @@ namespace hyengine
 
     void set_stencil_enabled(const bool enable)
     {
-        set_gl_flag_enabled(GL_STENCIL_TEST, enable);
+        set_gl_flag_enabled(gl_flags::STENCIL_TEST, enable);
     }
 
     void set_cull_face_enabled(const bool enable)
     {
-        set_gl_flag_enabled(GL_CULL_FACE, enable);
+        set_gl_flag_enabled(gl_flags::FACE_CULLING, enable);
     }
 
     void set_cull_face_mode(const GLenum mode)
@@ -231,12 +246,12 @@ namespace hyengine
 
     void set_depth_test_enabled(const bool enable)
     {
-        set_gl_flag_enabled(GL_DEPTH_TEST, enable);
+        set_gl_flag_enabled(gl_flags::DEPTH_TEST, enable);
     }
 
     void set_cubemap_seamless_sampling(const bool enable)
     {
-        set_gl_flag_enabled(GL_TEXTURE_CUBE_MAP_SEAMLESS, enable);
+        set_gl_flag_enabled(gl_flags::SEAMLESS_CUBE_MAP, enable);
     }
 
     void set_clear_color(const glm::vec4 color)
@@ -261,12 +276,5 @@ namespace hyengine
     {
         ZoneScoped;
         glClear(mask);
-    }
-
-    u32 get_max_texture_units()
-    {
-        GLint result = 0;
-        glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &result);
-        return static_cast<u32>(result);
     }
 }

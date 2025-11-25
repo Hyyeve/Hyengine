@@ -1,8 +1,8 @@
 #pragma once
 
+#include "../../common/sized_numerics.hpp"
 #include "../../library/gl.hpp"
 #include "../../library/glm.hpp"
-#include "../../common/sized_numerics.hpp"
 
 
 namespace hyengine
@@ -10,9 +10,9 @@ namespace hyengine
     class render_texture
     {
     public:
-        render_texture(const render_texture& other) = delete; //COPY CONSTRUCTOR
-        render_texture(render_texture&& other) = delete; //MOVE CONSTRUCTOR
-        render_texture& operator=(const render_texture& other) = delete; //COPY ASSIGNMENT
+        render_texture(const render_texture& other) = delete;                //COPY CONSTRUCTOR
+        render_texture(render_texture&& other) = delete;                     //MOVE CONSTRUCTOR
+        render_texture& operator=(const render_texture& other) = delete;     //COPY ASSIGNMENT
         render_texture& operator=(render_texture&& other) noexcept = delete; //MOVE ASSIGNMENT
 
         explicit render_texture() = default;

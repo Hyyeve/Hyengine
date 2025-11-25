@@ -9,7 +9,7 @@ namespace hyengine
     public:
         glm::vec2 position, size;
 
-        rectangle(glm::vec2 position, glm::vec2 size);
+        rectangle(glm::vec2 initial_position, glm::vec2 initial_size);
         explicit rectangle(glm::vec4 left_right_top_bottom);
 
         void set(glm::vec2 position, glm::vec2 size);

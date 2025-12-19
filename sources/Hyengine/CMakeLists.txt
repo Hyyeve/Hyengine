@@ -1,6 +1,4 @@
 add_library(Hyengine STATIC
-        graphics/shaders/shader_buffer_set.cpp
-        graphics/shaders/shader_buffer_set.hpp
 )
 
 target_sources(Hyengine PRIVATE
@@ -15,6 +13,7 @@ target_sources(Hyengine PRIVATE
         common/math/rectangle.cpp
         common/math/frustum.cpp
         common/math/easing.cpp
+        common/math/aabb_box.cpp
 
         core/file_io.cpp
         core/hyengine.cpp
@@ -24,6 +23,7 @@ target_sources(Hyengine PRIVATE
         graphics/graphics.cpp
         graphics/native_window.cpp
         graphics/shaders/shader.cpp
+        graphics/shaders/shader_buffer_set.cpp
         graphics/shaders/shader_batching.cpp
         graphics/camera.cpp
         graphics/gl_enums.cpp
@@ -40,6 +40,7 @@ target_sources(Hyengine PRIVATE
         graphics/buffers/pool_data_buffer.cpp
         graphics/buffers/standard_data_buffer.cpp
         graphics/buffers/vertex_format_buffer.cpp
+
 
         graphics/renderers/basic_renderer.cpp
 
@@ -66,6 +67,7 @@ target_sources(Hyengine PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILE
         common/math/frustum.hpp
         common/math/easing.hpp
         common/math/interpolatable.hpp
+        common/math/aabb_box.hpp
 
         common/data/array3d.hpp
         common/data/nodes3d.hpp
@@ -81,6 +83,7 @@ target_sources(Hyengine PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILE
         graphics/graphics.hpp
         graphics/native_window.hpp
         graphics/shaders/shader.hpp
+        graphics/shaders/shader_buffer_set.hpp
         graphics/shaders/shader_batching.hpp
         graphics/camera.hpp
         graphics/vertex_formats.hpp

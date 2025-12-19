@@ -72,7 +72,7 @@ namespace hyengine
         f64 runtime = 0.0f;
         f64 update_accumulator = 0.0f;
         f64 frame_accumulator = 0.0f;
-        loop_data.loop_config = &config;
+        loop_data.config = &config;
 
         while (true)
         {

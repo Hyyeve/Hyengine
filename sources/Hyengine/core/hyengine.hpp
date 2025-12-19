@@ -17,7 +17,7 @@ namespace hyengine
             f64 time;
             f64 delta_time;
             f64 interpolation;
-            config* loop_config;
+            config* config;
         };
 
         struct config

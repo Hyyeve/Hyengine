@@ -4,15 +4,13 @@
 
 namespace hyengine
 {
-    class rectangle
+    struct rectangle
     {
-    public:
-        glm::vec2 position, size;
+        glm::vec2 position, extents;
 
         rectangle(glm::vec2 initial_position, glm::vec2 initial_size);
         explicit rectangle(glm::vec4 left_right_top_bottom);
 
-        void set(glm::vec2 position, glm::vec2 size);
         void set(glm::vec4 left_right_top_bottom);
         void expand_by(glm::vec4 left_right_top_bottom);
         void shrink_by(glm::vec4 left_right_top_bottom);
@@ -35,11 +33,11 @@ namespace hyengine
         [[nodiscard]] rectangle union_with(const rectangle& other) const;
         [[nodiscard]] rectangle intersection_with(const rectangle& other) const;
 
-        [[nodiscard]] bool contains(glm::vec2 poi32) const;
+        [[nodiscard]] bool contains(const glm::vec2 point) const;
         [[nodiscard]] bool intersects(const rectangle& other) const;
         [[nodiscard]] bool is_inside(const rectangle& other) const;
         [[nodiscard]] bool is_smaller_than(const rectangle& other) const;
 
-        void check_flipped();
+        void check_inverted();
     };
 }

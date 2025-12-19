@@ -4,50 +4,43 @@ namespace hyengine
 {
     using namespace glm;
 
-    rectangle::rectangle(const vec2 initial_position, const vec2 initial_size) : position(initial_position), size(initial_size)
+    rectangle::rectangle(const vec2 initial_position, const vec2 initial_size) : position(initial_position), extents(initial_size)
     {
-        check_flipped();
+        check_inverted();
     }
 
-    rectangle::rectangle(vec4 left_right_top_bottom) : position({left_right_top_bottom.x, left_right_top_bottom.z}), size({left_right_top_bottom.y - left_right_top_bottom.x, left_right_top_bottom.w - left_right_top_bottom.z})
+    rectangle::rectangle(vec4 left_right_top_bottom) : position({left_right_top_bottom.x, left_right_top_bottom.z}), extents({left_right_top_bottom.y - left_right_top_bottom.x, left_right_top_bottom.w - left_right_top_bottom.z})
     {
-        check_flipped();
-    }
-
-    void rectangle::set(const vec2 position, const vec2 size)
-    {
-        this->position = position;
-        this->size = size;
-        check_flipped();
+        check_inverted();
     }
 
     void rectangle::set(vec4 left_right_top_bottom)
     {
         position = left_right_top_bottom.xz();
-        size = left_right_top_bottom.yw() - left_right_top_bottom.xz();
-        check_flipped();
+        extents = left_right_top_bottom.yw() - left_right_top_bottom.xz();
+        check_inverted();
     }
 
     void rectangle::expand_by(vec4 left_right_top_bottom)
     {
         position -= left_right_top_bottom.xz();
-        size += left_right_top_bottom.xz() + left_right_top_bottom.yw();
+        extents += left_right_top_bottom.xz() + left_right_top_bottom.yw();
     }
 
     void rectangle::shrink_by(vec4 left_right_top_bottom)
     {
         position += left_right_top_bottom.xz();
-        size -= left_right_top_bottom.xz() + left_right_top_bottom.yw();
+        extents -= left_right_top_bottom.xz() + left_right_top_bottom.yw();
     }
 
     void rectangle::expand_to(const rectangle& other)
     {
-        size = max(size, other.size);
+        extents = max(extents, other.extents);
     }
 
     void rectangle::shrink_to(const rectangle& other)
     {
-        size = min(size, other.size);
+        extents = min(extents, other.extents);
     }
 
     vec2 rectangle::min_corner() const
@@ -57,7 +50,7 @@ namespace hyengine
 
     vec2 rectangle::max_corner() const
     {
-        return position + size;
+        return position + extents;
     }
 
     f32 rectangle::left() const
@@ -67,7 +60,7 @@ namespace hyengine
 
     f32 rectangle::right() const
     {
-        return position.x + size.x;
+        return position.x + extents.x;
     }
 
     f32 rectangle::up() const
@@ -77,14 +70,14 @@ namespace hyengine
 
     f32 rectangle::down() const
     {
-        return position.y + size.y;
+        return position.y + extents.y;
     }
 
     rectangle rectangle::expanded_by(vec4 left_right_top_bottom) const
     {
         return rectangle {
             vec2(position.x - left_right_top_bottom.x, position.y - left_right_top_bottom.z),
-            vec2(size + left_right_top_bottom.xz() + left_right_top_bottom.yw())
+            vec2(extents + left_right_top_bottom.xz() + left_right_top_bottom.yw())
         };
     }
 
@@ -92,71 +85,71 @@ namespace hyengine
     {
         return rectangle {
             position,
-            max(size, other.size)
+            max(extents, other.extents)
         };
     }
 
     rectangle rectangle::shrunk_by(const vec4 left_right_top_bottom) const
     {
-        return rectangle {
+        return {
             vec2(position.x + left_right_top_bottom.x, position.y + left_right_top_bottom.z),
-            vec2(size.x - left_right_top_bottom.x - left_right_top_bottom.y, size.y - left_right_top_bottom.z - left_right_top_bottom.w)
+            vec2(extents.x - left_right_top_bottom.x - left_right_top_bottom.y, extents.y - left_right_top_bottom.z - left_right_top_bottom.w)
         };
     }
 
     rectangle rectangle::shrunk_to(const rectangle& other) const
     {
-        return rectangle {
+        return {
             position,
-            min(size, other.size)
+            min(extents, other.extents)
         };
     }
 
     rectangle rectangle::union_with(const rectangle& other) const
     {
         vec2 new_position = min(position, other.position);
-        vec2 new_size = max(position + size, other.position + other.size) - new_position;
+        vec2 new_size = max(position + extents, other.position + other.extents) - new_position;
         return {new_position, new_size};
     }
 
     rectangle rectangle::intersection_with(const rectangle& other) const
     {
         vec2 new_position = max(position, other.position);
-        vec2 new_size = min(position + size, other.position + other.size) - new_position;
+        vec2 new_size = min(position + extents, other.position + other.extents) - new_position;
         return {new_position, new_size};
     }
 
-    bool rectangle::contains(const vec2 poi32) const
+    bool rectangle::contains(const vec2 point) const
     {
-        return poi32.x >= position.x && poi32.x <= position.x + size.x && poi32.y >= position.y && poi32.y <= position.y + size.y;
+        return point.x >= position.x && point.x <= position.x + extents.x && point.y >= position.y && point.y <= position.y + extents.y;
     }
 
     bool rectangle::intersects(const rectangle& other) const
     {
-        return position.x < other.position.x + other.size.x && position.x + size.x > other.position.x && position.y < other.position.y + other.size.y && position.y + size.y > other.position.y;
+        return position.x < other.position.x + other.extents.x && position.x + extents.x > other.position.x && position.y < other.position.y + other.extents.y && position.y + extents.y > other.position.y;
     }
 
     bool rectangle::is_inside(const rectangle& other) const
     {
-        return position.x >= other.position.x && position.x + size.x <= other.position.x + other.size.x && position.y >= other.position.y && position.y + size.y <= other.position.y + other.size.y;
+        return position.x >= other.position.x && position.x + extents.x <= other.position.x + other.extents.x && position.y >= other.position.y && position.y + extents.y <= other.position.y + other.extents.y;
     }
 
     bool rectangle::is_smaller_than(const rectangle& other) const
     {
-        return size.x < other.size.x && size.y < other.size.y;
+        return extents.x < other.extents.x && extents.y < other.extents.y;
     }
 
-    void rectangle::check_flipped()
+    void rectangle::check_inverted()
     {
-        if (size.x < 0)
+        if (extents.x < 0)
         {
-            position.x += size.x;
-            size.x = -size.x;
+            position.x += extents.x;
+            extents.x = -extents.x;
         }
-        if (size.y < 0)
+        if (extents.y < 0)
         {
-            position.y += size.y;
-            size.y = -size.y;
+            position.y += extents.y;
+            extents.y = -extents.y;
         }
     }
 }

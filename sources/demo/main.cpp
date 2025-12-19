@@ -12,12 +12,12 @@ hyengine::native_window* window;
 hyengine::basic_renderer renderer;
 hyengine::camera cam;
 
-bool update(const hyengine::frame_loop::loop_data& data)
+bool update(const hyengine::frame_loop::loop_data& loop)
 {
     cam.start_update();
 
     float speed = hyengine::key_shift_pressed() ? 3 : 1;
-    float delta_time = data.delta_time;
+    float delta_time = loop.delta_time;
     if (hyengine::key_control_pressed()) speed /= 10;
     if (hyengine::key_alt_pressed()) speed /= 100;
 

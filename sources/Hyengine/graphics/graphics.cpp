@@ -71,7 +71,7 @@ namespace hyengine
 
         if (ignore) return;
 
-        std::string id_str = "GL " + source_str + " > " + type_str;
+        std::string id_str = format("GL ", source_str, " > ", type_str);
         std::string msg_str = std::string(message);
 
         switch (severity)
@@ -119,7 +119,7 @@ namespace hyengine
 
     void set_scissor(const rectangle& rect)
     {
-        set_scissor(rect.position, rect.size);
+        set_scissor(rect.position, rect.extents);
     }
 
     static render_viewport current_viewport {};

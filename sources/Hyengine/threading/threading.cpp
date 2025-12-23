@@ -219,8 +219,8 @@ namespace hyengine
         {
             state = execution_state::RUNNING;
             execute();
-            state = execution_state::COMPLETED;
             completion_promise.set_value();
+            state = execution_state::COMPLETED;
             return true;
         }
 

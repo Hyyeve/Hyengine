@@ -112,8 +112,11 @@ target_sources(hyengine PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILE
         input/virtual_keyboard.hpp
         input/virtual_mouse.hpp
         input/virtual_controller.hpp
+
         library/gl.hpp
         library/glm.hpp
+        library/pcg.hpp
+
         threading/threading.hpp
 )
 
@@ -123,10 +126,12 @@ target_sources(hyengine PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILE
 target_include_directories(hyengine PUBLIC ${GLFW3_INCLUDE_DIRS})
 target_include_directories(hyengine PUBLIC ${OPENGL_INCLUDE_DIR})
 target_include_directories(hyengine PUBLIC ${GLM_INCLUDE_DIRS})
+target_include_directories(hyengine PUBLIC ${PCG_INCLUDE_DIRS})
 
-target_link_libraries(hyengine PUBLIC glad)
 target_link_libraries(hyengine PUBLIC glfw)
+target_link_libraries(hyengine PUBLIC glad)
+target_link_libraries(hyengine PUBLIC glm::glm)
+
 target_link_libraries(hyengine PUBLIC ${OPENGL_LIBRARIES})
 target_link_libraries(hyengine PUBLIC TracyClient)
 target_link_libraries(hyengine PUBLIC stblib)
-target_link_libraries(hyengine PUBLIC pcg)

@@ -1,0 +1,124 @@
+#include "bitvector.hpp"
+#include <vector>
+#include <tracy/Tracy.hpp>
+#include "../sized_numerics.hpp"
+
+namespace hyengine
+{
+    void bitvector::clear()
+    {
+        ZoneScoped;
+        data.clear();
+        total_bits_count = 0;
+    }
+
+    void bitvector::shrink_to_fit()
+    {
+        ZoneScoped;
+        data.shrink_to_fit();
+    }
+
+    void bitvector::reserve(const u64 num)
+    {
+        ZoneScoped;
+        data.reserve(num * 64);
+    }
+
+    void bitvector::resize(const u64 num)
+    {
+        ZoneScoped;
+        data.resize((63 + num) / 64);
+        total_bits_count = num;
+    }
+
+    void bitvector::push_back_bits(const u8 num, const u64 values)
+    {
+        if (num > 64)
+        {
+            return;
+        }
+
+        const u64 insert_position = total_bits_count;
+        total_bits_count += num;
+
+        const u64 size_elements = data.size();
+        const u64 new_size_elements = (63 + total_bits_count) / 64;
+        if (new_size_elements > size_elements) data.push_back(0);
+
+        write_bits(insert_position, num, values);
+    }
+
+    void bitvector::pop_back_bits(const u64 num)
+    {
+        if (num >= total_bits_count)
+        {
+            clear();
+            return;
+        }
+
+        total_bits_count -= num;
+        resize(total_bits_count);
+    }
+
+    bool bitvector::empty() const
+    {
+        return total_bits_count == 0;
+    }
+
+    u64 bitvector::size_in_bits() const
+    {
+        return total_bits_count;
+    }
+
+    u64 bitvector::capacity_in_bits() const
+    {
+        return data.capacity() * 64;
+    }
+
+
+    void bitvector::write_bits(const u64 at, const u64 num, const u64 values)
+    {
+        if (num > 64)
+        {
+            return;
+        }
+
+        const u64 last_bit = at + num - 1;
+        const u64 bits_offset = at % 64;
+
+        const u64 index_start = at / 64;
+        const u64 index_end = last_bit / 64;
+
+        const u64 mask = (1ull << num) - 1ull;
+        const u64 masked_bits = values & mask;
+
+        data[index_start] &= ~(mask << bits_offset);
+        data[index_start] |= masked_bits << bits_offset;
+
+        if (index_start == index_end) return;
+
+        data[index_end] &= ~(mask >> (64 - bits_offset));
+        data[index_end] |= masked_bits >> (64 - bits_offset);
+    }
+
+    u64 bitvector::read_bits(const u64 at, const u64 num) const
+    {
+        if (num > 64)
+        {
+            return 0;
+        }
+
+        const u64 last_bit = at + num - 1;
+        const u64 bits_offset = at % 64;
+        const u64 mask = (1ull << num) - 1;
+
+        const u64 index_start = at / 64;
+        const u64 index_end = last_bit / 64;
+
+        u64 result = (data[index_start] >> bits_offset) & mask;
+        if (index_start == index_end) return result;
+
+        result |= (data[index_end] << (64 - bits_offset)) & mask;
+        return result;
+    }
+}

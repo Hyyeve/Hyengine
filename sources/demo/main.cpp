@@ -1,12 +1,12 @@
-#include "Hyengine/core/hyengine.hpp"
-#include "Hyengine/graphics/font/font_meta.hpp"
-#include "Hyengine/common/colors.hpp"
-#include "Hyengine/common/math/math.hpp"
-#include "Hyengine/core/file_io.hpp"
-#include "Hyengine/graphics/renderers/basic_renderer.hpp"
-#include "Hyengine/graphics/textures/texture_buffer.hpp"
-#include "Hyengine/input/input.hpp"
-#include "Hyengine/threading/threading.hpp"
+#include "hyengine/core/hyengine.hpp"
+#include "hyengine/graphics/font/font_meta.hpp"
+#include "hyengine/common/colors.hpp"
+#include "hyengine/common/math/math.hpp"
+#include "hyengine/core/file_io.hpp"
+#include "hyengine/graphics/renderers/basic_renderer.hpp"
+#include "hyengine/graphics/textures/texture_buffer.hpp"
+#include "hyengine/input/input.hpp"
+#include "hyengine/threading/threading.hpp"
 
 hyengine::native_window* window;
 hyengine::basic_renderer renderer;

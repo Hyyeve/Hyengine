@@ -1,6 +1,7 @@
 #include "basic_framebuffer.hpp"
 #include <tracy/Tracy.hpp>
 #include "../../core/logger.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 namespace hyengine
 {
@@ -23,6 +24,7 @@ namespace hyengine
     bool basic_framebuffer::allocate(GLenum color_format, glm::uvec2 size, i32 multisample_count)
     {
         ZoneScoped;
+        TracyGpuZone("allocate basic framebuffer");
         if (valid)
         {
             log_warn(logger_tags::GRAPHICS, stringify("Attempted to allocate already allocated basic framebuffer! (framebuffer ", buffer->get_id(), ")"));
@@ -58,6 +60,7 @@ namespace hyengine
     void basic_framebuffer::free()
     {
         ZoneScoped;
+        TracyGpuZone("free basic framebuffer");
         if (valid)
         {
             const i32 prev_id = buffer->get_id();

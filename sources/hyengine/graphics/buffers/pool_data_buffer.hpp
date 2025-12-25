@@ -24,15 +24,14 @@ namespace hyengine
         void free();
 
         void shrink_staging_buffer();
-        void reserve_staging_buffer_size(const u32 size);
+        [[nodiscard]] bool reserve_staging_buffer_size(const u32 size);
 
         [[nodiscard]] bool try_allocate_space(const u32 size, u32& address);
         void deallocate_space(const u32 address);
         [[nodiscard]] u32 get_last_allocated_address() const;
 
         void block_ready();
-        void upload(const u32& address, const void* const data, const u32 size);
-        //void upload_async(const u32& address, const void* const data, const u32 size);
+        [[nodiscard]] bool upload(const u32& address, const void* const data, const u32 size);
 
         void bind_state() const;
         void unbind_state() const;
@@ -45,7 +44,7 @@ namespace hyengine
         [[nodiscard]] GLenum get_target() const;
 
     private:
-        void reallocate_staging_buffer(const GLsizeiptr size);
+        [[nodiscard]] bool reallocate_staging_buffer(const GLsizeiptr size);
 
         standard_data_buffer pool_buffer;
         pool_allocation_tracker pool_allocator;

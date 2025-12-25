@@ -4,6 +4,7 @@
 
 namespace hyengine
 {
+    ///Simple push/pop stack of rectangles with union/intersection operations. Useful for keeping track of scissor rectangles or similar stacked masks.
     class rectangle_stack
     {
     public:

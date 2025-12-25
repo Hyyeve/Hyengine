@@ -5,6 +5,7 @@
 #include "../common/colors.hpp"
 #include "../core/logger.hpp"
 #include "../library/gl.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 namespace hyengine
 {
@@ -105,6 +106,7 @@ namespace hyengine
     void set_scissor(const i32 x, const i32 y, const i32 width, const i32 height)
     {
         ZoneScoped;
+        TracyGpuZone("set scissor");
         glScissor(x, y, width, height);
     }
 
@@ -123,6 +125,7 @@ namespace hyengine
     void set_viewport(const render_viewport& viewport)
     {
         ZoneScoped;
+        TracyGpuZone("set viewport");
         current_viewport = viewport;
         glViewport(viewport.x_offset, viewport.y_offset, static_cast<i32>(viewport.width), static_cast<i32>(viewport.height));
     }
@@ -161,6 +164,7 @@ namespace hyengine
     void set_gl_flag_enabled(const GLenum setting, const bool enable)
     {
         ZoneScoped;
+        TracyGpuZone("set gl flag");
         if (cached_gl_flags.contains(setting))
         {
             const bool current = cached_gl_flags[setting];
@@ -185,6 +189,7 @@ namespace hyengine
 
     bool get_gl_flag_enabled(const GLenum setting)
     {
+        TracyGpuZone("get gl flag");
         if (cached_gl_flags.contains(setting)) return cached_gl_flags[setting];
         const bool value = glIsEnabled(setting);
         cached_gl_flags[setting] = value;
@@ -193,6 +198,7 @@ namespace hyengine
 
     i32 get_gl_const_i32(const GLenum constant)
     {
+        TracyGpuZone("get gl const");
         static std::unordered_map<GLenum, u32> cached_constants;
         if (cached_constants.contains(constant)) return cached_constants.at(constant);
 
@@ -205,6 +211,7 @@ namespace hyengine
     void set_blending_config(const blending_config& config, const u32 buffer_slot)
     {
         ZoneScoped;
+        TracyGpuZone("set blending config");
         glBlendColor(config.constant_blend_color.r, config.constant_blend_color.g, config.constant_blend_color.b, config.constant_blend_color.a);
         glBlendEquationSeparatei(buffer_slot, config.rgb_equation, config.alpha_equation);
         glBlendFuncSeparatei(buffer_slot, config.source_blend_rgb, config.dest_blend_rgb, config.source_blend_alpha, config.dest_blend_alpha);
@@ -219,6 +226,7 @@ namespace hyengine
     void set_stencil_config(const stencil_config& config, const GLenum facing)
     {
         ZoneScoped;
+        TracyGpuZone("set stencil config");
         glStencilFuncSeparate(facing, config.test_func, config.reference, config.test_mask);
         glStencilMaskSeparate(facing, config.write_mask);
         glStencilOpSeparate(facing, config.stencil_fail_op, config.depth_fail_op, config.pixel_pass_op);
@@ -237,6 +245,7 @@ namespace hyengine
     void set_cull_face_mode(const GLenum mode)
     {
         ZoneScoped;
+        TracyGpuZone("set cull face");
         glCullFace(mode);
     }
 
@@ -253,24 +262,28 @@ namespace hyengine
     void set_clear_color(const glm::vec4 color)
     {
         ZoneScoped;
+        TracyGpuZone("set clear color");
         glClearColor(color.r, color.g, color.b, color.a);
     }
 
     void set_clear_depth(const f32 depth)
     {
         ZoneScoped;
+        TracyGpuZone("set depth clear");
         glClearDepthf(depth);
     }
 
     void set_clear_stencil(const i32 stencil)
     {
         ZoneScoped;
+        TracyGpuZone("set stencil clear");
         glClearStencil(stencil);
     }
 
     void clear_buffers(const GLbitfield mask)
     {
         ZoneScoped;
+        TracyGpuZone("clear buffers");
         glClear(mask);
     }
 }

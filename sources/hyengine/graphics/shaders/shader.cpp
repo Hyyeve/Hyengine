@@ -9,6 +9,7 @@
 #include <tracy/Tracy.hpp>
 
 #include "../../core/file_io.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 namespace hyengine
 {
@@ -249,12 +250,15 @@ namespace hyengine
 
         const GLuint program = link_program(shaders);
 
-        for (const GLuint shader : shaders)
         {
-            //If we wanted to be super efficient about shader compilation, we should really keep these around for re-use.
-            if (shader != 0)
+            TracyGpuZone("delete shader stages");
+            for (const GLuint shader : shaders)
             {
-                glDeleteShader(shader);
+                //If we wanted to be super efficient about shader compilation, we should really keep these around for re-use.
+                if (shader != 0)
+                {
+                    glDeleteShader(shader);
+                }
             }
         }
 
@@ -265,6 +269,7 @@ namespace hyengine
 
     GLuint shader::link_program(const std::vector<GLuint>& shaders)
     {
+        TracyGpuZone("create shader program");
         const GLuint program = glCreateProgram();
         for (const GLuint shader : shaders)
         {
@@ -296,6 +301,7 @@ namespace hyengine
     GLuint shader::load_binary_program(const std::string_view& asset_id)
     {
         ZoneScoped;
+        TracyGpuZone("load shader binary");
         const std::string binary_asset_id = get_binary_asset_id(asset_id);
         if (!asset_exists(binary_asset_id)) return 0;
         const std::vector<u8> binary_data = load_asset_bytes(binary_asset_id);
@@ -316,6 +322,7 @@ namespace hyengine
     void shader::save_binary_program(const std::string_view& asset_id, const GLuint program)
     {
         ZoneScoped;
+        TracyGpuZone("save shader binary");
         const std::string binary_asset_id = get_binary_asset_id(asset_id);
 
         if (program == 0) return;
@@ -406,6 +413,7 @@ namespace hyengine
 
     void shader::load_interface_locations()
     {
+        TracyGpuZone("load shader interface");
         i32 uniform_count = 0;
         i32 ssbo_count = 0;
         i32 ubo_count = 0;
@@ -456,7 +464,7 @@ namespace hyengine
         }
     }
 
-    #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(std::string(name)); location != uniform_locations.end()) { setter; } else if(valid()) { log_warn(logger_tags::GRAPHICS, "Failed to set uniform '",  name, "'"); }
+    #define TRY_SET_UNIFORM(setter) TracyGpuZone("set shader uniform"); if(const auto location = uniform_locations.find(std::string(name)); location != uniform_locations.end()) { setter; } else if(valid()) { log_warn(logger_tags::GRAPHICS, "Failed to set uniform '",  name, "'"); }
 
     void shader::set_uniform(const std::string_view& name, const bool value)
     {

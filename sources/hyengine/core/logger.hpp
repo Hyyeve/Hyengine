@@ -74,6 +74,7 @@ namespace hyengine
         };
 
         //General tags
+
         const tag ENGINE = {"Hyengine", ""};
         const tag FILEIO = {"FileIO", ""};
         const tag GRAPHICS = {"Graphics", ""};
@@ -83,9 +84,11 @@ namespace hyengine
     }
 
     void set_log_level(const log_level level);
-    void flush_logs();
-    void log(const logger_tags::tag& tag, const std::string_view msg, const std::string_view type, const std::string_view color_code);
 
+    ///Triggers an async log writing task to be executed. Must be called for logs to be output.
+    void flush_logs();
+
+    void log(const logger_tags::tag& tag, const std::string_view msg, const std::string_view type, const std::string_view color_code);
     void log_debug(const logger_tags::tag& tag, const std::string_view msg);
     void log_info(const logger_tags::tag& tag, const std::string_view msg);
     void log_performance(const logger_tags::tag& tag, const std::string_view msg);

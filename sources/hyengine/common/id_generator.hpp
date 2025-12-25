@@ -1,32 +1,35 @@
 #pragma once
 #include <vector>
-#include <tracy/Tracy.hpp>
 
 namespace hyengine
 {
-    template <typename ID_TYPE>
+    ///Generates sequential IDs of a given type, with the ability to free IDs which will then be re-used. Useful for tracking items in a sparse array.
+    template <typename id_type>
     class id_generator
     {
     public:
-        ID_TYPE assign()
+        ///Generates an ID. The id will either be an ID that was previously freed, or if no freed ids are available, the next ID in the sequence.
+        id_type assign()
         {
             if (!freed_ids.empty())
             {
-                ID_TYPE id = freed_ids.back();
+                id_type id = freed_ids.back();
                 freed_ids.pop_back();
                 return id;
             }
 
-            ID_TYPE id = next_id;
+            id_type id = next_id;
             next_id = next_id + 1;
             return id;
         }
 
-        void free(ID_TYPE id)
+        ///Frees an ID. After an ID is freed, assigning a new ID will preferentially use a free ID.
+        void free(id_type id)
         {
             freed_ids.push_back(id);
         }
 
+        ///Clears internal state. IDs will start being generated from the start of the sequence again.
         void clear()
         {
             next_id = {};
@@ -34,7 +37,7 @@ namespace hyengine
         }
 
     private:
-        std::vector<ID_TYPE> freed_ids = {};
-        ID_TYPE next_id = {};
+        std::vector<id_type> freed_ids = {};
+        id_type next_id = {};
     };
 }

@@ -43,15 +43,6 @@ namespace hyengine
     static std::string root_directory = "assets";
     static std::string override_directory;
 
-    bool should_preprocess(const std::string_view& type)
-    {
-        switch (string_hash(type))
-        {
-            case string_hash("shader"): return true;
-            default: return false;
-        }
-    }
-
     std::regex directive_data_pattern(const std::string_view& directive)
     {
         const std::string pattern = stringify("<", directive, "=([^>]+)>");
@@ -169,17 +160,7 @@ namespace hyengine
         std::filesystem::remove_all(directory);
     }
 
-    std::string load_asset_text(const std::string_view& id)
-    {
-        if (should_preprocess(get_asset_type(id)))
-        {
-            return load_preprocessed_asset_text(id);
-        }
-
-        return load_raw_asset_text(id);
-    }
-
-    std::string load_raw_asset_text(const std::string_view& id)
+    std::string load_asset_text_raw(const std::string_view& id)
     {
         ZoneScoped;
         if (!asset_exists(id))
@@ -211,10 +192,10 @@ namespace hyengine
         return buffer.str();
     }
 
-    std::string load_preprocessed_asset_text(const std::string_view& id)
+    std::string load_asset_text(const std::string_view& id)
     {
         ZoneScoped;
-        const std::string text = load_raw_asset_text(id);
+        const std::string text = load_asset_text_raw(id);
         return inject_text_includes(text);
     }
 
@@ -363,7 +344,7 @@ namespace hyengine
             std::string include_asset = find_directive(new_text, "include");
             if (!include_asset.empty())
             {
-                std::string asset_text = load_raw_asset_text(include_asset);
+                std::string asset_text = load_asset_text_raw(include_asset);
                 replace_directive(new_text, "include", asset_text);
                 continue;
             }

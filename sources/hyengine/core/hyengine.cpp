@@ -7,6 +7,7 @@
 
 #include "logger.hpp"
 #include "../input/input.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 
 namespace hyengine
@@ -43,6 +44,8 @@ namespace hyengine
             return nullptr;
         }
 
+        TracyGpuContext;
+
         if (main_window_config.gl_profile_debug) enable_gl_debug();
 
         set_viewport(window->get_viewport());
@@ -75,10 +78,9 @@ namespace hyengine
 
         while (true)
         {
-            const bool should_update = config.should_update;
             const bool should_render = config.should_render;
             const f64 update_step_time = 1.0 / config.target_ups;
-            const f64 max_frame_time = config.max_frame_time;
+            const f64 max_frame_time = config.max_update_time;
             const f64 min_frame_time = 1.0 / config.target_fps;
             u32 update_budget = config.max_updates_per_frame;
 
@@ -94,8 +96,8 @@ namespace hyengine
                 delta_time = max_frame_time;
             }
 
-            if (should_update) update_accumulator += delta_time;
-            while (update_accumulator >= update_step_time && update_budget > 0 && should_update)
+            update_accumulator += delta_time;
+            while (update_accumulator >= update_step_time && update_budget > 0)
             {
                 ZoneScopedNC("Update", 0xFF0077);
                 FrameMarkStart("Update");

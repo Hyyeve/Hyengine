@@ -2,6 +2,8 @@
 
 #include "hyengine/graphics/gl_enums.hpp"
 #include "hyengine/graphics/graphics.hpp"
+#include "tracy/Tracy.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 namespace hyengine
 {
@@ -54,6 +56,7 @@ namespace hyengine
     void texture_set::bind_state() const
     {
         ZoneScoped;
+        TracyGpuZone("bind texture set");
         for (auto [texture, slot_data] : slot_map)
         {
             glBindTextureUnit(slot_data.slot, texture);

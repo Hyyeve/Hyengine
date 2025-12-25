@@ -1,8 +1,8 @@
 #include "texture_buffer.hpp"
 #include <tracy/Tracy.hpp>
 #include "../../core/logger.hpp"
-#include "../../library/gl.hpp"
 #include "hyengine/graphics/gl_enums.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 namespace hyengine
 {
@@ -14,6 +14,7 @@ namespace hyengine
     bool texture_buffer::allocate(const GLenum texture_type, const glm::uvec3& size, const GLsizei mipmap_count, const GLenum format, const i32 multisample_count)
     {
         ZoneScoped;
+        TracyGpuZone("texture allocate");
         if (buffer_id > 0)
         {
             log_warn(logger_tags::GRAPHICS, "Attempted to initialize already initialized texture buffer!", " (buffer ", buffer_id, ")");
@@ -92,6 +93,7 @@ namespace hyengine
     void texture_buffer::free()
     {
         ZoneScoped;
+        TracyGpuZone("texture free");
         glDeleteTextures(1, &buffer_id);
         log_debug(logger_tags::GRAPHICS, "Freed texture buffer ", buffer_id, ".");
         buffer_id = 0;
@@ -99,6 +101,7 @@ namespace hyengine
 
     void texture_buffer::clear(const u32 level, const GLenum data_format, const GLenum data_type, const void* data) const
     {
+        TracyGpuZone("texture clear");
         glClearTexImage(buffer_id, level, data_format, data_type, data);
     }
 
@@ -115,6 +118,7 @@ namespace hyengine
     bool texture_buffer::allocate_as_view(const GLenum target, const GLenum format, const GLuint source_id, const GLuint first_mip, const GLuint mipmap_count, const GLuint first_layer, const GLuint layer_count)
     {
         ZoneScoped;
+        TracyGpuZone("texture allocate (view)");
         if (buffer_id != 0)
         {
             log_warn(logger_tags::GRAPHICS, "Attempted to initialize already initialized texture buffer!", " (buffer ", buffer_id, ")");
@@ -165,18 +169,21 @@ namespace hyengine
     void texture_buffer::upload_data_1d_partial(const GLint mip_level, const GLint offset, const GLint width, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
     {
         ZoneScoped;
+        TracyGpuZone("texture upload 1D");
         glTextureSubImage1D(buffer_id, mip_level, offset, width, data_format, data_type, data_pointer);
     }
 
     void texture_buffer::upload_data_2d_partial(const GLint mip_level, const glm::uvec2 offset, const glm::uvec2 size, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
     {
         ZoneScoped;
+        TracyGpuZone("texture upload 2D");
         glTextureSubImage2D(buffer_id, mip_level, offset.x, offset.y, size.x, size.y, data_format, data_type, data_pointer);
     }
 
     void texture_buffer::upload_data_3d_partial(const GLint mip_level, const glm::uvec3& offset, const glm::uvec3& size, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const
     {
         ZoneScoped;
+        TracyGpuZone("texture upload 3D");
         glTextureSubImage3D(buffer_id, mip_level, offset.x, offset.y, offset.z, size.x, size.y, size.z, data_format, data_type, data_pointer);
     }
 
@@ -236,12 +243,14 @@ namespace hyengine
     void texture_buffer::copy_texture_data(const GLuint source, const GLenum source_type, const GLuint dest, const GLenum dest_type, const i32 source_level, const i32 dest_level, const glm::uvec3& source_pos, const glm::uvec3& dest_pos, const glm::uvec3& size)
     {
         ZoneScoped;
+        TracyGpuZone("texture copy");
         glCopyImageSubData(source, source_type, source_level, source_pos.x, source_pos.y, source_pos.z, dest, dest_type, dest_level, dest_pos.x, dest_pos.y, dest_pos.z, size.x, size.y, size.z);
     }
 
     void texture_buffer::generate_mipmaps() const
     {
         ZoneScoped;
+        TracyGpuZone("texture mipmap generation");
         glGenerateTextureMipmap(buffer_id);
     }
 
@@ -249,6 +258,7 @@ namespace hyengine
     void texture_buffer::set_depth_stencil_mode(const GLenum mode) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameteri(buffer_id, GL_DEPTH_STENCIL_TEXTURE_MODE, mode);
     }
 
@@ -256,6 +266,7 @@ namespace hyengine
     void texture_buffer::set_mipmap_min_level(const i32 level) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameteri(buffer_id, GL_TEXTURE_BASE_LEVEL, level);
     }
 
@@ -263,6 +274,7 @@ namespace hyengine
     void texture_buffer::set_mipmap_max_level(const i32 level) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameteri(buffer_id, GL_TEXTURE_MAX_LEVEL, level);
     }
 
@@ -270,6 +282,7 @@ namespace hyengine
     void texture_buffer::set_border_color(const glm::vec4 col) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameterfv(buffer_id, GL_TEXTURE_BORDER_COLOR, glm::value_ptr(col));
     }
 
@@ -277,6 +290,7 @@ namespace hyengine
     void texture_buffer::set_compare_func(const GLenum func) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameteri(buffer_id, GL_TEXTURE_COMPARE_FUNC, func);
     }
 
@@ -284,12 +298,14 @@ namespace hyengine
     void texture_buffer::set_compare_mode(const GLenum mode) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameteri(buffer_id, GL_TEXTURE_COMPARE_MODE, mode);
     }
 
     void texture_buffer::set_anisotropy_level(const f32 anisotropy) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         if (GLAD_GL_VERSION_4_6 || GLAD_GL_ARB_texture_filter_anisotropic || GLAD_GL_EXT_texture_filter_anisotropic)
         {
             glTextureParameterf(buffer_id, GL_TEXTURE_MAX_ANISOTROPY, anisotropy);
@@ -299,6 +315,7 @@ namespace hyengine
     void texture_buffer::set_downscale_filter(const GLenum filter) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameteri(buffer_id, GL_TEXTURE_MIN_FILTER, filter);
     }
 
@@ -306,6 +323,7 @@ namespace hyengine
     void texture_buffer::set_upscale_filter(const GLenum filter) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameteri(buffer_id, GL_TEXTURE_MAG_FILTER, filter);
     }
 
@@ -313,6 +331,7 @@ namespace hyengine
     void texture_buffer::set_lod_bias(const f32 bias) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameterf(buffer_id, GL_TEXTURE_LOD_BIAS, bias);
     }
 
@@ -320,6 +339,7 @@ namespace hyengine
     void texture_buffer::set_min_lod(const i32 lod) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameteri(buffer_id, GL_TEXTURE_MIN_LOD, lod);
     }
 
@@ -327,6 +347,7 @@ namespace hyengine
     void texture_buffer::set_max_lod(const i32 lod) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameteri(buffer_id, GL_TEXTURE_MAX_LOD, lod);
     }
 
@@ -334,6 +355,7 @@ namespace hyengine
     void texture_buffer::set_swizzle_red(const GLenum swizzle) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameteri(buffer_id, GL_TEXTURE_SWIZZLE_R, swizzle);
     }
 
@@ -341,6 +363,7 @@ namespace hyengine
     void texture_buffer::set_swizzle_green(const GLenum swizzle) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameteri(buffer_id, GL_TEXTURE_SWIZZLE_G, swizzle);
     }
 
@@ -348,6 +371,7 @@ namespace hyengine
     void texture_buffer::set_swizzle_blue(const GLenum swizzle) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameteri(buffer_id, GL_TEXTURE_SWIZZLE_B, swizzle);
     }
 
@@ -355,6 +379,7 @@ namespace hyengine
     void texture_buffer::set_swizzle_alpha(const GLenum swizzle) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameteri(buffer_id, GL_TEXTURE_SWIZZLE_A, swizzle);
     }
 
@@ -362,6 +387,7 @@ namespace hyengine
     void texture_buffer::set_texture_wrap_x(const GLenum wrap) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameteri(buffer_id, GL_TEXTURE_WRAP_S, wrap);
     }
 
@@ -369,6 +395,7 @@ namespace hyengine
     void texture_buffer::set_texture_wrap_y(const GLenum wrap) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameteri(buffer_id, GL_TEXTURE_WRAP_T, wrap);
     }
 
@@ -376,6 +403,7 @@ namespace hyengine
     void texture_buffer::set_texture_wrap_z(const GLenum wrap) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glTextureParameteri(buffer_id, GL_TEXTURE_WRAP_R, wrap);
     }
 
@@ -383,6 +411,7 @@ namespace hyengine
     void texture_buffer::bind(const i32 slot) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glBindTextureUnit(slot, buffer_id);
     }
 
@@ -390,6 +419,7 @@ namespace hyengine
     void texture_buffer::bind_image(const i32 slot, const i32 level, const GLenum access) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glBindImageTexture(slot, buffer_id, level, GL_FALSE, 0, access, internal_format);
     }
 
@@ -397,6 +427,7 @@ namespace hyengine
     void texture_buffer::bind_image_layered(const i32 slot, const i32 level, const i32 layer, const GLenum access) const
     {
         ZoneScoped;
+        TracyGpuZone("texture parameter set");
         glBindImageTexture(slot, buffer_id, level, GL_TRUE, layer, access, internal_format);
     }
 

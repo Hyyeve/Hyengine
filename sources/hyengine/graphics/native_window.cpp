@@ -2,6 +2,7 @@
 
 #include <tracy/Tracy.hpp>
 
+#include "../../../../../generated/win64-release/_deps/tracy-src/public/tracy/TracyOpenGL.hpp"
 #include "../core/hyengine.hpp"
 #include "../core/logger.hpp"
 
@@ -247,6 +248,7 @@ namespace hyengine
     {
         ZoneScoped;
         glfwSwapBuffers(handle);
+        TracyGpuCollect;
         frame_count++;
         size_changed = false;
     }

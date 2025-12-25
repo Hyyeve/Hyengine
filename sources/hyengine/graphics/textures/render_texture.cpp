@@ -5,6 +5,7 @@
 #include "../../core/logger.hpp"
 #include "hyengine/common/common.hpp"
 #include "hyengine/graphics/gl_enums.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 namespace hyengine
 {
@@ -19,6 +20,7 @@ namespace hyengine
     bool render_texture::allocate(const GLenum format, const glm::uvec2 size, const i32 multisample_count)
     {
         ZoneScoped;
+        TracyGpuZone("render texture allocate");
         if (gl_id > 0)
         {
             log_warn(logger_tags::GRAPHICS, "Attempted to initialize already initialized render texture!", " (render texture ", gl_id, ")");
@@ -45,6 +47,7 @@ namespace hyengine
     void render_texture::free()
     {
         ZoneScoped;
+        TracyGpuZone("render texture free");
         glDeleteRenderbuffers(1, &gl_id);
         log_debug(logger_tags::GRAPHICS, "Freed render texture ", gl_id, ".");
         gl_id = 0;
@@ -83,6 +86,7 @@ namespace hyengine
     void render_texture::copy_render_texture_data(const GLuint source, const GLuint dest, const glm::uvec2 source_pos, const glm::uvec2 dest_pos, const glm::uvec2 size)
     {
         ZoneScoped;
+        TracyGpuZone("render texture copy");
         glCopyImageSubData(source, GL_RENDERBUFFER, 0, source_pos.x, source_pos.y, 0, dest, GL_RENDERBUFFER, 0, dest_pos.x, dest_pos.y, 0, size.x, size.y, 0);
     }
 

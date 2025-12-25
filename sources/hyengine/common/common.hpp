@@ -52,17 +52,37 @@ namespace hyengine
         0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
     };
 
+    template<typename t>
+    concept arithmetic_type = std::is_arithmetic_v<t>;
+
+    ///Portable string character replacement
     void string_replace(std::string& str, const char from, const char to);
+
+    ///Finds the Nth occurance of a substring
     i32 string_find_occurance(const std::string_view& str, const std::string_view& target, const u32 occurance_index);
+
+    ///UTF32 codepoint to string characters
     std::string stringify_utf32(const u32 codepoint);
 
+    ///Chrono duration into a formatted string (displays as us / ms / seconds depending on duration)
     [[nodiscard]] std::string stringify_duration(const std::chrono::microseconds duration);
+
+    ///Seconds into a formatted string
     [[nodiscard]] std::string stringify_secs(const f64 seconds);
+
+    ///Milliseconds into a formatted string
     [[nodiscard]] std::string stringify_millis(const f64 millis);
+
+    ///Bytes into a formatted string (displays as bytes / kb / mb / gb depending on size)
     [[nodiscard]] std::string stringify_bytes(const unsigned long bytes);
+
+    ///Helper to format "X [count_of]s" with grammatical zero/one handling.
     [[nodiscard]] std::string stringify_count(const unsigned long count_num, std::string_view count_of);
+
+    ///Char to string, to prevent char from being auto-cast into a number.
     [[nodiscard]] std::string stringify_char(const char c);
 
+    ///Concatenation of arbitrary stream-printable arguments ( stringify(1, "abc", "two", var1, etc) => 1abctwo{var1}{etc} )
     [[nodiscard]] constexpr std::string stringify(const auto&... values) noexcept
     {
         std::stringstream format_stream;
@@ -92,5 +112,6 @@ namespace hyengine
     f64 parse_f64(const std::string_view& str, const f64 default_val) noexcept;
     bool parse_bool(const std::string_view& str, const bool default_val) noexcept;
 
+    ///Number of bits required to store a value
     u8 bits_required_for_value(const u64 value);
 }

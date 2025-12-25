@@ -3,7 +3,7 @@
 #include <limits>
 #include <vector>
 
-#include "hyengine/common/sized_numerics.hpp"
+#include "../common/sized_numerics.hpp"
 
 
 namespace hyengine

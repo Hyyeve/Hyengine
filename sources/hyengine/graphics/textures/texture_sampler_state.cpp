@@ -1,6 +1,8 @@
 #include "texture_sampler_state.hpp"
 #include <tracy/Tracy.hpp>
 
+#include "tracy/TracyOpenGL.hpp"
+
 namespace hyengine
 {
     texture_sampler_state::~texture_sampler_state()
@@ -11,6 +13,7 @@ namespace hyengine
     [[nodiscard]] bool texture_sampler_state::allocate()
     {
         ZoneScoped;
+        TracyGpuZone("create sampler");
         glCreateSamplers(1, &gl_id);
         return gl_id != 0;
     }
@@ -18,6 +21,7 @@ namespace hyengine
     void texture_sampler_state::free()
     {
         ZoneScoped;
+        TracyGpuZone("free sampler");
         glDeleteSamplers(1, &gl_id);
         gl_id = -1;
     }
@@ -25,24 +29,28 @@ namespace hyengine
     void texture_sampler_state::set_border_color(const glm::vec4 col) const
     {
         ZoneScoped;
+        TracyGpuZone("sampler parameter set");
         glSamplerParameterfv(gl_id, GL_TEXTURE_BORDER_COLOR, glm::value_ptr(col));
     }
 
     void texture_sampler_state::set_compare_func(const GLenum func) const
     {
         ZoneScoped;
+        TracyGpuZone("sampler parameter set");
         glSamplerParameteri(gl_id, GL_TEXTURE_COMPARE_FUNC, func);
     }
 
     void texture_sampler_state::set_compare_mode(const GLenum mode) const
     {
         ZoneScoped;
+        TracyGpuZone("sampler parameter set");
         glSamplerParameteri(gl_id, GL_TEXTURE_COMPARE_MODE, mode);
     }
 
     void texture_sampler_state::set_anisotropy_level(const f32 anisotropy) const
     {
         ZoneScoped;
+        TracyGpuZone("sampler parameter set");
         if (GLAD_GL_VERSION_4_6 || GLAD_GL_ARB_texture_filter_anisotropic || GLAD_GL_EXT_texture_filter_anisotropic)
         {
             glSamplerParameterf(gl_id, GL_TEXTURE_MAX_ANISOTROPY, anisotropy);
@@ -52,54 +60,63 @@ namespace hyengine
     void texture_sampler_state::set_downscale_filter(const GLenum filter) const
     {
         ZoneScoped;
+        TracyGpuZone("sampler parameter set");
         glSamplerParameteri(gl_id, GL_TEXTURE_MIN_FILTER, filter);
     }
 
     void texture_sampler_state::set_upscale_filter(const GLenum filter) const
     {
         ZoneScoped;
+        TracyGpuZone("sampler parameter set");
         glSamplerParameteri(gl_id, GL_TEXTURE_MAG_FILTER, filter);
     }
 
     void texture_sampler_state::set_lod_bias(const f32 bias) const
     {
         ZoneScoped;
+        TracyGpuZone("sampler parameter set");
         glSamplerParameterf(gl_id, GL_TEXTURE_LOD_BIAS, bias);
     }
 
     void texture_sampler_state::set_min_lod(const i32 lod) const
     {
         ZoneScoped;
+        TracyGpuZone("sampler parameter set");
         glSamplerParameteri(gl_id, GL_TEXTURE_MIN_LOD, lod);
     }
 
     void texture_sampler_state::set_max_lod(const i32 lod) const
     {
         ZoneScoped;
+        TracyGpuZone("sampler parameter set");
         glSamplerParameteri(gl_id, GL_TEXTURE_MAX_LOD, lod);
     }
 
     void texture_sampler_state::set_texture_wrap_x(const GLenum wrap) const
     {
         ZoneScoped;
+        TracyGpuZone("sampler parameter set");
         glSamplerParameteri(gl_id, GL_TEXTURE_WRAP_S, wrap);
     }
 
     void texture_sampler_state::set_texture_wrap_y(const GLenum wrap) const
     {
         ZoneScoped;
+        TracyGpuZone("sampler parameter set");
         glSamplerParameteri(gl_id, GL_TEXTURE_WRAP_T, wrap);
     }
 
     void texture_sampler_state::set_texture_wrap_z(const GLenum wrap) const
     {
         ZoneScoped;
+        TracyGpuZone("sampler parameter set");
         glSamplerParameteri(gl_id, GL_TEXTURE_WRAP_R, wrap);
     }
 
     void texture_sampler_state::bind(const i32 slot) const
     {
         ZoneScoped;
+        TracyGpuZone("sampler parameter set");
         glBindSampler(slot, gl_id);
     }
 

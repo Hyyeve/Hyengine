@@ -4,6 +4,7 @@
 
 #include "../../core/logger.hpp"
 #include "hyengine/common/sized_numerics.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 namespace hyengine
 {
@@ -29,6 +30,7 @@ namespace hyengine
     bool standard_data_buffer::allocate(const GLenum target, const GLsizeiptr size, const u32 slices, const void* const data, const GLbitfield storage_flags)
     {
         ZoneScoped;
+        TracyGpuZone("allocate standard data buffer");
         if (buffer_id != 0)
         {
             log_error(logger_tags::GRAPHICS, "Couldn't allocate - already allocated with ID ", buffer_id);
@@ -69,6 +71,7 @@ namespace hyengine
     void standard_data_buffer::free()
     {
         ZoneScoped;
+        TracyGpuZone("free standard data buffer");
         unmap_storage();
         if (buffer_id == 0) return;
 
@@ -95,6 +98,7 @@ namespace hyengine
     void standard_data_buffer::map_storage(const GLbitfield mapping_flags)
     {
         ZoneScoped;
+        TracyGpuZone("map standard data buffer");
         if (mapped_pointer != nullptr) return;
         mapped_pointer = glMapNamedBufferRange(buffer_id, 0, total_size, mapping_flags);
     }
@@ -102,6 +106,7 @@ namespace hyengine
     void standard_data_buffer::unmap_storage()
     {
         ZoneScoped;
+        TracyGpuZone("unmap standard data buffer");
         if (mapped_pointer == nullptr) return;
         glUnmapNamedBuffer(buffer_id);
         mapped_pointer = nullptr;
@@ -110,24 +115,29 @@ namespace hyengine
     void standard_data_buffer::bind_state() const
     {
         ZoneScoped;
+        TracyGpuZone("bind standard data buffer");
         glBindBuffer(buffer_target, buffer_id);
     }
 
     void standard_data_buffer::unbind_state() const
     {
         ZoneScoped;
+        TracyGpuZone("unbind standard data buffer");
         glBindBuffer(buffer_target, 0);
     }
 
+    ///Bind the buffer to a special binding index (shader storage, uniform block, etc)
     void standard_data_buffer::bind_buffer_base(const GLenum target, const i32 binding) const
     {
         ZoneScoped;
+        TracyGpuZone("bind standard data buffer (as shader block)");
         glBindBufferBase(target, binding, buffer_id);
     }
 
     void standard_data_buffer::bind_buffer_range(const GLenum target, const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const
     {
         ZoneScoped;
+        TracyGpuZone("bind standard data buffer range");
         if (offset + bytes > total_size)
         {
             log_warn(logger_tags::GRAPHICS, "Can't bind range - requested start and size would overflow", " (buffer ", buffer_id, ")");
@@ -145,6 +155,7 @@ namespace hyengine
     void standard_data_buffer::copy_buffer_range(const GLuint source_buffer_id, const GLintptr read_offset, const GLintptr write_offset, const GLsizeiptr bytes) const
     {
         ZoneScoped;
+        TracyGpuZone("standard data buffer copy");
         if (write_offset + bytes > total_size)
         {
             log_warn(logger_tags::GRAPHICS, "Can't copy range - requested start and size would overflow", " (buffer ", buffer_id, ")");
@@ -255,6 +266,7 @@ namespace hyengine
     void standard_data_buffer::sync_fence()
     {
         ZoneScoped;
+        TracyGpuZone("standard data buffer sync fence");
         GLsync& sync = buffer_slices[current_slice_index].fence;
         if (sync != nullptr)
             glDeleteSync(sync);
@@ -264,6 +276,7 @@ namespace hyengine
     bool standard_data_buffer::sync_await(const u64 timeout_nanos) const
     {
         ZoneScoped;
+        TracyGpuZone("standard data buffer sync wait");
         const GLsync& sync = buffer_slices[current_slice_index].fence;
         if (sync == nullptr) return true;
         const GLenum wait_return = glClientWaitSync(sync, 0, timeout_nanos);

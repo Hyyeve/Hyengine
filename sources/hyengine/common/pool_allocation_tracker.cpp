@@ -6,20 +6,20 @@ namespace hyengine
 {
     pool_allocation_tracker::pool_allocation_tracker(const u32 size) : total_pool_size(size), remaining_available_size(total_pool_size) {}
 
-    bool pool_allocation_tracker::try_allocate(const u32 size, u32& address)
+    bool pool_allocation_tracker::try_allocate(const u32 size, u32& address_out)
     {
         ZoneScoped;
         u32 block_idx;
         bool is_end_allocation;
-        const bool has_space = find_free(size, address, block_idx, is_end_allocation);
+        const bool has_space = find_free(size, address_out, block_idx, is_end_allocation);
 
         if (!has_space)
         {
             return false;
         }
 
-        if (is_end_allocation) allocations.push_back({address, size});
-        else allocations.insert(std::next(allocations.begin(), block_idx), {address, size});
+        if (is_end_allocation) allocations.push_back({address_out, size});
+        else allocations.insert(std::next(allocations.begin(), block_idx), {address_out, size});
 
         remaining_available_size -= size;
         return true;

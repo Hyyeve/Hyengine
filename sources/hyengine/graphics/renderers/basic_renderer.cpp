@@ -4,6 +4,7 @@
 #include "../../core/logger.hpp"
 #include "../shaders/shader.hpp"
 #include "../shaders/shader_batching.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 namespace hyengine
 {
@@ -17,6 +18,7 @@ namespace hyengine
     bool basic_renderer::allocate(const u32 memory_budget_mb)
     {
         ZoneScoped;
+        TracyGpuZone("allocate basic renderer");
         if (is_allocated)
         {
             log_warn(logger_tags::GRAPHICS, "Attempted to allocate already allocated basic renderer!");
@@ -52,6 +54,7 @@ namespace hyengine
     void basic_renderer::free()
     {
         ZoneScoped;
+        TracyGpuZone("free basic renderer");
         if (!is_allocated) return;
 
         basic_shader.reset();
@@ -173,6 +176,7 @@ namespace hyengine
     void basic_renderer::draw() const
     {
         ZoneScoped;
+        TracyGpuZone("basic renderer draw");
         glDrawArrays(GL_TRIANGLES, vertex_buffer.get_slice_first_element(), draw_count);
     }
 }

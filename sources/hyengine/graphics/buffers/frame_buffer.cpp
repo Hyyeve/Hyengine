@@ -1,6 +1,7 @@
 #include "frame_buffer.hpp"
 #include <tracy/Tracy.hpp>
 #include "../../core/logger.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 namespace hyengine
 {
@@ -16,6 +17,7 @@ namespace hyengine
     bool frame_buffer::allocate()
     {
         ZoneScoped;
+        TracyGpuZone("allocate framebuffer");
         if (buffer_id > 0)
         {
             log_warn(logger_tags::GRAPHICS, "Attempted to initialize already initialized framebuffer!", " (buffer ", buffer_id, ")");
@@ -32,11 +34,13 @@ namespace hyengine
         }
 
         log_debug(logger_tags::GRAPHICS, "Allocated framebuffer ", buffer_id, ".");
+        return true;
     }
 
     void frame_buffer::free()
     {
         ZoneScoped;
+        TracyGpuZone("free framebuffer");
         glDeleteFramebuffers(1, &buffer_id);
         log_debug(logger_tags::GRAPHICS, "Freed framebuffer ", buffer_id, ".");
         buffer_id = 0;
@@ -51,6 +55,7 @@ namespace hyengine
     void frame_buffer::attach_texture(const texture_buffer& texture, const GLenum attachment_binding, const GLint mipmap_level)
     {
         ZoneScoped;
+        TracyGpuZone("attach framebuffer texture");
         if (buffer_id <= 0)
         {
             log_warn(logger_tags::GRAPHICS, "Can't attach texture to framebuffer ", buffer_id, " - not initialized!");
@@ -65,6 +70,7 @@ namespace hyengine
     void frame_buffer::attach_texture(const texture_buffer& texture, const GLenum attachment_binding, const GLint mipmap_level, const GLint layer)
     {
         ZoneScoped;
+        TracyGpuZone("attach framebuffer texture");
         if (buffer_id <= 0)
         {
             log_warn(logger_tags::GRAPHICS, "Can't attach texture to framebuffer ", buffer_id, " - not initialized!");
@@ -79,6 +85,7 @@ namespace hyengine
     void frame_buffer::attach_render_texture(const render_texture& render_texture, const GLenum attachment_binding)
     {
         ZoneScoped;
+        TracyGpuZone("attach framebuffer texture");
         if (buffer_id <= 0)
         {
             log_warn(logger_tags::GRAPHICS, "Can't attach texture to framebuffer ", buffer_id, " - not initialized!");
@@ -93,6 +100,7 @@ namespace hyengine
     bool frame_buffer::validate()
     {
         ZoneScoped;
+        TracyGpuZone("validate framebuffer");
         if (is_valid)
         {
             return true;
@@ -174,6 +182,7 @@ namespace hyengine
     void frame_buffer::copy_data(frame_buffer& source, glm::uvec4 source_rect, glm::uvec4 dest_rect, GLbitfield mask, GLenum filter) const
     {
         ZoneScoped;
+        TracyGpuZone("framebuffer copy");
         if (buffer_id <= 0 || !is_valid)
         {
             log_warn(logger_tags::GRAPHICS, "Can't copy i32o framebuffer ", buffer_id, " - not initialized!");
@@ -187,6 +196,7 @@ namespace hyengine
     void frame_buffer::bind_to_draw() const
     {
         ZoneScoped;
+        TracyGpuZone("framebuffer bind (draw)");
         if (buffer_id <= 0 || !is_valid)
         {
             log_warn(logger_tags::GRAPHICS, "Can't bind framebuffer ", buffer_id, " - not initialized!");
@@ -199,6 +209,7 @@ namespace hyengine
     void frame_buffer::bind_to_read() const
     {
         ZoneScoped;
+        TracyGpuZone("framebuffer bind (read)");
         if (buffer_id <= 0 || !is_valid)
         {
             log_warn(logger_tags::GRAPHICS, "Can't bind framebuffer ", buffer_id, " - not initialized!");
@@ -211,35 +222,42 @@ namespace hyengine
     void frame_buffer::clear_depth_stencil_attachment(const f32 depth, const i32 stencil) const
     {
         ZoneScoped;
+        TracyGpuZone("framebuffer clear (depth/stencil)");
         glClearNamedFramebufferfi(buffer_id, GL_DEPTH_STENCIL, 0, depth, stencil);
     }
 
     void frame_buffer::clear_depth_attachment(const f32 depth) const
     {
         ZoneScoped;
+        TracyGpuZone("framebuffer clear (depth)");
         glClearNamedFramebufferfv(buffer_id, GL_DEPTH, 0, &depth);
     }
 
     void frame_buffer::clear_stencil_attachment(const i32 stencil) const
     {
         ZoneScoped;
+        TracyGpuZone("framebuffer clear (stencil)");
         glClearNamedFramebufferiv(buffer_id, GL_STENCIL, 0, &stencil);
     }
 
     void frame_buffer::clear_color_attachment(const u8 drawbuffer_index, const glm::vec4 color) const
     {
         ZoneScoped;
+        TracyGpuZone("framebuffer clear (color)");
         glClearNamedFramebufferfv(buffer_id, GL_COLOR, drawbuffer_index, glm::value_ptr(color));
     }
 
     void frame_buffer::clear_color_attachment(const u8 drawbuffer_index, const glm::ivec4 data) const
     {
         ZoneScoped;
+        TracyGpuZone("framebuffer clear (color)");
         glClearNamedFramebufferiv(buffer_id, GL_COLOR, drawbuffer_index, glm::value_ptr(data));
     }
 
     void frame_buffer::clear_color_attachment(const u8 drawbuffer_index, const glm::uvec4 data) const
     {
+        ZoneScoped;
+        TracyGpuZone("framebuffer clear (color)");
         glClearNamedFramebufferuiv(buffer_id, GL_COLOR, drawbuffer_index, glm::value_ptr(data));
     }
 

@@ -24,12 +24,12 @@ namespace hyengine
 
         ~shader();
 
-        void load();
-        void unload();
-        void reload();
+        [[nodiscard]] bool allocate();
+        void deallocate();
+        [[nodiscard]] bool reallocate();
 
-        static void clear_all_shader_caches();
-        void clear_shader_cache() const;
+        static void clear_all_binary_caches();
+        void clear_binary_cache() const;
 
         void use() const;
 
@@ -75,7 +75,7 @@ namespace hyengine
         void set_sampler_slot(const std::string_view& name, i32 slot);
 
 
-        #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(std::string(name)); location != uniform_locations.end()) { setter; } else if(valid()) log_warn(logger_tag, "Failed to set uniform array '", name, "'");
+        #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(std::string(name)); location != uniform_locations.end()) { setter; } else if(valid()) log_warn(logger_tags::GRAPHICS, "Failed to set uniform array '", name, "'");
 
         template <std::size_t size>
         void set_uniform(const std::string_view& name, std::array<bool, size> values)
@@ -247,16 +247,23 @@ namespace hyengine
         static std::string get_binary_asset_id(const std::string_view& normal_asset_id);
         static GLuint load_binary_program(const std::string_view& asset_id);
         static void save_binary_program(const std::string_view& asset_id, const GLuint program);
+        static bool update_line_type(const std::string_view line, i32* line_type);
 
         void load_interface_locations();
 
         constexpr static std::string_view logger_tag = "Shader";
-        constexpr static std::string_view cache_directory = "shader.bin";
+        constexpr static std::string_view binary_cache_directory = "store.cache.shader.bin.";
 
         struct block_location_and_binding
         {
             i32 location;
             i32 binding;
+        };
+
+        struct binary_cache_header
+        {
+            GLenum format;
+            u32 asset_hash;
         };
 
         std::unordered_map<std::string, i32> uniform_locations;

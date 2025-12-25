@@ -13,27 +13,32 @@ namespace hyengine
         if (buffer_id > 0) free();
     }
 
-    void frame_buffer::allocate()
+    bool frame_buffer::allocate()
     {
         ZoneScoped;
         if (buffer_id > 0)
         {
-            log_warn(logger_tag, "Attempted to initialize already initialized framebuffer!", " (buffer ", buffer_id, ")");
-            return;
+            log_warn(logger_tags::GRAPHICS, "Attempted to initialize already initialized framebuffer!", " (buffer ", buffer_id, ")");
+            return true;
         }
 
         glCreateFramebuffers(1, &buffer_id);
-
         is_valid = false;
 
-        log_info(logger_tag, "Allocated framebuffer ", buffer_id, ".");
+        if (buffer_id <= 0)
+        {
+            log_error(logger_tags::GRAPHICS, "Failed to allocate framebuffer!");
+            return false;
+        }
+
+        log_debug(logger_tags::GRAPHICS, "Allocated framebuffer ", buffer_id, ".");
     }
 
     void frame_buffer::free()
     {
         ZoneScoped;
         glDeleteFramebuffers(1, &buffer_id);
-        log_info(logger_tag, "Freed framebuffer ", buffer_id, ".");
+        log_debug(logger_tags::GRAPHICS, "Freed framebuffer ", buffer_id, ".");
         buffer_id = 0;
         is_valid = false;
     }
@@ -48,7 +53,7 @@ namespace hyengine
         ZoneScoped;
         if (buffer_id <= 0)
         {
-            log_warn(logger_tag, "Can't attach texture to framebuffer ", buffer_id, " - not initialized!");
+            log_warn(logger_tags::GRAPHICS, "Can't attach texture to framebuffer ", buffer_id, " - not initialized!");
             return;
         }
 
@@ -62,7 +67,7 @@ namespace hyengine
         ZoneScoped;
         if (buffer_id <= 0)
         {
-            log_warn(logger_tag, "Can't attach texture to framebuffer ", buffer_id, " - not initialized!");
+            log_warn(logger_tags::GRAPHICS, "Can't attach texture to framebuffer ", buffer_id, " - not initialized!");
             return;
         }
 
@@ -76,7 +81,7 @@ namespace hyengine
         ZoneScoped;
         if (buffer_id <= 0)
         {
-            log_warn(logger_tag, "Can't attach texture to framebuffer ", buffer_id, " - not initialized!");
+            log_warn(logger_tags::GRAPHICS, "Can't attach texture to framebuffer ", buffer_id, " - not initialized!");
             return;
         }
 
@@ -95,7 +100,7 @@ namespace hyengine
 
         if (buffer_id <= 0)
         {
-            log_warn(logger_tag, "Framebuffer invalid ", buffer_id, " - not initialized!");
+            log_warn(logger_tags::GRAPHICS, "Framebuffer invalid ", buffer_id, " - not initialized!");
             return false;
         }
 
@@ -103,6 +108,7 @@ namespace hyengine
 
         if (status == GL_FRAMEBUFFER_COMPLETE)
         {
+            log_debug(logger_tags::GRAPHICS, "Framebuffer ", buffer_id, " validated OK.");
             is_valid = true;
             return true;
         }
@@ -146,7 +152,7 @@ namespace hyengine
             }
         }
 
-        log_warn(logger_tag, "Framebuffer ", buffer_id, " is not valid - ", status_string);
+        log_warn(logger_tags::GRAPHICS, "Framebuffer ", buffer_id, " is not valid - ", status_string);
         return false;
     }
 
@@ -170,7 +176,7 @@ namespace hyengine
         ZoneScoped;
         if (buffer_id <= 0 || !is_valid)
         {
-            log_warn(logger_tag, "Can't copy i32o framebuffer ", buffer_id, " - not initialized!");
+            log_warn(logger_tags::GRAPHICS, "Can't copy i32o framebuffer ", buffer_id, " - not initialized!");
             return;
         }
 
@@ -183,7 +189,7 @@ namespace hyengine
         ZoneScoped;
         if (buffer_id <= 0 || !is_valid)
         {
-            log_warn(logger_tag, "Can't bind framebuffer ", buffer_id, " - not initialized!");
+            log_warn(logger_tags::GRAPHICS, "Can't bind framebuffer ", buffer_id, " - not initialized!");
             return;
         }
 
@@ -195,7 +201,7 @@ namespace hyengine
         ZoneScoped;
         if (buffer_id <= 0 || !is_valid)
         {
-            log_warn(logger_tag, "Can't bind framebuffer ", buffer_id, " - not initialized!");
+            log_warn(logger_tags::GRAPHICS, "Can't bind framebuffer ", buffer_id, " - not initialized!");
             return;
         }
 

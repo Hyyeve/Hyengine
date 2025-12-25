@@ -1,6 +1,5 @@
 #pragma once
 #include <atomic>
-#include <condition_variable>
 #include <future>
 
 #include "hyengine/common/sized_numerics.hpp"
@@ -41,24 +40,24 @@ namespace hyengine
             WAITING, RUNNING, COMPLETED
         };
 
-        //Attempts to execute the task, will fail and return false if the task is already in progress/complete or dependencies are not complete
+        friend bool execute_next_task();
+        friend void update_waiting_tasks();
+
+        ///Attempts to execute the task, will fail and return false if the task is already in progress/complete or dependencies are not complete
         bool try_execute_task();
 
-        //All dependencies are complete?
         bool dependencies_completed() const;
 
-        //We're not already executing or complete?
+        ///Ready to execute; not already executing or completed?
         bool state_ready() const;
 
         std::atomic<execution_state> state = execution_state::WAITING;
 
-        //Must be written ONCE on creation and never again
+        ///Must be written ONCE on creation and never again
         std::vector<threadpool_task*> depends_on;
 
         std::promise<void> completion_promise;
         std::future<void> completion_future;
 
-        friend bool execute_next_task();
-        friend void update_waiting_tasks();
     };
 }

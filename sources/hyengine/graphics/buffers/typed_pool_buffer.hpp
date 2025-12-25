@@ -21,9 +21,9 @@ namespace hyengine
             free();
         }
 
-        void allocate(const GLenum target, const GLsizeiptr elements, const GLsizeiptr staging_elements)
+        [[nodiscard]] bool allocate(const GLenum target, const GLsizeiptr elements, const GLsizeiptr staging_elements)
         {
-            internal_data_buffer.allocate(target, elements * sizeof(type), staging_elements * sizeof(type));
+            return internal_data_buffer.allocate(target, elements * sizeof(type), staging_elements * sizeof(type));
         }
 
         void free()
@@ -41,7 +41,7 @@ namespace hyengine
             internal_data_buffer.reserve_staging_buffer_size(elements * sizeof(type));
         }
 
-        bool try_allocate_space(const u32 elements, u32& address)
+        [[nodiscard]] bool try_allocate_space(const u32 elements, u32& address)
         {
             return internal_data_buffer.try_allocate_space(elements * sizeof(type), address);
         }

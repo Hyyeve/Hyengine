@@ -17,7 +17,7 @@ namespace hyengine
         explicit texture_sampler_state() = default;
         ~texture_sampler_state();
 
-        void allocate();
+        [[nodiscard]] bool allocate();
         void free();
 
         void set_border_color(const glm::vec4 col) const;

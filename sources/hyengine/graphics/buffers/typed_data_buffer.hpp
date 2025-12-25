@@ -16,19 +16,19 @@ namespace hyengine
 
         explicit typed_data_buffer() = default;
 
-        void allocate_for_cpu_writes(const GLenum target, const GLsizeiptr elements)
+        [[nodiscard]] bool allocate_for_cpu_writes(const GLenum target, const GLsizeiptr elements)
         {
-            internal_data_buffer.allocate_for_cpu_writes(target, elements * sizeof(type));
+            return internal_data_buffer.allocate_for_cpu_writes(target, elements * sizeof(type));
         }
 
-        void allocate_for_gpu_writes(const GLenum target, const GLsizeiptr elements)
+        [[nodiscard]] bool allocate_for_gpu_writes(const GLenum target, const GLsizeiptr elements)
         {
-            internal_data_buffer.allocate_for_gpu_writes(target, elements * sizeof(type));
+            return internal_data_buffer.allocate_for_gpu_writes(target, elements * sizeof(type));
         }
 
-        void allocate(const GLenum target, const GLsizeiptr elements, const u32 slices, const type* const data, const GLbitfield storage_flags)
+        [[nodiscard]] bool allocate(const GLenum target, const GLsizeiptr elements, const u32 slices, const type* const data, const GLbitfield storage_flags)
         {
-            internal_data_buffer.allocate(target, elements * sizeof(type), slices, data, storage_flags);
+            return internal_data_buffer.allocate(target, elements * sizeof(type), slices, data, storage_flags);
         }
 
         void free()

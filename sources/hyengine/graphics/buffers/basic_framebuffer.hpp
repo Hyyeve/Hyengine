@@ -22,7 +22,7 @@ namespace hyengine
         explicit basic_framebuffer();
         ~basic_framebuffer();
 
-        void allocate(const GLenum color_format, const glm::uvec2 size, const i32 multisample_count);
+        [[nodiscard]] bool allocate(const GLenum color_format, const glm::uvec2 size, const i32 multisample_count);
         void free();
 
         void clear_depth_stencil(const f32 depth, const i32 stencil) const;
@@ -34,7 +34,6 @@ namespace hyengine
         void bind_to_read() const;
 
     private:
-        const std::string logger_tag = "GPU Framebuffer";
         bool valid;
         GLenum internal_format = -1;
     };

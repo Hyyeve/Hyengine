@@ -16,13 +16,13 @@ namespace hyengine
         }
     }
 
-    void render_texture::allocate(const GLenum format, const glm::uvec2 size, const i32 multisample_count)
+    bool render_texture::allocate(const GLenum format, const glm::uvec2 size, const i32 multisample_count)
     {
         ZoneScoped;
         if (gl_id > 0)
         {
-            log_warn(logger_tag, "Attempted to initialize already initialized buffer!", " (buffer ", gl_id, ")");
-            return;
+            log_warn(logger_tags::GRAPHICS, "Attempted to initialize already initialized render texture!", " (render texture ", gl_id, ")");
+            return true;
         }
 
         internal_size = size;
@@ -30,16 +30,23 @@ namespace hyengine
         internal_format = format;
 
         glCreateRenderbuffers(1, &gl_id);
-        glNamedRenderbufferStorageMultisample(gl_id, internal_samples, internal_format, internal_size.x, internal_size.y);
 
-        log_info(logger_tag, "Allocated render texture ", gl_id, ": ", internal_size.x, "x", internal_size.y, " ", stringify_count(internal_samples, "MSAA sample"));
+        if (gl_id <= 0)
+        {
+            log_error(logger_tags::GRAPHICS, "Failed to allocate render texture!");
+            return false;
+        }
+
+        glNamedRenderbufferStorageMultisample(gl_id, internal_samples, internal_format, internal_size.x, internal_size.y);
+        log_debug(logger_tags::GRAPHICS, "Allocated render texture ", gl_id, ": ", internal_size.x, "x", internal_size.y, " ", stringify_count(internal_samples, "MSAA sample"));
+        return true;
     }
 
     void render_texture::free()
     {
         ZoneScoped;
         glDeleteRenderbuffers(1, &gl_id);
-        log_info(logger_tag, "Freed render texture ", gl_id, ".");
+        log_debug(logger_tags::GRAPHICS, "Freed render texture ", gl_id, ".");
         gl_id = 0;
     }
 

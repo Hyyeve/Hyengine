@@ -11,13 +11,13 @@ namespace hyengine
         if (buffer_id > 0) free();
     }
 
-    void texture_buffer::allocate(const GLenum texture_type, const glm::uvec3& size, const GLsizei mipmap_count, const GLenum format, const i32 multisample_count)
+    bool texture_buffer::allocate(const GLenum texture_type, const glm::uvec3& size, const GLsizei mipmap_count, const GLenum format, const i32 multisample_count)
     {
         ZoneScoped;
         if (buffer_id > 0)
         {
-            log_warn(logger_tag, "Attempted to initialize already initialized texture buffer!", " (buffer ", buffer_id, ")");
-            return;
+            log_warn(logger_tags::GRAPHICS, "Attempted to initialize already initialized texture buffer!", " (buffer ", buffer_id, ")");
+            return true;
         }
 
         internal_size = size;
@@ -29,6 +29,13 @@ namespace hyengine
         std::string type_info;
 
         glCreateTextures(internal_texture_type, 1, &buffer_id);
+
+        if (buffer_id <= 0)
+        {
+            log_error(logger_tags::GRAPHICS, "Texture buffer allocation failed!");
+            return false;
+        }
+
         switch (internal_texture_type)
         {
             case GL_TEXTURE_1D:
@@ -78,15 +85,15 @@ namespace hyengine
         }
 
         set_mipmap_max_level(internal_mipmaps - 1);
-
-        log_info(logger_tag, "Allocated texture buffer ", buffer_id, ": ", type_info);
+        log_debug(logger_tags::GRAPHICS, "Allocated texture buffer ", buffer_id, ": ", type_info);
+        return true;
     }
 
     void texture_buffer::free()
     {
         ZoneScoped;
         glDeleteTextures(1, &buffer_id);
-        log_info(logger_tag, "Freed texture buffer ", buffer_id, ".");
+        log_debug(logger_tags::GRAPHICS, "Freed texture buffer ", buffer_id, ".");
         buffer_id = 0;
     }
 
@@ -95,31 +102,39 @@ namespace hyengine
         glClearTexImage(buffer_id, level, data_format, data_type, data);
     }
 
-    void texture_buffer::allocate_as_view(const GLenum target, const GLenum format, const GLuint source_id)
+    bool texture_buffer::allocate_as_view(const GLenum target, const GLenum format, const GLuint source_id)
     {
-        allocate_as_view(target, format, source_id, 0, 1, 0, 1);
+        return allocate_as_view(target, format, source_id, 0, 1, 0, 1);
     }
 
-    void texture_buffer::allocate_as_view(const GLenum target, const GLenum format, const GLuint source_id, const GLuint layer)
+    bool texture_buffer::allocate_as_view(const GLenum target, const GLenum format, const GLuint source_id, const GLuint layer)
     {
-        allocate_as_view(target, format, source_id, 0, 1, layer, 1);
+        return allocate_as_view(target, format, source_id, 0, 1, layer, 1);
     }
 
-    void texture_buffer::allocate_as_view(const GLenum target, const GLenum format, const GLuint source_id, const GLuint first_mip, const GLuint mipmap_count, const GLuint first_layer, const GLuint layer_count)
+    bool texture_buffer::allocate_as_view(const GLenum target, const GLenum format, const GLuint source_id, const GLuint first_mip, const GLuint mipmap_count, const GLuint first_layer, const GLuint layer_count)
     {
         ZoneScoped;
         if (buffer_id != 0)
         {
-            log_warn(logger_tag, "Attempted to initialize already initialized texture buffer!", " (buffer ", buffer_id, ")");
-            return;
+            log_warn(logger_tags::GRAPHICS, "Attempted to initialize already initialized texture buffer!", " (buffer ", buffer_id, ")");
+            return true;
         }
 
         internal_format = format;
         internal_texture_type = target;
 
         glGenTextures(1, &buffer_id);
+
+        if (buffer_id <= 0)
+        {
+            log_error(logger_tags::GRAPHICS, "Failed to allocate texture buffer (as view)!");
+            return false;
+        }
+
         glTextureView(buffer_id, internal_texture_type, source_id, internal_format, first_mip, mipmap_count, first_layer, layer_count);
-        log_debug(logger_tag, "Allocated texture view (", buffer_id, ") of texture ", source_id);
+        log_debug(logger_tags::GRAPHICS, "Allocated texture view (", buffer_id, ") of texture ", source_id);
+        return true;
     }
 
     void texture_buffer::upload_data_1d(const GLint mip_level, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const

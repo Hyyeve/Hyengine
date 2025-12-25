@@ -50,12 +50,6 @@ namespace hyengine
         if (handle != nullptr) glfwDestroyWindow(handle);
     }
 
-    void native_window::apply_context() const
-    {
-        ZoneScoped;
-        glfwMakeContextCurrent(handle);
-    }
-
     void native_window::set_title(const char* title) const
     {
         ZoneScoped;
@@ -122,7 +116,12 @@ namespace hyengine
             case window_mode::FULLSCREEN:
             {
                 if (current_monitor == nullptr) current_monitor = glfwGetPrimaryMonitor();
-                if (current_monitor == nullptr) return;
+                if (current_monitor == nullptr)
+                {
+                    log_warn(logger_tags::GRAPHICS, "Couldn't fullscreen window - no current monitor ?! (@", reinterpret_cast<size_t>(handle), ")");
+                    return;
+                }
+
                 fullscreen = true;
 
                 const GLFWvidmode* video_mode = glfwGetVideoMode(current_monitor);
@@ -132,7 +131,7 @@ namespace hyengine
                 fullscreen_height = video_mode->height;
                 viewport = {0, 0, fullscreen_width, fullscreen_height};
 
-                log_info(logger_tag, "Set fullscreen for window @", reinterpret_cast<size_t>(handle), " Res ", fullscreen_width, "x", fullscreen_height);
+                log_info(logger_tags::GRAPHICS, "Set fullscreen for window @", reinterpret_cast<size_t>(handle), " Res ", fullscreen_width, "x", fullscreen_height);
                 break;
             }
 
@@ -154,7 +153,7 @@ namespace hyengine
                 //If the window size/position exactly covers the display then windows does stupid full screen 'optimizations' that prevent transparent windows working
                 //Sooooo.... we make it overlap the edges by a pixel on each side to prevent that.
                 glfwSetWindowMonitor(handle, nullptr, window_x - 1, window_y - 1, fullscreen_width, fullscreen_height, GLFW_DONT_CARE);
-                log_info(logger_tag, "Set windowed fullscreen for window @", reinterpret_cast<size_t>(handle), " Res ", fullscreen_width, "x", fullscreen_height);
+                log_info(logger_tags::GRAPHICS, "Set borderless fullscreen for window @", reinterpret_cast<size_t>(handle), " Res ", fullscreen_width, "x", fullscreen_height);
                 break;
             }
 
@@ -163,7 +162,7 @@ namespace hyengine
                 fullscreen = false;
                 glfwSetWindowMonitor(handle, nullptr, x, y, width, height, GLFW_DONT_CARE);
                 viewport = {0, 0, width, height};
-                log_info(logger_tag, "Set windowed for window @", reinterpret_cast<size_t>(handle), " Res ", width, "x", height);
+                log_info(logger_tags::GRAPHICS, "Set windowed for window @", reinterpret_cast<size_t>(handle), " Res ", width, "x", height);
                 break;
             }
         }
@@ -171,33 +170,41 @@ namespace hyengine
         update_current_monitor();
     }
 
-    void native_window::set_vsync(const i32 sync) const
+    void native_window::set_hidden_cursor() const
     {
         ZoneScoped;
-        this->apply_context();
-        glfwSwapInterval(sync);
-        log_info(logger_tag, "Vsync for window @", reinterpret_cast<size_t>(handle), " set to ", sync);
+        glfwSetInputMode(handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        log_info(logger_tags::GRAPHICS, "Set Hidden cursor for window @", reinterpret_cast<size_t>(handle));
     }
 
     void native_window::set_captured_cursor() const
     {
         ZoneScoped;
         glfwSetInputMode(handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        log_info(logger_tag, "Set Captured cursor for window @", reinterpret_cast<size_t>(handle));
-    }
-
-    void native_window::set_hidden_cursor() const
-    {
-        ZoneScoped;
-        glfwSetInputMode(handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-        log_info(logger_tag, "Set Hidden cursor for window @", reinterpret_cast<size_t>(handle));
+        log_info(logger_tags::GRAPHICS, "Set Captured cursor for window @", reinterpret_cast<size_t>(handle));
     }
 
     void native_window::set_normal_cursor() const
     {
         ZoneScoped;
         glfwSetInputMode(handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        log_info(logger_tag, "Set Normal cursor for window @", reinterpret_cast<size_t>(handle));
+        log_info(logger_tags::GRAPHICS, "Set Normal cursor for window @", reinterpret_cast<size_t>(handle));
+    }
+
+    void native_window::set_vsync(const i32 sync) const
+    {
+        ZoneScoped;
+        this->apply_context();
+        glfwSwapInterval(sync);
+        log_info(logger_tags::GRAPHICS, "Vsync for window @", reinterpret_cast<size_t>(handle), " set to ", sync);
+    }
+
+    void native_window::hide()
+    {
+        ZoneScoped;
+        glfwIconifyWindow(handle);
+        is_visible = false;
+        log_info(logger_tags::GRAPHICS, "Hidden window @", reinterpret_cast<size_t>(handle));
     }
 
     void native_window::show()
@@ -207,6 +214,14 @@ namespace hyengine
         is_visible = true;
     }
 
+    void native_window::vanish()
+    {
+        ZoneScoped;
+        glfwHideWindow(handle);
+        is_visible = false;
+        log_info(logger_tags::GRAPHICS, "Vanished window @", reinterpret_cast<size_t>(handle));
+    }
+
     void native_window::toggle_visible()
     {
         ZoneScoped;
@@ -214,25 +229,18 @@ namespace hyengine
         else hide();
     }
 
-    void native_window::hide()
-    {
-        ZoneScoped;
-        glfwIconifyWindow(handle);
-        is_visible = false;
-    }
-
-    void native_window::vanish()
-    {
-        ZoneScoped;
-        glfwHideWindow(handle);
-        is_visible = false;
-    }
-
     void native_window::close()
     {
         ZoneScoped;
+        log_info(logger_tags::GRAPHICS, "Closing window @", reinterpret_cast<size_t>(handle));
         glfwDestroyWindow(handle);
         handle = nullptr;
+    }
+
+    void native_window::apply_context() const
+    {
+        ZoneScoped;
+        glfwMakeContextCurrent(handle);
     }
 
     void native_window::swap_buffers()
@@ -309,6 +317,11 @@ namespace hyengine
         return frame_count;
     }
 
+    bool native_window::has_size_changed() const
+    {
+        return size_changed;
+    }
+
     void native_window::update_size(GLFWwindow* window, const i32 width, const i32 height)
     {
         ZoneScoped;
@@ -338,11 +351,6 @@ namespace hyengine
         if (local_window->get_fullscreen()) return;
         local_window->x = x;
         local_window->y = y;
-    }
-
-    bool native_window::has_size_changed() const
-    {
-        return size_changed;
     }
 
 

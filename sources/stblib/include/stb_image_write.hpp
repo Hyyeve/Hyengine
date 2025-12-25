@@ -252,8 +252,8 @@ static int stbi_write_png_compression_level = 8;
 static int stbi_write_tga_with_rle = 1;
 static int stbi_write_force_png_filter = -1;
 #else
-int stbi_write_png_compression_level = 8;
 int stbi_write_tga_with_rle = 1;
+int stbi_write_png_compression_level = 8;
 int stbi_write_force_png_filter = -1;
 #endif
 
@@ -784,22 +784,22 @@ static int stbi_write_hdr_core(stbi__write_context *s, int x, int y, int comp, f
    }
 }
 
-STBIWDEF int stbi_write_hdr_to_func(stbi_write_func *func, void *context, int x, int y, int comp, const float *data)
-{
-   stbi__write_context s = { 0 };
-   stbi__start_write_callbacks(&s, func, context);
-   return stbi_write_hdr_core(&s, x, y, comp, (float *) data);
-}
-
 STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp, const float *data)
 {
-   stbi__write_context s = { 0 };
-   if (stbi__start_write_file(&s,filename)) {
-      int r = stbi_write_hdr_core(&s, x, y, comp, (float *) data);
-      stbi__end_write_file(&s);
-      return r;
-   } else
-      return 0;
+    stbi__write_context s = { 0 };
+    if (stbi__start_write_file(&s,filename)) {
+        int r = stbi_write_hdr_core(&s, x, y, comp, (float *) data);
+        stbi__end_write_file(&s);
+        return r;
+    } else
+        return 0;
+}
+
+STBIWDEF int stbi_write_hdr_to_func(stbi_write_func *func, void *context, int x, int y, int comp, const float *data)
+{
+    stbi__write_context s = { 0 };
+    stbi__start_write_callbacks(&s, func, context);
+    return stbi_write_hdr_core(&s, x, y, comp, (float *) data);
 }
 #endif // STBI_WRITE_NO_STDIO
 

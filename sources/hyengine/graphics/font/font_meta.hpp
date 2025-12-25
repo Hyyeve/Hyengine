@@ -33,7 +33,6 @@ namespace hyengine
         [[nodiscard]] std::string get_asset_id() const;
 
     private:
-        constexpr static std::string_view logger_tag = "Font";
         std::unordered_map<u32, font_glyph_meta> glyphs;
         std::string asset_id;
     };

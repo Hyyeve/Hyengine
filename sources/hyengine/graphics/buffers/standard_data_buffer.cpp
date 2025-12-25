@@ -12,31 +12,33 @@ namespace hyengine
         free();
     }
 
-    void standard_data_buffer::allocate_for_cpu_writes(const GLenum target, const GLsizeiptr size)
+    bool standard_data_buffer::allocate_for_cpu_writes(const GLenum target, const GLsizeiptr size)
     {
         constexpr GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
-        allocate(target, size, 3, nullptr, flags);
+        const bool success = allocate(target, size, 3, nullptr, flags);
+        if (!success) return false;
         map_storage(flags);
+        return true;
     }
 
-    void standard_data_buffer::allocate_for_gpu_writes(const GLenum target, const GLsizeiptr size)
+    bool standard_data_buffer::allocate_for_gpu_writes(const GLenum target, const GLsizeiptr size)
     {
-        allocate(target, size, 1, nullptr, 0);
+        return allocate(target, size, 1, nullptr, 0);
     }
 
-    void standard_data_buffer::allocate(const GLenum target, const GLsizeiptr size, const u32 slices, const void* const data, const GLbitfield storage_flags)
+    bool standard_data_buffer::allocate(const GLenum target, const GLsizeiptr size, const u32 slices, const void* const data, const GLbitfield storage_flags)
     {
         ZoneScoped;
         if (buffer_id != 0)
         {
-            log_error(logger_tag, "Couldn't allocate - already allocated with ID ", buffer_id);
-            return;
+            log_error(logger_tags::GRAPHICS, "Couldn't allocate - already allocated with ID ", buffer_id);
+            return false;
         }
 
         if (slices < 1 || slices > 3)
         {
-            log_error(logger_tag, "Couldn't allocate - slices must be between 1 and 3.");
-            return;
+            log_error(logger_tags::GRAPHICS, "Couldn't allocate - slices must be between 1 and 3.");
+            return false;
         }
 
         total_size = size * slices;
@@ -52,9 +54,16 @@ namespace hyengine
         }
 
         glCreateBuffers(1, &buffer_id);
-        glNamedBufferStorage(buffer_id, total_size, data, storage_flags);
 
-        log_info(logger_tag, "Allocated data buffer ", buffer_id, ". ", stringify_count(slice_count, "Slice"), ", Total ", stringify_bytes(total_size));
+        if (buffer_id == 0)
+        {
+            log_error(logger_tags::GRAPHICS, "Failed to allocate data buffer (buffer ", buffer_id, ")");
+            return false;
+        }
+
+        glNamedBufferStorage(buffer_id, total_size, data, storage_flags);
+        log_debug(logger_tags::GRAPHICS, "Allocated data buffer ", buffer_id, ". ", stringify_count(slice_count, "Slice"), ", Total ", stringify_bytes(total_size));
+        return true;
     }
 
     void standard_data_buffer::free()
@@ -63,7 +72,7 @@ namespace hyengine
         unmap_storage();
         if (buffer_id == 0) return;
 
-        log_info(logger_tag, "Freeing data buffer ", buffer_id, ". ", stringify_count(slice_count, "Slice"), " total ", stringify_bytes(total_size));
+        log_debug(logger_tags::GRAPHICS, "Freeing data buffer ", buffer_id, ". ", stringify_count(slice_count, "Slice"), " total ", stringify_bytes(total_size));
 
         glDeleteBuffers(1, &buffer_id);
 
@@ -121,7 +130,7 @@ namespace hyengine
         ZoneScoped;
         if (offset + bytes > total_size)
         {
-            log_warn(logger_tag, "Can't bind range - requested start and size would overflow", " (buffer ", buffer_id, ")");
+            log_warn(logger_tags::GRAPHICS, "Can't bind range - requested start and size would overflow", " (buffer ", buffer_id, ")");
             return;
         }
 
@@ -138,7 +147,7 @@ namespace hyengine
         ZoneScoped;
         if (write_offset + bytes > total_size)
         {
-            log_warn(logger_tag, "Can't copy range - requested start and size would overflow", " (buffer ", buffer_id, ")");
+            log_warn(logger_tags::GRAPHICS, "Can't copy range - requested start and size would overflow", " (buffer ", buffer_id, ")");
             return;
         }
 
@@ -178,7 +187,7 @@ namespace hyengine
         ZoneScoped;
         if (mapped_pointer == nullptr)
         {
-            log_error(logger_tag, "Buffer ", buffer_id, ", cannot be uploaded to directly! Not currently mapped.");
+            log_error(logger_tags::GRAPHICS, "Buffer ", buffer_id, ", cannot be uploaded to directly! Not currently mapped.");
             return;
         }
 

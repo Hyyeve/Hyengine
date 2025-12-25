@@ -19,7 +19,7 @@ namespace hyengine
         const std::string raw_csv = load_asset_text(asset_id);
         if (raw_csv.empty())
         {
-            log_error(logger_tag, "Failed to load font metadata \"", asset_id, "\" - got no glyph data.");
+            log_error(logger_tags::GRAPHICS, "Failed to load font metadata \"", asset_id, "\" - got no glyph data.");
             return;
         }
 
@@ -60,7 +60,7 @@ namespace hyengine
             glyphs[codepoint] = glyph_meta;
         }
 
-        log_info(logger_tag, "Loaded font metadata \"", asset_id, "\" - got ", stringify_count(glyphs.size(), "glyph"), ".");
+        log_debug(logger_tags::GRAPHICS, "Loaded font metadata \"", asset_id, "\" - got ", stringify_count(glyphs.size(), "glyph"), ".");
     }
 
     void font_meta::unload()

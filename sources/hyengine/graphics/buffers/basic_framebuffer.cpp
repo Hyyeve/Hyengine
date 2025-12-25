@@ -20,18 +20,24 @@ namespace hyengine
         color_attachment = nullptr;
     }
 
-    void basic_framebuffer::allocate(GLenum color_format, glm::uvec2 size, i32 multisample_count)
+    bool basic_framebuffer::allocate(GLenum color_format, glm::uvec2 size, i32 multisample_count)
     {
         ZoneScoped;
         if (valid)
         {
-            log_warn(stringify("Attempted to allocate already allocated standard framebuffer! (framebuffer ", buffer->get_id(), ")"), logger_tag);
-            return;
+            log_warn(logger_tags::GRAPHICS, stringify("Attempted to allocate already allocated basic framebuffer! (framebuffer ", buffer->get_id(), ")"));
+            return true;
         }
 
-        buffer->allocate();
-        depth_stencil_attachment->allocate(GL_TEXTURE_2D, {size.x, size.y, 0}, 1, GL_DEPTH24_STENCIL8, multisample_count);
-        color_attachment->allocate(GL_TEXTURE_2D, {size.x, size.y, 0}, 1, color_format, multisample_count);
+        const bool buffer_allocated = buffer->allocate();
+        const bool depth_allocated = depth_stencil_attachment->allocate(GL_TEXTURE_2D, {size.x, size.y, 0}, 1, GL_DEPTH24_STENCIL8, multisample_count);
+        const bool color_allocated = color_attachment->allocate(GL_TEXTURE_2D, {size.x, size.y, 0}, 1, color_format, multisample_count);
+
+        if (!buffer_allocated || !depth_allocated || !color_allocated)
+        {
+            log_error(logger_tags::GRAPHICS, "Failed to allocate basic framebuffer!");
+            return false;
+        }
 
         buffer->attach_texture(*color_attachment, GL_COLOR_ATTACHMENT0);
         buffer->attach_texture(*depth_stencil_attachment, GL_DEPTH_STENCIL_ATTACHMENT);
@@ -39,7 +45,14 @@ namespace hyengine
         valid = buffer->validate();
         internal_format = color_format;
 
-        log_info(stringify("Allocated standard framebuffer (framebuffer ", buffer->get_id(), ")"), logger_tag);
+        if (!valid)
+        {
+            log_error(logger_tags::GRAPHICS, "Failed to allocate basic framebuffer!");
+            return false;
+        }
+
+        log_debug(logger_tags::GRAPHICS, "Buffer ", buffer->get_id(), " allocated as basic framebuffer.");
+        return true;
     }
 
     void basic_framebuffer::free()
@@ -53,7 +66,7 @@ namespace hyengine
             color_attachment->free();
             valid = false;
 
-            log_info(stringify("Freed standard framebuffer (framebuffer ", prev_id, ")"), logger_tag);
+            log_debug(logger_tags::GRAPHICS, stringify("Freed standard framebuffer (framebuffer ", prev_id, ")"));
         }
     }
 

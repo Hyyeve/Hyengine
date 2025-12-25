@@ -24,6 +24,7 @@ namespace hyengine
     [[nodiscard]] virtual_controller& hardware_controller(u32 player_index);
     [[nodiscard]] bool hardware_controller_connected(u32 player_index);
     [[nodiscard]] bool hardware_controller_has_mappings(u32 player_index);
+    void hardware_controller_swap_player_slots(u32 player_index_a, u32 player_index_b);
     [[nodiscard]] std::string hardware_controller_name(u32 player_index);
 
     [[nodiscard]] bool key_pressed(i32 key);

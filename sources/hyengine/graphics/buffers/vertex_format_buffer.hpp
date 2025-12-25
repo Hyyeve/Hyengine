@@ -18,7 +18,7 @@ namespace hyengine
         explicit vertex_format_buffer();
         ~vertex_format_buffer();
 
-        void allocate();
+        [[nodiscard]] bool allocate();
         void free();
         void bind_state() const;
 
@@ -35,7 +35,6 @@ namespace hyengine
         [[nodiscard]] GLuint get_id() const;
 
     private:
-        const std::string logger_tag = "GPU Vertex Format Buffer";
         GLuint buffer_id = 0;
     };
 }

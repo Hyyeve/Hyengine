@@ -16,14 +16,14 @@ namespace hyengine
         explicit texture_buffer() = default;
         ~texture_buffer();
 
-        void allocate(const GLenum texture_type, const glm::uvec3& size, const GLsizei mipmap_count, const GLenum format, const i32 multisample_count);
+        [[nodiscard]] bool allocate(const GLenum texture_type, const glm::uvec3& size, const GLsizei mipmap_count, const GLenum format, const i32 multisample_count);
         void free();
 
         void clear(const u32 level, const GLenum data_format, const GLenum data_type, const void* data) const;
 
-        void allocate_as_view(const GLenum target, const GLenum format, GLuint source_id);
-        void allocate_as_view(const GLenum target, const GLenum format, GLuint source_id, GLuint layer);
-        void allocate_as_view(const GLenum target, const GLenum format, const GLuint source_id, const GLuint first_mip, const GLuint mipmap_count, const GLuint first_layer, const GLuint layer_count);
+        [[nodiscard]] bool allocate_as_view(const GLenum target, const GLenum format, GLuint source_id);
+        [[nodiscard]] bool allocate_as_view(const GLenum target, const GLenum format, GLuint source_id, GLuint layer);
+        [[nodiscard]] bool allocate_as_view(const GLenum target, const GLenum format, const GLuint source_id, const GLuint first_mip, const GLuint mipmap_count, const GLuint first_layer, const GLuint layer_count);
 
         void upload_data_1d(const GLint mip_level, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const;
         void upload_data_2d(const GLint mip_level, const GLenum data_format, const GLenum data_type, const GLvoid* data_pointer) const;
@@ -95,7 +95,6 @@ namespace hyengine
         [[nodiscard]] bool is_float_format() const;
 
     private:
-        const std::string logger_tag = "GPU Texture";
 
         GLuint buffer_id = 0;
         GLenum internal_texture_type = 0;

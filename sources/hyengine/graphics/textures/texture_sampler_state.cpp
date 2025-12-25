@@ -8,10 +8,11 @@ namespace hyengine
         free();
     }
 
-    void texture_sampler_state::allocate()
+    [[nodiscard]] bool texture_sampler_state::allocate()
     {
         ZoneScoped;
         glCreateSamplers(1, &gl_id);
+        return gl_id != 0;
     }
 
     void texture_sampler_state::free()

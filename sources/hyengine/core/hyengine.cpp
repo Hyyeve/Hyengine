@@ -13,14 +13,13 @@ namespace hyengine
 {
     using namespace hyengine;
 
-    const std::string LOGGER_TAG = "Hyengine";
 
     native_window* initialize_graphics(const window_config& main_window_config)
     {
         ZoneScopedC(0x0077FF);
         if (!try_init_glfw())
         {
-            log_error(LOGGER_TAG, "Failed to initialize glfw");
+            log_error(logger_tags::ENGINE, "Failed to initialize glfw");
             return nullptr;
         }
 
@@ -28,7 +27,7 @@ namespace hyengine
 
         if (!window->exists())
         {
-            log_error(LOGGER_TAG, "Failed to create main window");
+            log_error(logger_tags::ENGINE, "Failed to create main window");
             delete window;
             return nullptr;
         }
@@ -39,7 +38,7 @@ namespace hyengine
 
         if (!try_load_glad())
         {
-            log_error(LOGGER_TAG, "Failed to load glad");
+            log_error(logger_tags::ENGINE, "Failed to load glad");
             delete window;
             return nullptr;
         }
@@ -58,13 +57,13 @@ namespace hyengine
 
     void launch_frame_loop(const frame_loop::config& config)
     {
-        log_info(config.name, "Launching frame loop '", config.name, "'");
+        log_info(logger_tags::ENGINE, "Launching frame loop '", config.name, "'");
         config.launch();
     }
 
     void spin_frame_loop(frame_loop::config config)
     {
-        log_info(config.name, "Entering frame loop");
+        log_info(logger_tags::ENGINE, "Entering frame loop");
 
         frame_loop::loop_data loop_data {};
 
@@ -91,7 +90,7 @@ namespace hyengine
 
             if (delta_time > max_frame_time)
             {
-                log_warn(config.name, "Last frame took too long! ", stringify_secs(delta_time), ", but max allowed is ", stringify_secs(max_frame_time));
+                log_warn(logger_tags::ENGINE, "Last frame took too long! ", stringify_secs(delta_time), ", but max allowed is ", stringify_secs(max_frame_time));
                 delta_time = max_frame_time;
             }
 
@@ -128,7 +127,7 @@ namespace hyengine
 
     void exit_frame_loop(const frame_loop::config& config)
     {
-        log_info(config.name, "Exiting frame loop");
+        log_info(logger_tags::ENGINE, "Exiting frame loop");
         config.exit();
     }
 
@@ -142,6 +141,6 @@ namespace hyengine
         spin_frame_loop(config);
         exit_frame_loop(config);
 
-        log_info(config.name, "Ran for: ", stringify_secs(time() - start_time));
+        log_info(logger_tags::ENGINE, "Ran for: ", stringify_secs(time() - start_time));
     }
 }

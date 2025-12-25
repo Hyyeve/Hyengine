@@ -13,14 +13,23 @@ namespace hyengine
         free();
     }
 
-    void vertex_format_buffer::allocate()
+    bool vertex_format_buffer::allocate()
     {
         ZoneScoped;
         if (buffer_id > 0)
         {
-            log_warn(logger_tag, "Attempted to initialize already initialized format buffer!", " (buffer ", buffer_id, ")");
+            log_warn(logger_tags::GRAPHICS, "Attempted to initialize already initialized format buffer!", " (buffer ", buffer_id, ")");
+            return true;
         }
+
         glCreateVertexArrays(1, &buffer_id);
+        if (buffer_id == 0)
+        {
+            log_error(logger_tags::GRAPHICS, "Failed to allocate vertex format buffer!");
+            return false;
+        }
+
+        return true;
     }
 
     void vertex_format_buffer::free()

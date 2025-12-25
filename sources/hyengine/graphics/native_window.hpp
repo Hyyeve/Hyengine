@@ -114,8 +114,6 @@ namespace hyengine
         bool is_visible = true;
         render_viewport viewport = {0, 0, 0, 0};
 
-        const std::string logger_tag = "OS Window";
-
         static void update_size(GLFWwindow* window, i32 width, i32 height);
         static void update_position(GLFWwindow* window, i32 x, i32 y);
         void update_current_monitor();

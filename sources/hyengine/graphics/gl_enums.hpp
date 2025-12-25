@@ -10,7 +10,7 @@ namespace hyengine
     {
         DECLA(MAJOR_VERSION);
         DECLA(MINOR_VERSION);
-        DECL MAX_COMPUTE_SHADER_STORAGE_BLOCKS = GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS;
+        DECLA(MAX_COMPUTE_SHADER_STORAGE_BLOCKS);
         DECLA(MAX_COMBINED_SHADER_STORAGE_BLOCKS);
         DECLA(MAX_COMPUTE_UNIFORM_BLOCKS);
         DECLA(MAX_COMPUTE_TEXTURE_IMAGE_UNITS);
@@ -154,7 +154,7 @@ namespace hyengine
 
     namespace texture_formats
     {
-        //NOTE: Does not validate that it *is* a floating point format, only that it is NOT a standard integer format
+        ///NOTE: Does not validate that it *is* a floating point format, only that it is NOT a standard integer format
         bool is_floating_point(const GLenum format);
         bool is_signed_integer(const GLenum format);
         bool is_unsigned_integer(const GLenum format);

@@ -1322,15 +1322,6 @@ public:
 
 template <bitcount_t table_pow2, bitcount_t advance_pow2,
           typename baseclass, typename extvalclass, bool kdd>
-void extended<table_pow2,advance_pow2,baseclass,extvalclass,kdd>::datainit(
-         const result_type* data)
-{
-    for (size_t i = 0; i < table_size; ++i)
-        data_[i] = data[i];
-}
-
-template <bitcount_t table_pow2, bitcount_t advance_pow2,
-          typename baseclass, typename extvalclass, bool kdd>
 void extended<table_pow2,advance_pow2,baseclass,extvalclass,kdd>::selfinit()
 {
     // We need to fill the extended table with something, and we have
@@ -1347,6 +1338,15 @@ void extended<table_pow2,advance_pow2,baseclass,extvalclass,kdd>::selfinit()
     for (size_t i = 0; i < table_size; ++i) {
         data_[i] = baseclass::operator()() ^ xdiff;
     }
+}
+
+template <bitcount_t table_pow2, bitcount_t advance_pow2,
+          typename baseclass, typename extvalclass, bool kdd>
+void extended<table_pow2,advance_pow2,baseclass,extvalclass,kdd>::datainit(
+    const result_type* data)
+{
+    for (size_t i = 0; i < table_size; ++i)
+        data_[i] = data[i];
 }
 
 template <bitcount_t table_pow2, bitcount_t advance_pow2,

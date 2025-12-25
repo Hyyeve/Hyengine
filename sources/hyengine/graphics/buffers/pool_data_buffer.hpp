@@ -20,13 +20,13 @@ namespace hyengine
         explicit pool_data_buffer();
         ~pool_data_buffer();
 
-        void allocate(const GLenum target, const GLsizeiptr size, const GLsizeiptr staging_size);
+        [[nodiscard]] bool allocate(const GLenum target, const GLsizeiptr size, const GLsizeiptr staging_size);
         void free();
 
         void shrink_staging_buffer();
         void reserve_staging_buffer_size(const u32 size);
 
-        bool try_allocate_space(const u32 size, u32& address);
+        [[nodiscard]] bool try_allocate_space(const u32 size, u32& address);
         void deallocate_space(const u32 address);
         [[nodiscard]] u32 get_last_allocated_address() const;
 
@@ -46,8 +46,6 @@ namespace hyengine
 
     private:
         void reallocate_staging_buffer(const GLsizeiptr size);
-
-        const std::string logger_tag = "GPU Pool Buffer";
 
         standard_data_buffer pool_buffer;
         pool_allocation_tracker pool_allocator;

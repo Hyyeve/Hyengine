@@ -29,6 +29,18 @@ namespace hyengine
 
     namespace ansi_codes
     {
+        constexpr std::string ansi_rgb(const u8 r, const u8 g, const u8 b) noexcept
+        {
+            return stringify("\u001B[38;2;", static_cast<u32>(r) ,";", static_cast<u32>(g),";", static_cast<u32>(b),"m");
+        }
+
+        const std::string ANSI_ORANGE = ansi_rgb(255, 127, 0);
+        const std::string ANSI_MINT = ansi_rgb(0, 255, 127);
+        const std::string ANSI_VIOLET = ansi_rgb(127, 0, 255);
+        const std::string ANSI_CRIMSON = ansi_rgb(255, 0, 127);
+        const std::string ANSI_LIME = ansi_rgb(127, 255, 0);
+        const std::string ANSI_AZURE = ansi_rgb(0, 127, 255);
+
         constexpr std::string_view ANSI_RESET = "\u001B[0m";
         constexpr std::string_view ANSI_BOLD = "\u001B[1m";
         constexpr std::string_view ANSI_UNDERLINE = "\u001B[4m";
@@ -48,22 +60,42 @@ namespace hyengine
         constexpr std::string_view ANSI_GREY = "\u001B[37m";
         constexpr std::string_view ANSI_WHITE = "\u001B[97m";
         constexpr std::string_view ANSI_DELETE_LINE = "\u001B[1A\u001B[2K\r";
+
+    }
+
+    namespace logger_tags
+    {
+        struct tag
+        {
+            tag(const std::string_view& tag, const std::string_view& format_codes) noexcept : tag_id(tag), message_format_codes(format_codes) {}
+
+            std::string tag_id;
+            std::string message_format_codes;
+        };
+
+        //General tags
+        const tag ENGINE = {"Hyengine", ""};
+        const tag FILEIO = {"FileIO", ""};
+        const tag GRAPHICS = {"Graphics", ""};
+        const tag INPUT = {"Input", ""};
+        const tag ASYNC = {"Async", ""};
+        const tag DEBUG = {"Debug", ""};
     }
 
     void set_log_level(const log_level level);
     void flush_logs();
-    void log(const std::string_view tag, const std::string_view msg, const std::string_view type, const std::string_view color_code);
+    void log(const logger_tags::tag& tag, const std::string_view msg, const std::string_view type, const std::string_view color_code);
 
-    void log_debug(const std::string_view tag, const std::string_view msg);
-    void log_info(const std::string_view tag, const std::string_view msg);
-    void log_performance(const std::string_view tag, const std::string_view msg);
-    void log_warn(const std::string_view tag, const std::string_view msg);
-    void log_error(const std::string_view tag, const std::string_view msg);
-    void log_fatal(const std::string_view tag, const std::string_view msg);
-    void log_secret(const std::string_view tag, const std::string_view msg);
+    void log_debug(const logger_tags::tag& tag, const std::string_view msg);
+    void log_info(const logger_tags::tag& tag, const std::string_view msg);
+    void log_performance(const logger_tags::tag& tag, const std::string_view msg);
+    void log_warn(const logger_tags::tag& tag, const std::string_view msg);
+    void log_error(const logger_tags::tag& tag, const std::string_view msg);
+    void log_fatal(const logger_tags::tag& tag, const std::string_view msg);
+    void log_secret(const logger_tags::tag& tag, const std::string_view msg);
 
 
-    #define VARARG_DEF(type) void type(const std::string_view id, const std::string_view first, const auto... rest) { type(id, stringify(first, rest...)); }
+    #define VARARG_DEF(type) void type(const logger_tags::tag tag, const std::string_view first, const auto... rest) { type(tag, stringify(first, rest...)); }
 
     VARARG_DEF(log_debug)
     VARARG_DEF(log_info)

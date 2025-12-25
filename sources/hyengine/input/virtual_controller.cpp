@@ -40,11 +40,6 @@ namespace hyengine
         return button_map[button] < 0;
     }
 
-    i32 virtual_controller::frame_count(const i32 button)
-    {
-        return button_map[button];
-    }
-
     bool virtual_controller::pressed_this_frame(const i32 button)
     {
         return frame_count(button) == 1;
@@ -78,6 +73,11 @@ namespace hyengine
     bool virtual_controller::axis_released(const i32 axis, const f32 threshold)
     {
         return axis_map[axis] < threshold;
+    }
+
+    i32 virtual_controller::frame_count(const i32 button)
+    {
+        return button_map[button];
     }
 
     i32 virtual_controller::pressed_frames(const i32 button)

@@ -53,6 +53,7 @@ namespace hyengine
     };
 
     void string_replace(std::string& str, const char from, const char to);
+    i32 string_find_occurance(const std::string_view& str, const std::string_view& target, const u32 occurance_index);
     std::string stringify_utf32(const u32 codepoint);
 
     [[nodiscard]] std::string stringify_duration(const std::chrono::microseconds duration);
@@ -62,7 +63,7 @@ namespace hyengine
     [[nodiscard]] std::string stringify_count(const unsigned long count_num, std::string_view count_of);
     [[nodiscard]] std::string stringify_char(const char c);
 
-    [[nodiscard]] constexpr std::string stringify(const auto&... values)
+    [[nodiscard]] constexpr std::string stringify(const auto&... values) noexcept
     {
         std::stringstream format_stream;
         format_stream << std::fixed << std::setprecision(2);

@@ -38,11 +38,15 @@ namespace hyengine
     };
 
     static std::mutex logging_lock;
+    #ifdef DEBUG
+    static log_level logging_level = log_level::ALL;
+    #else
     static log_level logging_level = log_level::NORMAL;
+    #endif
 
     static i32 log_repeat_count = 0;
     static std::string last_message;
-    static std::string last_tag;
+    static logger_tags::tag last_tag = {"None", ""};
     static std::stringstream builder;
     static std::vector<std::string> message_queue;
     static bool has_buffered_messages = false;
@@ -86,9 +90,9 @@ namespace hyengine
         logging_lock.unlock();
     }
 
-    inline void write_tag(const std::string_view format, const std::string_view color_code, const std::string_view tag)
+    inline void write_tag(const std::string_view format, const std::string_view color_code, const logger_tags::tag& tag)
     {
-        builder << '[' << format << color_code << tag << ansi_codes::ANSI_RESET << ']';
+        builder << '[' << format << color_code << tag.tag_id << ansi_codes::ANSI_RESET << ']' << tag.message_format_codes;
     }
 
     inline void write_repeat_tag(const std::string_view color_code)
@@ -96,13 +100,13 @@ namespace hyengine
         builder << ansi_codes::ANSI_RESET << " [" << ansi_codes::ANSI_BOLD << color_code << "+" << std::to_string(log_repeat_count) << ansi_codes::ANSI_RESET << ']';
     }
 
-    void log(const std::string_view tag, const std::string_view msg, const std::string_view type, const std::string_view color_code)
+    void log(const logger_tags::tag& tag, const std::string_view msg, const std::string_view type, const std::string_view color_code)
     {
         ZoneScoped;
 
         logging_lock.lock();
 
-        const bool is_repeat = msg == last_message && tag == last_tag;
+        const bool is_repeat = msg == last_message && tag.tag_id == last_tag.tag_id;
 
         if (is_repeat)
         {
@@ -118,14 +122,14 @@ namespace hyengine
 
         builder << stringify("[", ansi_codes::ANSI_BOLD, ansi_codes::ANSI_BRIGHT_BLUE, "T", std::setfill('0'), std::setw(3), get_current_thread_id(), ansi_codes::ANSI_RESET, ']');
 
-        if (!type.empty()) write_tag(ansi_codes::ANSI_BOLD, color_code, type);
-        if (!tag.empty()) write_tag(ansi_codes::ANSI_RESET, ansi_codes::ANSI_PURPLE, tag);
+        if (!type.empty()) write_tag(ansi_codes::ANSI_BOLD, color_code, {type, ""});
+        if (!tag.tag_id.empty()) write_tag(ansi_codes::ANSI_RESET, ansi_codes::ANSI_PURPLE, tag);
 
         builder << ' ' << color_code << msg << ansi_codes::ANSI_RESET;
 
         if (is_repeat) write_repeat_tag(color_code);
 
-        builder << std::endl;
+        builder << '\n';
 
         message_queue.push_back(builder.str());
         builder.str("");
@@ -135,38 +139,38 @@ namespace hyengine
         logging_lock.unlock();
     }
 
-    void log_debug(const std::string_view tag, const std::string_view msg)
+    void log_debug(const logger_tags::tag& tag, const std::string_view msg)
     {
-        if (logging_level > log_level::NORMAL) log(tag, msg, "DEBG", ansi_codes::ANSI_GREEN);
+        if (logging_level > log_level::NORMAL) log(tag, msg, "DEBG", ansi_codes::ANSI_LIME);
     }
 
-    void log_info(const std::string_view tag, const std::string_view msg)
+    void log_info(const logger_tags::tag& tag, const std::string_view msg)
     {
-        if (logging_level > log_level::REDUCED) log(tag, msg, "INFO", ansi_codes::ANSI_BLUE);
+        if (logging_level > log_level::REDUCED) log(tag, msg, "INFO", ansi_codes::ANSI_AZURE);
     }
 
-    void log_performance(const std::string_view tag, const std::string_view msg)
+    void log_performance(const logger_tags::tag& tag, const std::string_view msg)
     {
         if (logging_level > log_level::REDUCED) log(tag, msg, "PERF", ansi_codes::ANSI_CYAN);
     }
 
-    void log_warn(const std::string_view tag, const std::string_view msg)
+    void log_warn(const logger_tags::tag& tag, const std::string_view msg)
     {
         if (logging_level > log_level::NONE) log(tag, msg, "WARN", ansi_codes::ANSI_BRIGHT_YELLOW);
     }
 
-    void log_error(const std::string_view tag, const std::string_view msg)
+    void log_error(const logger_tags::tag& tag, const std::string_view msg)
     {
         if (logging_level > log_level::NONE) log(tag, msg, "ERRR", ansi_codes::ANSI_RED);
     }
 
-    void log_fatal(const std::string_view tag, const std::string_view msg)
+    void log_fatal(const logger_tags::tag& tag, const std::string_view msg)
     {
         constexpr std::string_view fatal_format = std::string_view("\u001B[91m\u001B[1m\u001B[4m");
         log(tag, msg, "FATAL", fatal_format);
     }
 
-    void log_secret(const std::string_view tag, const std::string_view msg)
+    void log_secret(const logger_tags::tag& tag, const std::string_view msg)
     {
         log(tag, msg, "SECRET", ansi_codes::ANSI_BRIGHT_YELLOW);
     }

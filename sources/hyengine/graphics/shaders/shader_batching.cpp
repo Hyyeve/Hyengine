@@ -1,4 +1,6 @@
 #include "shader_batching.hpp"
+
+#include <ranges>
 #include <unordered_set>
 
 namespace hyengine

@@ -18,7 +18,7 @@ namespace hyengine
         explicit render_texture() = default;
         ~render_texture();
 
-        void allocate(const GLenum format, const glm::uvec2 size, const i32 multisample_count);
+        [[nodiscard]] bool allocate(const GLenum format, const glm::uvec2 size, const i32 multisample_count);
         void free();
 
         void copy_data_from(const render_texture& source) const;
@@ -41,7 +41,6 @@ namespace hyengine
         [[nodiscard]] bool is_float_format() const;
 
     private:
-        const std::string logger_tag = "GPU Render Texture";
 
         GLuint gl_id = 0;
         glm::uvec2 internal_size = {0, 0};

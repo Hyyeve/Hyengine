@@ -14,33 +14,39 @@ namespace hyengine
         free();
     }
 
-    void basic_renderer::allocate(const u32 memory_budget_mb)
+    bool basic_renderer::allocate(const u32 memory_budget_mb)
     {
         ZoneScoped;
         if (is_allocated)
         {
-            log_warn(logger_tag, "Attempted to allocate already allocated debug renderer!");
-            return;
+            log_warn(logger_tags::GRAPHICS, "Attempted to allocate already allocated basic renderer!");
+            return true;
         }
 
+        basic_shader = create_shader_instance("hyengine.shader.basic_pos_col", false);
+        texture_shader = create_shader_instance("hyengine.shader.basic_pos_col_tex", true);
 
-        basic_shader = create_shader_instance("shader:basic_pos_col", false);
-        //texture_shader = create_shader_instance("shader:basic_pos_col_tex", true);
-        texture_shader = create_shader_instance("shader:font", false);
-
-        basic_shader->load();
-        texture_shader->load();
+        const bool shader_allocated = basic_shader->allocate();
+        const bool tex_shader_allocated = texture_shader->allocate();
 
         const u32 max_vertices = ((1024 * 1024) / sizeof(basic_vertex)) * memory_budget_mb;
 
-        vertex_buffer.allocate_for_cpu_writes(GL_ARRAY_BUFFER, max_vertices);
-        vertex_format_buffer.allocate();
+        const bool vertex_buffer_allocated = vertex_buffer.allocate_for_cpu_writes(GL_ARRAY_BUFFER, max_vertices);
+        const bool vertex_format_buffer_allocated = vertex_format_buffer.allocate();
+
+        if (!shader_allocated || !tex_shader_allocated || !vertex_buffer_allocated || !vertex_format_buffer_allocated)
+        {
+            log_error(logger_tags::GRAPHICS, "Failed to allocate basic renderer!");
+            return false;
+        }
+
         vertex_format_buffer.attach_vertex_format(basic_vertex_format, 0);
         vertex_format_buffer.attach_vertex_buffer(0, vertex_buffer.get_buffer_id(), 0, vertex_buffer.get_element_size());
 
         is_allocated = true;
 
-        log_info(logger_tag, "Allocated debug renderer with ", stringify_bytes(max_vertices * sizeof(basic_vertex)), " of vertex memory.");
+        log_debug(logger_tags::GRAPHICS, "Allocated debug renderer with ", stringify_bytes(max_vertices * sizeof(basic_vertex)), " of vertex memory.");
+        return true;
     }
 
     void basic_renderer::free()
@@ -57,14 +63,14 @@ namespace hyengine
         write_index = 0;
         is_allocated = false;
 
-        log_info(logger_tag, "Freed debug renderer");
+        log_debug(logger_tags::GRAPHICS, "Freed debug renderer");
     }
 
     void basic_renderer::vertex(glm::vec3 pos, glm::vec4 color, glm::vec2 uv)
     {
         if (!is_allocated)
         {
-            log_warn(logger_tag, "Can't add triangle; renderer not allocated!");
+            log_warn(logger_tags::GRAPHICS, "Can't add triangle; renderer not allocated!");
             return;
         }
 
@@ -148,8 +154,12 @@ namespace hyengine
     void basic_renderer::reload_shaders() const
     {
         ZoneScoped;
-        basic_shader->reload();
-        texture_shader->reload();
+        const bool basic_shader_reallocated = basic_shader->reallocate();
+        const bool tex_shader_reallocated = texture_shader->reallocate();
+        if (!basic_shader_reallocated || !tex_shader_reallocated)
+        {
+            log_error(logger_tags::GRAPHICS, "Reallocating basic renderer shaders failed!");
+        }
     }
 
     void basic_renderer::bind() const

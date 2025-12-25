@@ -14,37 +14,38 @@ namespace hyengine
 {
     using namespace glm;
 
+
     shader::shader(const std::string_view& asset_id) noexcept : asset_id(asset_id), binary_asset_id(get_binary_asset_id(this->asset_id)) {}
 
     shader::~shader()
     {
-        unload();
+        deallocate();
     }
 
-    void shader::load()
+    bool shader::allocate()
     {
         ZoneScoped;
         if (program_id != 0)
         {
             //Standard behaviour with shared shader instances
-            log_info(logger_tag, "Shader ", asset_id, " already loaded");
-            return;
+            log_warn(logger_tags::GRAPHICS, "Shader ", asset_id, " already loaded");
+            return true;
         }
 
         program_id = load_program(asset_id, binary_asset_id);
 
-        if (program_id != 0)
+        if (program_id == 0)
         {
-            load_interface_locations();
-            log_info(logger_tag, hyengine::stringify("Loaded shader ", asset_id, " and located ", uniform_locations.size(), " uniforms"));
+            log_error(logger_tags::GRAPHICS, hyengine::stringify("Shader initialization for ", asset_id, " failed!"));
+            return false;
         }
-        else
-        {
-            log_error(logger_tag, hyengine::stringify("Shader initialization for ", asset_id, " failed!"));
-        }
+
+        load_interface_locations();
+        log_debug(logger_tags::GRAPHICS, hyengine::stringify("Loaded shader ", asset_id, " and located ", uniform_locations.size(), " uniforms"));
+        return true;
     }
 
-    void shader::unload()
+    void shader::deallocate()
     {
         if (program_id == 0) return;
 
@@ -52,23 +53,26 @@ namespace hyengine
 
         program_id = 0;
         uniform_locations.clear();
+        log_debug(logger_tags::GRAPHICS, "Unloaded shader '", asset_id, "'");
     }
 
-    void shader::reload()
+    bool shader::reallocate()
     {
         ZoneScoped;
         const bool in_use = active();
-        unload();
-        load();
+        deallocate();
+        const bool allocated = allocate();
+        if (!allocated) return false;
         if (in_use) use();
+        return true;
     }
 
-    void shader::clear_all_shader_caches()
+    void shader::clear_all_binary_caches()
     {
-        delete_asset_directory(get_binary_asset_id("shader:dummy"));
+        delete_asset_directory(get_binary_asset_id("dummy"));
     }
 
-    void shader::clear_shader_cache() const
+    void shader::clear_binary_cache() const
     {
         delete_asset(binary_asset_id);
     }
@@ -106,7 +110,7 @@ namespace hyengine
         const std::string name_str = std::string(name);
         if (!storage_block_bindings.contains(name_str))
         {
-            log_warn(logger_tag, "Failed to set shader storage block binding for '", name_str, "'`");
+            log_warn(logger_tags::GRAPHICS, "Failed to set shader storage block binding for '", name_str, "'`");
             return;
         }
 
@@ -124,7 +128,7 @@ namespace hyengine
         const std::string name_str = std::string(name);
         if (!uniform_block_bindings.contains(name_str))
         {
-            log_warn(logger_tag, "Failed to set shader uniform block binding for '", name_str, "'`");
+            log_warn(logger_tags::GRAPHICS, "Failed to set shader uniform block binding for '", name_str, "'`");
             return;
         }
 
@@ -199,96 +203,24 @@ namespace hyengine
         return true;
     }
 
-    GLuint shader::link_program(const std::vector<GLuint>& shaders)
-    {
-        const GLuint program = glCreateProgram();
-        for (const GLuint shader : shaders)
-        {
-            if (shader != 0)
-            {
-                glAttachShader(program, shader);
-            }
-        }
-
-        glLinkProgram(program);
-
-        GLint success = GL_TRUE;
-        glGetProgramiv(program, GL_LINK_STATUS, &success);
-
-        if (success != GL_TRUE)
-        {
-            log_program_info("\n ---------- Failed to link program ---------- \n", program);
-            return 0;
-        }
-
-        return validate_program(program) ? program : 0;
-    }
-
-    std::string shader::get_binary_asset_id(const std::string_view& normal_asset_id)
-    {
-        return hyengine::stringify(cache_directory, ":", get_asset_name(normal_asset_id));
-    }
-
-    bool update_line_type(const std::string_view line, i32* line_type)
-    {
-        const std::string type = ascii_to_lower(find_directive(line, "shader_type"));
-        if (type.empty()) return false;
-        switch (string_hash(type))
-        {
-            case string_hash("vert"):
-            case string_hash("vertex"):
-            {
-                *line_type = 0;
-                break;
-            }
-            case string_hash("frag"):
-            case string_hash("fragment"):
-            {
-                *line_type = 1;
-                break;
-            }
-            case string_hash("comp"):
-            case string_hash("compute"):
-            {
-                *line_type = 2;
-                break;
-            }
-            case string_hash("geom"):
-            case string_hash("geometry"):
-            {
-                *line_type = 3;
-                break;
-            }
-            case string_hash("tess_control"):
-            {
-                *line_type = 4;
-                break;
-            }
-            case string_hash("tess_eval"):
-            {
-                *line_type = 5;
-                break;
-            }
-            case string_hash("share"):
-            case string_hash("shared"):
-            {
-                *line_type = 6;
-                break;
-            }
-            default: break;
-        }
-
-        return true;
-    }
-
     GLuint shader::load_program(const std::string_view& asset_id, const std::string_view& binary_asset_id)
     {
         ZoneScoped;
-        if (!asset_exists(asset_id)) return 0;
+        log_info(logger_tags::GRAPHICS, "Loading shader '", asset_id, "'.");
+        if (!asset_exists(asset_id))
+        {
+            log_warn(logger_tags::GRAPHICS, "Shader asset '", asset_id, "' does not exist!");
+            return 0;
+        }
 
-        const GLuint binary_program = load_binary_program(binary_asset_id);
-        if (binary_program != 0) return binary_program;
+        const GLuint binary_program = load_binary_program(asset_id);
+        if (binary_program != 0)
+        {
+            log_debug(logger_tags::GRAPHICS, "Found cached binary for '", asset_id, "'.");
+            return binary_program;
+        }
 
+        log_debug(logger_tags::GRAPHICS, "Cached binary not found (or invalid) for '", asset_id, "'. Building shader.");
         const std::string raw_text = load_asset_text(asset_id);
         std::istringstream text(raw_text);
 
@@ -321,26 +253,62 @@ namespace hyengine
         {
             //If we wanted to be super efficient about shader compilation, we should really keep these around for re-use.
             if (shader != 0)
+            {
                 glDeleteShader(shader);
+            }
         }
 
-        save_binary_program(binary_asset_id, program);
+        save_binary_program(asset_id, program);
 
         return program;
+    }
+
+    GLuint shader::link_program(const std::vector<GLuint>& shaders)
+    {
+        const GLuint program = glCreateProgram();
+        for (const GLuint shader : shaders)
+        {
+            if (shader != 0)
+            {
+                glAttachShader(program, shader);
+            }
+        }
+
+        glLinkProgram(program);
+
+        GLint success = GL_TRUE;
+        glGetProgramiv(program, GL_LINK_STATUS, &success);
+
+        if (success != GL_TRUE)
+        {
+            log_program_info("\n ---------- Failed to link program ---------- \n", program);
+            return 0;
+        }
+
+        return validate_program(program) ? program : 0;
+    }
+
+    std::string shader::get_binary_asset_id(const std::string_view& normal_asset_id)
+    {
+        return hyengine::stringify(binary_cache_directory, get_asset_name(normal_asset_id));
     }
 
     GLuint shader::load_binary_program(const std::string_view& asset_id)
     {
         ZoneScoped;
-        if (!asset_exists(asset_id)) return 0;
-        const std::vector<u8> binary_data = load_asset_bytes(asset_id);
+        const std::string binary_asset_id = get_binary_asset_id(asset_id);
+        if (!asset_exists(binary_asset_id)) return 0;
+        const std::vector<u8> binary_data = load_asset_bytes(binary_asset_id);
 
         const void* header_pointer = binary_data.data();
-        const void* data_pointer = static_cast<const u8*>(header_pointer) + sizeof(GLenum);
-        const GLenum format = *static_cast<const GLenum*>(header_pointer);
+        const void* data_pointer = static_cast<const u8*>(header_pointer) + sizeof(binary_cache_header);
+        const binary_cache_header header = *static_cast<const binary_cache_header*>(header_pointer);
+
+        const u32 asset_hash = string_hash(get_asset_path(asset_id).string());
+        if (asset_hash != header.asset_hash) return 0;
 
         const GLuint program = glCreateProgram();
-        glProgramBinary(program, format, data_pointer, binary_data.size() - sizeof(GLenum));
+        glProgramBinary(program, header.format, data_pointer, binary_data.size() - sizeof(binary_cache_header));
 
         return validate_program(program) ? program : 0;
     }
@@ -348,26 +316,92 @@ namespace hyengine
     void shader::save_binary_program(const std::string_view& asset_id, const GLuint program)
     {
         ZoneScoped;
+        const std::string binary_asset_id = get_binary_asset_id(asset_id);
+
         if (program == 0) return;
 
         GLint buffer_size = 0;
         glGetProgramiv(program, GL_PROGRAM_BINARY_LENGTH, &buffer_size);
 
-        std::vector<u8> binary_data(buffer_size + sizeof(GLenum));
+        std::vector<u8> binary_data(buffer_size + sizeof(binary_cache_header));
         void* pointer = binary_data.data();
 
         GLint written_length = 0;
         GLenum written_format = 0;
+        const u32 asset_hash = string_hash(get_asset_path(asset_id).string());
 
-        glGetProgramBinary(program, buffer_size, &written_length, &written_format, static_cast<u8*>(pointer) + sizeof(GLenum));
-        static_cast<GLenum*>(pointer)[0] = written_format;
+        glGetProgramBinary(program, buffer_size, &written_length, &written_format, static_cast<u8*>(pointer) + sizeof(binary_cache_header));
+        static_cast<binary_cache_header*>(pointer)[0] = binary_cache_header {written_format, asset_hash };
 
-        if (written_length != buffer_size - sizeof(GLenum))
+        if (written_length != buffer_size - sizeof(binary_cache_header))
         {
-            binary_data.resize(written_length + sizeof(GLenum));
+            binary_data.resize(written_length + sizeof(binary_cache_header));
         }
 
-        save_raw_asset(asset_id, binary_data.data(), binary_data.size());
+        const bool success = save_raw_asset(binary_asset_id, binary_data.data(), binary_data.size());
+        if (!success)
+        {
+            log_warn(logger_tags::GRAPHICS, "Failed to save binary cache for shader '", asset_id, "'.");
+        }
+    }
+
+    bool shader::update_line_type(const std::string_view line, i32* line_type)
+    {
+        const std::string type = ascii_to_lower(find_directive(line, "shader_type"));
+        if (type.empty()) return false;
+        switch (string_hash(type))
+        {
+            case string_hash("vert"):
+            case string_hash("vertex"):
+            {
+                log_info(logger_tags::GRAPHICS, "Found vertex program.");
+                *line_type = 0;
+                break;
+            }
+            case string_hash("frag"):
+            case string_hash("fragment"):
+            {
+                log_info(logger_tags::GRAPHICS, "Found fragment program.");
+                *line_type = 1;
+                break;
+            }
+            case string_hash("comp"):
+            case string_hash("compute"):
+            {
+                log_info(logger_tags::GRAPHICS, "Found compute program.");
+                *line_type = 2;
+                break;
+            }
+            case string_hash("geom"):
+            case string_hash("geometry"):
+            {
+                log_info(logger_tags::GRAPHICS, "Found geometry program.");
+                *line_type = 3;
+                break;
+            }
+            case string_hash("tess_control"):
+            {
+                log_info(logger_tags::GRAPHICS, "Found tessellation control program.");
+                *line_type = 4;
+                break;
+            }
+            case string_hash("tess_eval"):
+            {
+                log_info(logger_tags::GRAPHICS, "Found tessellation evaluation program.");
+                *line_type = 5;
+                break;
+            }
+            case string_hash("share"):
+            case string_hash("shared"):
+            {
+                log_info(logger_tags::GRAPHICS, "Found shared program block.");
+                *line_type = 6;
+                break;
+            }
+            default: break;
+        }
+
+        return true;
     }
 
     void shader::load_interface_locations()
@@ -396,7 +430,7 @@ namespace hyengine
             const i32 location = glGetUniformLocation(program_id, name_buf.data());
             uniform_locations[name_buf] = location;
 
-            if (location != index) log_debug(logger_tag, "Uniform location found that doesn't match index");
+            if (location != index) log_debug(logger_tags::GRAPHICS, "Uniform location found that doesn't match index");
         }
 
         for (i32 index = 0; index < ssbo_count; index++)
@@ -422,7 +456,7 @@ namespace hyengine
         }
     }
 
-    #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(std::string(name)); location != uniform_locations.end()) { setter; } else if(valid()) { log_warn(logger_tag, "Failed to set uniform '",  name, "'"); }
+    #define TRY_SET_UNIFORM(setter) if(const auto location = uniform_locations.find(std::string(name)); location != uniform_locations.end()) { setter; } else if(valid()) { log_warn(logger_tags::GRAPHICS, "Failed to set uniform '",  name, "'"); }
 
     void shader::set_uniform(const std::string_view& name, const bool value)
     {

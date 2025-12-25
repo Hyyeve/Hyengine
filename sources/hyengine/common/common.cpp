@@ -14,6 +14,20 @@ namespace hyengine
         }
     }
 
+    i32 string_find_occurance(const std::string_view& str, const std::string_view& target, const u32 occurance_index)
+    {
+        u32 index = 0;
+        i32 offset = -1;
+        while (index < occurance_index)
+        {
+            const i32 location = str.find_first_of(target, offset + 1);
+            if (location == std::string_view::npos) return -1;
+            offset = location;
+            index++;
+        }
+        return offset;
+    }
+
     std::string stringify_utf32(const unsigned int codepoint)
     {
         std::string result;
@@ -193,6 +207,8 @@ namespace hyengine
             case string_hash("n"): return false;
             case string_hash("1"): return true;
             case string_hash("0"): return false;
+            case string_hash("on"): return true;
+            case string_hash("off"): return false;
             default: return default_val;
         }
     }

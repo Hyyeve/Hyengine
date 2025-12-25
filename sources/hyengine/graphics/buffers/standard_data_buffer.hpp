@@ -28,10 +28,10 @@ namespace hyengine
         explicit standard_data_buffer() = default;
         ~standard_data_buffer();
 
-        void allocate_for_cpu_writes(const GLenum target, const GLsizeiptr size);
-        void allocate_for_gpu_writes(const GLenum target, const GLsizeiptr size);
+        [[nodiscard]] bool allocate_for_cpu_writes(const GLenum target, const GLsizeiptr size);
+        [[nodiscard]] bool allocate_for_gpu_writes(const GLenum target, const GLsizeiptr size);
 
-        void allocate(const GLenum target, const GLsizeiptr size, const u32 slices, const void* const data, const GLbitfield storage_flags);
+        [[nodiscard]] bool allocate(const GLenum target, const GLsizeiptr size, const u32 slices, const void* const data, const GLbitfield storage_flags);
         void free();
 
         void map_storage(const GLbitfield mapping_flags);
@@ -74,7 +74,6 @@ namespace hyengine
         }
 
     private:
-        const std::string logger_tag = "GPU Slice Buffer";
 
         struct slice_data
         {

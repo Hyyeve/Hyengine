@@ -20,7 +20,7 @@ namespace hyengine
         explicit frame_buffer();
         ~frame_buffer();
 
-        void allocate();
+        [[nodiscard]] bool allocate();
         void free();
 
         void attach_texture(const texture_buffer& texture, const GLenum attachment_binding);
@@ -48,7 +48,6 @@ namespace hyengine
         [[nodiscard]] GLuint get_id() const;
 
     private:
-        const std::string logger_tag = "GPU Framebuffer";
         GLuint buffer_id = 0;
         bool is_valid = false;
     };

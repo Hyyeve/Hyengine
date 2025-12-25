@@ -13,13 +13,20 @@ namespace hyengine
         free();
     }
 
-    void pool_data_buffer::allocate(const GLenum target, const GLsizeiptr size, const GLsizeiptr staging_size)
+    bool pool_data_buffer::allocate(const GLenum target, const GLsizeiptr size, const GLsizeiptr staging_size)
     {
         ZoneScoped;
-        pool_buffer.allocate_for_gpu_writes(target, size);
+        const bool pool_buffer_allocated = pool_buffer.allocate_for_gpu_writes(target, size);
+        if (!pool_buffer_allocated)
+        {
+            log_error(logger_tags::GRAPHICS, "Pool data buffer allocation failed.");
+            return false;
+        }
         pool_allocator = pool_allocation_tracker(size);
         reallocate_staging_buffer(staging_size);
-        log_info(logger_tag, "Buffer ", pool_buffer.get_buffer_id(), " allocated as pool buffer.");
+
+        return true;
+        log_debug(logger_tags::GRAPHICS, "Buffer ", pool_buffer.get_buffer_id(), " allocated as pool buffer.");
     }
 
     void pool_data_buffer::free()
@@ -122,10 +129,10 @@ namespace hyengine
     void pool_data_buffer::reallocate_staging_buffer(const GLsizeiptr size)
     {
         ZoneScoped;
-        log_info(logger_tag, "Allocating pool staging buffer to ", stringify_bytes(size), ".");
+        log_debug(logger_tags::GRAPHICS, "Allocating pool staging buffer to ", stringify_bytes(size), ".");
         staging_buffer.free();
         staging_buffer.allocate_for_cpu_writes(pool_buffer.get_target(), size);
         force_reallocate_staging_buffer = false;
-        log_info(logger_tag, "Buffer ", staging_buffer.get_buffer_id(), " allocated as pool staging buffer.");
+        log_debug(logger_tags::GRAPHICS, "Buffer ", staging_buffer.get_buffer_id(), " allocated as pool staging buffer.");
     }
 }

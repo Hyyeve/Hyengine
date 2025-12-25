@@ -8,7 +8,6 @@
 
 namespace hyengine
 {
-    constexpr std::string_view LOGGER_TAG = "Graphics";
 
     bool try_init_glfw()
     {
@@ -26,7 +25,6 @@ namespace hyengine
     {
         std::string source_str;
         std::string type_str;
-        bool ignore = false;
 
         switch (source)
         {
@@ -69,20 +67,18 @@ namespace hyengine
                 break;
         }
 
-        if (ignore) return;
-
-        std::string id_str = format("GL ", source_str, " > ", type_str);
+        std::string id_str = stringify("GL ", source_str, " > ", type_str);
         std::string msg_str = std::string(message);
 
         switch (severity)
         {
-            case GL_DEBUG_SEVERITY_HIGH: log_error(id_str, msg_str);
+            case GL_DEBUG_SEVERITY_HIGH: log_error(logger_tags::tag { id_str, "" }, msg_str);
                 break;
-            case GL_DEBUG_SEVERITY_MEDIUM: log_warn(id_str, msg_str);
+            case GL_DEBUG_SEVERITY_MEDIUM: log_warn(logger_tags::tag { id_str, "" }, msg_str);
                 break;
-            case GL_DEBUG_SEVERITY_LOW: log_info(id_str, msg_str);
+            case GL_DEBUG_SEVERITY_LOW: log_info(logger_tags::tag { id_str, "" }, msg_str);
                 break;
-            default: log_debug(id_str, msg_str);
+            default: log_debug(logger_tags::tag { id_str, "" }, msg_str);
                 break;
         }
     }
@@ -91,7 +87,7 @@ namespace hyengine
     {
         set_gl_flag_enabled(gl_flags::DEBUG_OUTPUT, true);
         glDebugMessageCallback(handle_gl_error, nullptr);
-        log_info(LOGGER_TAG, "Enabled GL debug messaging");
+        log_debug(logger_tags::GRAPHICS, "Enabled GL debug messaging");
     }
 
     void enable_scissor_test()
@@ -170,7 +166,7 @@ namespace hyengine
             const bool current = cached_gl_flags[setting];
             if (current == enable)
             {
-                log_debug(LOGGER_TAG, "GL flag already set to target value");
+                log_debug(logger_tags::GRAPHICS, "GL flag already set to target value");
                 return;
             }
         }

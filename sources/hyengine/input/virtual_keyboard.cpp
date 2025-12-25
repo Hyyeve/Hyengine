@@ -33,11 +33,6 @@ namespace hyengine
         return key_map[key] < 0;
     }
 
-    i32 virtual_keyboard::frame_count(const i32 key)
-    {
-        return key_map[key];
-    }
-
     bool virtual_keyboard::pressed_this_frame(const i32 key)
     {
         return frame_count(key) == 1;
@@ -46,6 +41,11 @@ namespace hyengine
     bool virtual_keyboard::released_this_frame(const i32 key)
     {
         return frame_count(key) == -1;
+    }
+
+    i32 virtual_keyboard::frame_count(const i32 key)
+    {
+        return key_map[key];
     }
 
     i32 virtual_keyboard::pressed_frames(const i32 key)

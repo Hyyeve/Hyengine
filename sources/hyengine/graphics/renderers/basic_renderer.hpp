@@ -18,7 +18,7 @@ namespace hyengine
 
         ~basic_renderer();
 
-        void allocate(const u32 memory_budget_mb);
+        [[nodiscard]] bool allocate(const u32 memory_budget_mb);
         void free();
 
         void vertex(glm::vec3 pos, glm::vec4 color, glm::vec2 uv = glm::vec2(0.0, 0.0));
@@ -50,7 +50,6 @@ namespace hyengine
         std::shared_ptr<shader> texture_shader;
 
         const vertex_format<3> basic_vertex_format = vertex_format<3>({vertex_element_types::VEC3, vertex_element_types::VEC2, vertex_element_types::UBYTE_NVEC4});
-        const std::string logger_tag = "Basic Renderer";
 
         typed_data_buffer<basic_vertex> vertex_buffer;
         vertex_format_buffer vertex_format_buffer;

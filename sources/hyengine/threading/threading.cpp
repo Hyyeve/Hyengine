@@ -14,8 +14,6 @@
 
 namespace hyengine
 {
-    static constexpr std::string_view LOGGER_TAG = "Async Task";
-
     static atomic_u32 thread_id_counter = 0;
     static std::unordered_map<u32, u32> thread_id_map;
     static std::mutex thread_id_lock;
@@ -32,6 +30,7 @@ namespace hyengine
     void thread_loop()
     {
         ZoneScopedC(0x00FF77);
+        log_debug(logger_tags::ASYNC, "Thread entering threadpool loop");
         while (true)
         {
             const bool did_execute_task = execute_next_task();
@@ -53,6 +52,64 @@ namespace hyengine
 
             lock.unlock(); //Release the lock while we do work
         }
+        log_debug(logger_tags::ASYNC, "Thread exiting threadpool loop");
+    }
+
+    void create_threadpool()
+    {
+        ZoneScoped;
+        threadpool_work_lock.lock();
+
+        if (!threads.empty())
+        {
+            log_warn(logger_tags::ASYNC, "Not creating threadpool - already have ", threads.size(), " threads in pool.");
+            threadpool_work_lock.unlock();
+            return;
+        }
+
+        log_info(logger_tags::ASYNC, "Creating threadpool");
+
+        should_threads_exit = false;
+
+        //We want one task thread per logical core, leaving two cores free for the main thread and OS
+        //If there isn't any logical cores available (or the hardware concurrency hint is unavailable) we just make 3.
+        const i32 available_logical_cores = std::thread::hardware_concurrency() - 2;
+        const u32 thread_count = static_cast<u32>(std::max(available_logical_cores, 3));
+        threads.reserve(thread_count);
+        for (u32 i = 0; i < thread_count; ++i)
+        {
+            threads.emplace_back([i]
+            {
+                // Tracy requires memory passed to the profiler to be pinned and never unallocated.
+                // ReSharper disable once CppDFAMemoryLeak
+                char* thread_name = new char[16];
+                snprintf(thread_name, 16, " Worker %i ", i);
+                tracy::SetThreadName(thread_name);
+                thread_loop();
+            });
+        }
+
+        threadpool_work_lock.unlock();
+        log_info(logger_tags::ASYNC, "Threadpool created with ", threads.size(), " threads. (based on ", available_logical_cores, " logical cores)");
+    }
+
+    void release_threadpool()
+    {
+        ZoneScoped;
+
+        threadpool_work_lock.lock();
+        should_threads_exit = true;
+        threadpool_work_lock.unlock();
+
+        threadpool_work_condition.notify_all();
+
+        for (std::thread& thread : threads)
+        {
+            thread.join();
+        }
+
+        log_info(logger_tags::ASYNC, "Released threadpool.");
+        threads.clear();
     }
 
     void update_waiting_tasks()
@@ -98,58 +155,6 @@ namespace hyengine
         if (ready_tasks.empty()) result = false;
         threadpool_work_lock.unlock();
         return result;
-    }
-
-    void release_threadpool()
-    {
-        ZoneScoped;
-
-        threadpool_work_lock.lock();
-        should_threads_exit = true;
-        threadpool_work_lock.unlock();
-
-        threadpool_work_condition.notify_all();
-
-        for (std::thread& thread : threads)
-        {
-            thread.join();
-        }
-
-        threads.clear();
-    }
-
-
-    void create_threadpool()
-    {
-        ZoneScoped;
-        threadpool_work_lock.lock();
-
-        if (!threads.empty())
-        {
-            return;
-        }
-
-        should_threads_exit = false;
-
-        //We want one task thread per logical core, leaving two cores free for the main thread and OS
-        //If there isn't any logical cores available (or the hardware concurrency hint is unavailable) we just make 3.
-        const i32 available_logical_cores = std::thread::hardware_concurrency() - 2;
-        const u32 thread_count = static_cast<u32>(std::max(available_logical_cores, 3));
-        threads.reserve(thread_count);
-        for (u32 i = 0; i < thread_count; ++i)
-        {
-            threads.emplace_back([i]
-            {
-                // Tracy requires memory passed to the profiler to be pinned and never unallocated.
-                // ReSharper disable once CppDFAMemoryLeak
-                char* thread_name = new char[16];
-                snprintf(thread_name, 16, " Worker %i ", i);
-                tracy::SetThreadName(thread_name);
-                thread_loop();
-            });
-        }
-
-        threadpool_work_lock.unlock();
     }
 
     u32 get_current_thread_id()
@@ -211,6 +216,7 @@ namespace hyengine
         completion_future.wait_for(std::chrono::milliseconds(timeout_ms));
         return completed();
     }
+
 
     bool threadpool_task::try_execute_task()
     {

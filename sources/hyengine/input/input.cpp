@@ -9,8 +9,6 @@ namespace hyengine
 {
     using namespace glm;
 
-    const static std::string LOGGER_TAG = "Input";
-
     virtual_controller disconnected_controller;
     std::array<virtual_controller, 16> controller_hardware;
     std::array<i32, 16> player_to_controller_map;
@@ -55,37 +53,50 @@ namespace hyengine
         ZoneScoped;
         if (event == GLFW_CONNECTED)
         {
+            i32 slot = -1;
             for (i32 i = 0; i < 16; i++)
             {
                 if (player_to_controller_map[i] == -1)
                 {
+                    slot = i;
                     player_to_controller_map[i] = id;
                     break;
                 }
             }
+            log_info(logger_tags::INPUT, "Controller connected! (player slot ", slot, ")");
         }
         else if (event == GLFW_DISCONNECTED)
         {
+            i32 slot = -1;
             for (i32 i = 0; i < 16; i++)
             {
                 if (player_to_controller_map[i] == id)
                 {
+                    slot = i;
                     player_to_controller_map[i] = -1;
                     break;
                 }
             }
+            log_info(logger_tags::INPUT, "Controller disconnected! (player slot ", slot, ")");
         }
     }
 
     void reset_controller_map()
     {
         ZoneScoped;
-        for (i32 i = 0; i < 16; i++) player_to_controller_map[i] = -1;
+        log_info(logger_tags::INPUT, "Resetting controller mapping..");
+        for (i32 i = 0; i < 16; i++)
+        {
+            player_to_controller_map[i] = -1;
+        }
+
         for (i32 i = 0; i < 16; i++)
         {
             if (glfwJoystickPresent(i)) glfw_joystick_connection_callback(i, GLFW_CONNECTED);
         }
     }
+
+
 
     void bind_input(GLFWwindow* window)
     {
@@ -99,7 +110,7 @@ namespace hyengine
         glfwSetCursorPosCallback(window, glfw_mouse_position_callback);
         glfwSetJoystickCallback(glfw_joystick_connection_callback);
 
-        log_info(LOGGER_TAG, "Bound hardware input callbacks to window @", reinterpret_cast<size_t>(window));
+        log_info(logger_tags::INPUT, "Bound hardware input callbacks to window @", reinterpret_cast<size_t>(window));
     }
 
     void poll_controllers()
@@ -114,7 +125,11 @@ namespace hyengine
 
             if (glfwJoystickIsGamepad(idx) && glfwGetGamepadState(idx, &gamepad_state) == GLFW_TRUE)
             {
-                for (i32 axis = 0; axis <= GLFW_GAMEPAD_AXIS_LAST; axis++) controller.set_axis(axis, gamepad_state.axes[axis]);
+                for (i32 axis = 0; axis <= GLFW_GAMEPAD_AXIS_LAST; axis++)
+                {
+                    controller.set_axis(axis, gamepad_state.axes[axis]);
+                }
+
                 for (i32 button = 0; button <= GLFW_GAMEPAD_BUTTON_LAST; button++)
                 {
                     const bool pressed = gamepad_state.buttons[button] == GLFW_PRESS;
@@ -214,8 +229,31 @@ namespace hyengine
         ZoneScoped;
         keyboard_hardware.process_inputs();
         mouse_hardware.process_inputs();
-        for (virtual_controller& controller : controller_hardware) controller.process_inputs();
+        for (virtual_controller& controller : controller_hardware)
+        {
+            controller.process_inputs();
+        }
         poll_events();
+    }
+
+    void set_keyboard_input(const virtual_keyboard& input)
+    {
+        current_keyboard = input;
+    }
+
+    void set_mouse_input(const virtual_mouse& input)
+    {
+        current_mouse = input;
+    }
+
+    void set_hardware_keyboard()
+    {
+        current_keyboard = keyboard_hardware;
+    }
+
+    void set_hardware_mouse()
+    {
+        current_mouse = mouse_hardware;
     }
 
     virtual_keyboard& hardware_keyboard()
@@ -246,6 +284,11 @@ namespace hyengine
         return false;
     }
 
+    void hardware_controller_swap_player_slots(const u32 player_index_a, const u32 player_index_b)
+    {
+        std::swap(player_to_controller_map[player_index_a], player_to_controller_map[player_index_b]);
+    }
+
     std::string hardware_controller_name(const u32 player_index)
     {
         ZoneScoped;
@@ -253,26 +296,6 @@ namespace hyengine
         if (controller_id < 0) return "Disconnected Controller";
         if (glfwJoystickIsGamepad(controller_id)) return glfwGetGamepadName(controller_id);
         return glfwGetJoystickName(controller_id);
-    }
-
-    void set_keyboard_input(const virtual_keyboard& input)
-    {
-        current_keyboard = input;
-    }
-
-    void set_mouse_input(const virtual_mouse& input)
-    {
-        current_mouse = input;
-    }
-
-    void set_hardware_keyboard()
-    {
-        current_keyboard = keyboard_hardware;
-    }
-
-    void set_hardware_mouse()
-    {
-        current_mouse = mouse_hardware;
     }
 
     bool key_pressed(const i32 key)

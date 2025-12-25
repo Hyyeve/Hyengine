@@ -10,41 +10,38 @@
 #include "../common/common.hpp"
 #include "stblib/include/stb_image.hpp"
 
+/*
+ ASSET ID STRUCTURE
+ Needs to include:
+ - Prefix path
+ - Type
+ - Name
+
+ Prefix path only changes the starting directory
+ Type is used as both part of the path AND to identify the file extension
+ Name is used to identify the filename
+
+ prefix.type.name format - corresponds well with actual full path
+
+ sub-types and prefix depth pose issues
+
+ disallow subtypes? use last part of prefix path only
+ so, would become
+
+ folder1.folder2.type.filename
+
+ if we drop the implicit type detection we could have:
+ hyengine.font.image.buycat.png
+
+ but i like the implicit detection, so
+ hyengine.font.image.buycat
+                ^^^ implies png
+
+ */
 namespace hyengine
 {
-    constexpr std::string_view ROOT_DIRECTORY = "assets";
-    constexpr std::string_view LOGGER_TAG = "FileIO";
-
-    std::string asset_id_to_relative_path(const std::string_view& asset_id)
-    {
-        std::string result = std::string(asset_id);
-        string_replace(result, ':', std::filesystem::path::preferred_separator);
-        string_replace(result, '.', std::filesystem::path::preferred_separator);
-        return result;
-    }
-
-    std::string get_asset_type(const std::string_view& asset_id)
-    {
-        return std::string(asset_id).substr(0, asset_id.find(':'));
-    }
-
-    std::string get_asset_name(const std::string_view& asset_id)
-    {
-        return std::string(asset_id).substr(asset_id.find(':') + 1);
-    }
-
-    std::string_view get_asset_extension(const std::string_view& type)
-    {
-        switch (string_hash(type))
-        {
-            case string_hash("png"): return "png";
-            case string_hash("shader"): return "glsl";
-            case string_hash("shader.bin"): return "bin";
-            case string_hash("font.image"): return "png";
-            case string_hash("font.meta"): return "csv";
-            default: return "hy";
-        }
-    }
+    static std::string root_directory = "assets";
+    static std::string override_directory;
 
     bool should_preprocess(const std::string_view& type)
     {
@@ -67,26 +64,109 @@ namespace hyengine
         return std::regex(pattern);
     }
 
-    constexpr std::string_view get_primary_asset_directory()
+    void set_primary_asset_directory(const std::string_view& directory)
     {
-        return ROOT_DIRECTORY;
+        root_directory = directory;
     }
 
-    constexpr std::string_view get_fallback_asset_directory()
+    void set_override_asset_directory(const std::string_view& directory)
     {
-        return ROOT_DIRECTORY;
+        override_directory = directory;
+    }
+
+    std::string_view get_primary_asset_directory()
+    {
+        return root_directory;
+    }
+
+    std::string_view get_override_asset_directory()
+    {
+        return override_directory.empty() ? root_directory : override_directory;
     }
 
     std::filesystem::path get_asset_path(const std::string_view& asset_id)
     {
-        const std::string relative_path = asset_id_to_relative_path(asset_id);
-        return std::filesystem::path(get_primary_asset_directory()).append(relative_path).replace_extension(get_asset_extension(get_asset_type(asset_id)));
+        std::string relative_path = std::string(asset_id);
+        string_replace(relative_path, '.', std::filesystem::path::preferred_separator);
+        const std::string asset_type = get_asset_type(asset_id);
+        const std::string_view extension = get_asset_extension(asset_type);
+
+        std::filesystem::path override_path = std::filesystem::path(get_override_asset_directory()).append(relative_path).replace_extension(extension);
+        if (std::filesystem::exists(override_path)) return override_path;
+
+        std::filesystem::path primary_path = std::filesystem::path(get_primary_asset_directory()).append(relative_path).replace_extension(extension);
+        return primary_path;
     }
 
     std::filesystem::path get_asset_directory(const std::string_view& asset_id)
     {
-        const std::string relative_path = asset_id_to_relative_path(asset_id);
-        return std::filesystem::path(get_primary_asset_directory()).append(relative_path.substr(0, relative_path.find_last_of(std::filesystem::path::preferred_separator)));
+        return get_asset_path(asset_id).parent_path();
+    }
+
+    std::string get_asset_name(const std::string_view& asset_id)
+    {
+        return std::string(asset_id).substr(asset_id.find_last_of('.') + 1);
+    }
+
+    std::string get_asset_type(const std::string_view& asset_id)
+    {
+        std::string relative_path = std::string(asset_id);
+        string_replace(relative_path, '.', std::filesystem::path::preferred_separator);
+        const std::filesystem::path path = std::filesystem::path(relative_path);
+        return path.parent_path().filename().string();
+    }
+
+    std::string_view get_asset_extension(const std::string_view& type)
+    {
+        switch (string_hash(type))
+        {
+            case string_hash("png"):
+            case string_hash("image"): return "png";
+            case string_hash("shader"): return "glsl";
+            case string_hash("bin"): return "bin";
+            case string_hash("meta"): return "csv";
+            default: return "hy";
+        }
+    }
+
+    bool asset_exists(const std::string_view& asset_id)
+    {
+        return std::filesystem::exists(get_asset_path(asset_id));
+    }
+
+    bool is_asset_overriden(const std::string_view& asset_id)
+    {
+        const std::string asset_root = get_asset_path(asset_id).begin()->string();
+        const std::string_view expected_root = get_primary_asset_directory();
+        return asset_root != expected_root;
+    }
+
+    void delete_asset(const std::string_view& asset_id)
+    {
+        ZoneScoped;
+        const std::filesystem::path path = get_asset_path(asset_id);
+        if (!std::filesystem::exists(path))
+        {
+            log_warn(logger_tags::FILEIO, "Couldn't delete asset at \'", path.string(), "\' - doesn't exist.");
+            return;
+        }
+
+        log_info(logger_tags::FILEIO, "Deleting asset at \'", path.string(), "\'");
+        std::filesystem::remove_all(path);
+    }
+
+    void delete_asset_directory(const std::string_view& asset_id)
+    {
+        ZoneScoped;
+        const std::filesystem::path directory = get_asset_directory(asset_id);
+        if (!std::filesystem::exists(directory))
+        {
+            log_warn(logger_tags::FILEIO, "Couldn't delete directory at \'", directory.string(), "\' - doesn't exist.");
+            return;
+        }
+
+        log_info(logger_tags::FILEIO, "Deleting directory at \'", directory.string(), "\'");
+        std::filesystem::remove_all(directory);
     }
 
     std::string load_asset_text(const std::string_view& id)
@@ -104,18 +184,24 @@ namespace hyengine
         ZoneScoped;
         if (!asset_exists(id))
         {
-            log_error(LOGGER_TAG, "Could not read asset \'", id, "\' !");
+            log_error(logger_tags::FILEIO, "Could not read asset \'", id, "\' !");
             return "";
         }
 
-        log_info(LOGGER_TAG, "Loading asset \'", id, "\'");
+        log_debug(logger_tags::FILEIO, "Loading asset \'", id, "\'");
 
         const std::filesystem::path path = get_asset_path(id);
+
+        if (is_asset_overriden(id))
+        {
+            log_debug(logger_tags::FILEIO, "Asset is overriden to '", path.string(), "'");
+        }
+
         std::ifstream file(path, std::ios::in);
 
         if (!file.is_open() || file.bad())
         {
-            log_error(LOGGER_TAG, "Could not read asset \'", id, "\' !");
+            log_error(logger_tags::FILEIO, "Could not read asset \'", id, "\' !");
             return "";
         }
 
@@ -137,18 +223,24 @@ namespace hyengine
         ZoneScoped;
         if (!asset_exists(id))
         {
-            log_error(LOGGER_TAG, "Could not read asset \'", id, "\' !");
+            log_error(logger_tags::FILEIO, "Could not read asset \'", id, "\' !");
             return {};
         }
 
-        log_info(LOGGER_TAG, "Loading asset \'", id, "\'");
+        log_debug(logger_tags::FILEIO, "Loading asset \'", id, "\'");
 
         const std::filesystem::path path = get_asset_path(id);
+
+        if (is_asset_overriden(id))
+        {
+            log_debug(logger_tags::FILEIO, "Asset is overriden to '", path.string(), "'");
+        }
+
         std::ifstream file(path, std::ios::binary | std::ios::in);
 
         if (!file.is_open() || file.bad())
         {
-            log_error(LOGGER_TAG, "Couldn't load asset \'", id, "\' - bad file");
+            log_error(logger_tags::FILEIO, "Couldn't load asset \'", id, "\' - bad file");
             return {};
         }
 
@@ -167,14 +259,24 @@ namespace hyengine
         return data;
     }
 
+
     asset_image_data load_asset_image(const std::string_view& id)
     {
         ZoneScoped;
         if (!asset_exists(id))
         {
-            log_error(LOGGER_TAG, "Could not read asset \'", id, "\' !");
+            log_error(logger_tags::FILEIO, "Could not read asset \'", id, "\' !");
             return {nullptr, 0, 0, 0};
         }
+
+        const std::filesystem::path path = get_asset_path(id);
+
+        if (is_asset_overriden(id))
+        {
+            log_debug(logger_tags::FILEIO, "Asset is overriden to '", path.string(), "'");
+        }
+
+        log_debug(logger_tags::FILEIO, "Loading asset \'", id, "\'");
 
         asset_image_data result {};
         i32 temp_width;
@@ -183,10 +285,10 @@ namespace hyengine
 
         stbi_set_unpremultiply_on_load(true);
         stbi_set_flip_vertically_on_load(true);
-        result.data = stbi_load(get_asset_path(id).string().c_str(), &temp_width, &temp_height, &temp_channels, 0);
+        result.data = stbi_load(path.string().c_str(), &temp_width, &temp_height, &temp_channels, 0);
         if (result.data == nullptr)
         {
-            log_error(LOGGER_TAG, "Couldn't load asset \'", id, "\' - bad file");
+            log_error(logger_tags::FILEIO, "Couldn't load asset \'", id, "\' - bad file");
             return {nullptr, 0, 0, 0};
         }
 
@@ -204,18 +306,18 @@ namespace hyengine
 
         if (!std::filesystem::exists(directory) && !std::filesystem::create_directories(directory))
         {
-            log_error(LOGGER_TAG, "Couldn't create directory \'", directory.string(), "\'");
+            log_error(logger_tags::FILEIO, "Couldn't create directory \'", directory.string(), "\'");
             return false;
         }
 
         std::ofstream file(path, std::ios::binary | std::ios::out | std::ios::trunc);
         if (!file.is_open() || file.bad())
         {
-            log_error(LOGGER_TAG, "Couldn't save asset \'", id, "\' - bad file");
+            log_error(logger_tags::FILEIO, "Couldn't save asset \'", id, "\' - bad file");
             return false;
         }
 
-        log_info(LOGGER_TAG, "Saving asset \'", id, "\'");
+        log_debug(logger_tags::FILEIO, "Saving asset \'", id, "\'");
 
         file.write(reinterpret_cast<const char8*>(data), size);
         file.close();
@@ -231,52 +333,23 @@ namespace hyengine
 
         if (!std::filesystem::create_directories(directory))
         {
-            log_error(LOGGER_TAG, "Couldn't create directory \'", directory, "\'");
+            log_error(logger_tags::FILEIO, "Couldn't create directory \'", directory, "\'");
             return false;
         }
 
         std::ofstream file(path, std::ios::out | std::ios::trunc);
         if (!file.is_open() || file.bad())
         {
-            log_error(LOGGER_TAG, "Couldn't save asset \'", id, "\' - bad file");
+            log_error(logger_tags::FILEIO, "Couldn't save asset \'", id, "\' - bad file");
             return false;
         }
 
-        log_info(LOGGER_TAG, "Saving asset \'", id, "\'");
+        log_debug(logger_tags::FILEIO, "Saving asset \'", id, "\'");
 
         file.write(text.data(), text.size());
         file.close();
 
         return true;
-    }
-
-    void delete_asset(const std::string_view& asset_id)
-    {
-        ZoneScoped;
-        const std::filesystem::path path = get_asset_path(asset_id);
-        if (!std::filesystem::exists(path))
-        {
-            log_warn(LOGGER_TAG, "Couldn't delete asset at \'", path.string(), "\' - doesn't exist.");
-            return;
-        }
-
-        log_info(LOGGER_TAG, "Deleting asset at \'", path.string(), "\'");
-        std::filesystem::remove_all(path);
-    }
-
-
-    void delete_asset_directory(const std::string_view& asset_id)
-    {
-        ZoneScoped;
-        const std::filesystem::path directory = get_asset_directory(asset_id);
-        if (!std::filesystem::exists(directory))
-        {
-            log_warn(LOGGER_TAG, "Couldn't delete directory at \'", directory.string(), "\' - doesn't exist.");
-            return;
-        }
-
-        log_info(LOGGER_TAG, "Deleting directory at \'", directory.string(), "\'");
-        std::filesystem::remove_all(directory);
     }
 
     std::string inject_text_includes(const std::string_view& text)
@@ -329,10 +402,5 @@ namespace hyengine
             text.insert(regex_match.position(), replacement);
             text.insert(regex_match.position(), "\n");
         }
-    }
-
-    bool asset_exists(const std::string_view& asset_id)
-    {
-        return std::filesystem::exists(get_asset_path(asset_id));
     }
 }

@@ -20,7 +20,7 @@ namespace hyengine
 
     shader::~shader()
     {
-        deallocate();
+        free();
     }
 
     bool shader::allocate()
@@ -46,7 +46,7 @@ namespace hyengine
         return true;
     }
 
-    void shader::deallocate()
+    void shader::free()
     {
         if (program_id == 0) return;
 
@@ -57,11 +57,11 @@ namespace hyengine
         log_debug(logger_tags::GRAPHICS, "Unloaded shader '", asset_id, "'");
     }
 
-    bool shader::reallocate()
+    bool shader::reload()
     {
         ZoneScoped;
         const bool in_use = active();
-        deallocate();
+        free();
         const bool allocated = allocate();
         if (!allocated) return false;
         if (in_use) use();

@@ -36,9 +36,9 @@ namespace hyengine
             internal_data_buffer.shrink_staging_buffer();
         }
 
-        void reserve_staging_buffer_size(const u32 elements)
+        [[nodiscard]] bool reserve_staging_buffer_size(const u32 elements)
         {
-            internal_data_buffer.reserve_staging_buffer_size(elements * sizeof(type));
+            return internal_data_buffer.reserve_staging_buffer_size(elements * sizeof(type));
         }
 
         [[nodiscard]] bool try_allocate_space(const u32 elements, u32& address)
@@ -58,12 +58,12 @@ namespace hyengine
 
         void block_ready()
         {
-            internal_data_buffer.block_ready();
+            internal_data_buffer.next_staging_slice();
         }
 
-        void upload(const u32& address, const type* data, const u32 elements)
+        [[nodiscard]] bool upload(const u32& address, const type* data, const u32 elements)
         {
-            internal_data_buffer.upload(address, data, elements * sizeof(type));
+            return internal_data_buffer.upload(address, data, elements * sizeof(type));
         }
 
         void bind_state() const
@@ -76,12 +76,12 @@ namespace hyengine
             internal_data_buffer.unbind_state();
         }
 
-        void bind_buffer_base(const GLenum target, const i32 binding) const
+        void bind_buffer_slot(const GLenum target, const u32 binding) const
         {
-            internal_data_buffer.bind_buffer_base(target, binding);
+            internal_data_buffer.bind_buffer_slot(target, binding);
         }
 
-        void bind_buffer_range(const GLenum target, const i32 binding, const GLintptr index, const GLsizeiptr elements) const
+        void bind_buffer_range(const GLenum target, const u32 binding, const GLintptr index, const GLsizeiptr elements) const
         {
             internal_data_buffer.bind_buffer_range(target, binding, index * sizeof(type), elements * sizeof(type));
         }

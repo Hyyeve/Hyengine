@@ -1,11 +1,9 @@
 add_library(pcg STATIC)
 
 target_sources(pcg PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILES
-
-        include/pcg_extras.hpp
-        include/pcg_random.hpp
-        include/pcg_uint128.hpp
-
+        pcg_extras.hpp
+        pcg_random.hpp
+        pcg_uint128.hpp
 )
 
 target_include_directories(pcg PUBLIC

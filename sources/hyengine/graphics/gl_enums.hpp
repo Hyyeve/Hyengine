@@ -1,10 +1,11 @@
 #pragma once
-#include "glad/glad.h"
+#include "../library/gl.hpp"
 
 namespace hyengine
 {
     #define DECL constexpr inline GLenum
     #define DECLA(n) DECL n = GL_##n
+    #define DECLK(n) DECL n = GLFW_KEY_##n
 
     namespace gl_i32_consts
     {
@@ -154,11 +155,6 @@ namespace hyengine
 
     namespace texture_formats
     {
-        ///NOTE: Does not validate that it *is* a floating point format, only that it is NOT a standard integer format
-        bool is_floating_point(const GLenum format);
-        bool is_signed_integer(const GLenum format);
-        bool is_unsigned_integer(const GLenum format);
-
         constexpr inline GLenum R8 = GL_R8;
         constexpr inline GLenum R8_SNORM = GL_R8_SNORM;
         constexpr inline GLenum R16 = GL_R16;
@@ -220,6 +216,103 @@ namespace hyengine
         constexpr inline GLenum RGBA16_UI = GL_RGBA16UI;
         constexpr inline GLenum RGBA32_I = GL_RGBA32I;
         constexpr inline GLenum RGBA32_UI = GL_RGBA32UI;
+
+        constexpr bool is_signed_integer(const GLenum format)
+        {
+            switch (format)
+            {
+                case R8_I:
+                case R16_I:
+                case R32_I:
+                case RG8_I:
+                case RG16:
+                case RG32_I:
+                case RGB8_I:
+                case RGB16_I:
+                case RGB32_I:
+                case RGBA8_I:
+                case RGBA16_I:
+                case RGBA32_I:
+                {
+                    return true;
+                }
+
+                default: return false;
+            }
+        }
+
+        constexpr bool is_unsigned_integer(const GLenum format)
+        {
+            switch (format)
+            {
+                case R8_UI:
+                case R16_UI:
+                case R32_UI:
+                case RG8_UI:
+                case RG16:
+                case RG32_UI:
+                case RGB8_UI:
+                case RGB16_UI:
+                case RGB32_UI:
+                case RGBA8_UI:
+                case RGBA16_UI:
+                case RGBA32_UI:
+                case RGB10_A2_UI:
+                {
+                    return true;
+                }
+
+                default: return false;
+            }
+        }
+
+        ///NOTE: Does not validate that it *is* a floating point format, only that it is NOT a standard integer format
+        constexpr bool is_floating_point(const GLenum format)
+        {
+            return !is_signed_integer(format) && !is_unsigned_integer(format);
+        }
+    }
+
+    namespace depth_stencil_formats
+    {
+        DECL DEPTH_32F = GL_DEPTH_COMPONENT32F;
+        DECL DEPTH_32 = GL_DEPTH_COMPONENT32;
+        DECL DEPTH_24 = GL_DEPTH_COMPONENT24;
+        DECL DEPTH_16 = GL_DEPTH_COMPONENT16;
+        DECL DEPTH_32F_STENCIL_8 = GL_DEPTH32F_STENCIL8;
+        DECL DEPTH_24_STENCIL_8 = GL_DEPTH24_STENCIL8;
+        DECL STENCIL_16_ONLY = GL_STENCIL_INDEX16;
+        DECL STENCIL_8_ONLY = GL_STENCIL_INDEX8;
+        DECL STENCIL_4_ONLY = GL_STENCIL_INDEX4;
+
+        constexpr bool is_depth_only(const GLenum format)
+        {
+            switch (format)
+            {
+                case DEPTH_32F:
+                case DEPTH_32:
+                case DEPTH_24:
+                case DEPTH_16:
+                {
+                    return true;
+                }
+                default: return false;
+            }
+        }
+
+        constexpr bool is_stencil_only(const GLenum format)
+        {
+            switch (format)
+            {
+                case STENCIL_16_ONLY:
+                case STENCIL_8_ONLY:
+                case STENCIL_4_ONLY:
+                {
+                    return true;
+                }
+                default: return false;
+            }
+        }
     }
 
     namespace blend_coefficients
@@ -252,6 +345,171 @@ namespace hyengine
         constexpr inline GLenum SUBTRACT_SWAPPED = GL_FUNC_REVERSE_SUBTRACT;
         constexpr inline GLenum MIN = GL_MIN;
         constexpr inline GLenum MAX = GL_MAX;
+    }
+
+    namespace draw_modes
+    {
+        DECLA(POINTS);
+        DECLA(LINE_STRIP);
+        DECLA(LINE_LOOP);
+        DECLA(LINES);
+        DECLA(LINE_STRIP_ADJACENCY);
+        DECLA(LINES_ADJACENCY);
+        DECLA(TRIANGLE_STRIP);
+        DECLA(TRIANGLE_FAN);
+        DECLA(TRIANGLES);
+        DECLA(TRIANGLE_STRIP_ADJACENCY);
+        DECLA(TRIANGLES_ADJACENCY);
+        DECLA(PATCHES);
+        DECLA(QUADS);
+        DECLA(QUAD_STRIP);
+    }
+
+    namespace texture_filter_modes
+    {
+        DECLA(NEAREST);
+        DECLA(LINEAR);
+        DECLA(NEAREST_MIPMAP_LINEAR);
+        DECLA(NEAREST_MIPMAP_NEAREST);
+        DECLA(LINEAR_MIPMAP_LINEAR);
+        DECLA(LINEAR_MIPMAP_NEAREST);
+    }
+
+    namespace keys
+    {
+        DECLK(SPACE);
+        DECLK(APOSTROPHE);
+        DECLK(COMMA);
+        DECLK(PERIOD);
+        DECLK(SEMICOLON);
+
+        DECLK(SLASH);
+        DECLK(BACKSLASH);
+
+        DECLK(EQUAL);
+        DECLK(MINUS);
+
+        DECLK(LEFT_BRACKET);
+        DECLK(RIGHT_BRACKET);
+
+        DECLK(INSERT);
+        DECLK(DELETE);
+
+        DECLK(RIGHT);
+        DECLK(LEFT);
+        DECLK(DOWN);
+        DECLK(UP);
+
+        DECLK(ESCAPE);
+        DECLK(TAB);
+        DECLK(BACKSPACE);
+
+        DECLK(PAGE_UP);
+        DECLK(PAGE_DOWN);
+        DECLK(HOME);
+        DECLK(END);
+
+        DECLK(CAPS_LOCK);
+        DECLK(SCROLL_LOCK);
+        DECLK(NUM_LOCK);
+        DECLK(PRINT_SCREEN);
+
+        DECLK(PAUSE);
+        DECLK(MENU);
+        DECLK(GRAVE_ACCENT);
+        DECLK(WORLD_1);
+        DECLK(WORLD_2);
+
+        DECLK(F1);
+        DECLK(F2);
+        DECLK(F3);
+        DECLK(F4);
+        DECLK(F5);
+        DECLK(F6);
+        DECLK(F7);
+        DECLK(F8);
+        DECLK(F9);
+        DECLK(F10);
+        DECLK(F11);
+        DECLK(F12);
+        DECLK(F13);
+        DECLK(F14);
+        DECLK(F15);
+        DECLK(F16);
+        DECLK(F17);
+        DECLK(F18);
+        DECLK(F19);
+        DECLK(F20);
+        DECLK(F21);
+        DECLK(F22);
+        DECLK(F23);
+        DECLK(F24);
+        DECLK(F25);
+
+        DECL KEY_0 = GLFW_KEY_0;
+        DECL KEY_1 = GLFW_KEY_1;
+        DECL KEY_2 = GLFW_KEY_2;
+        DECL KEY_3 = GLFW_KEY_3;
+        DECL KEY_4 = GLFW_KEY_4;
+        DECL KEY_5 = GLFW_KEY_5;
+        DECL KEY_6 = GLFW_KEY_6;
+        DECL KEY_7 = GLFW_KEY_7;
+        DECL KEY_8 = GLFW_KEY_8;
+        DECL KEY_9 = GLFW_KEY_9;
+        DECL NUMPAD_0 = GLFW_KEY_KP_0;
+        DECL NUMPAD_1 = GLFW_KEY_KP_1;
+        DECL NUMPAD_2 = GLFW_KEY_KP_2;
+        DECL NUMPAD_3 = GLFW_KEY_KP_3;
+        DECL NUMPAD_4 = GLFW_KEY_KP_4;
+        DECL NUMPAD_5 = GLFW_KEY_KP_5;
+        DECL NUMPAD_6 = GLFW_KEY_KP_6;
+        DECL NUMPAD_7 = GLFW_KEY_KP_7;
+        DECL NUMPAD_8 = GLFW_KEY_KP_8;
+        DECL NUMPAD_9 = GLFW_KEY_KP_9;
+        DECL NUMPAD_DECIMAL = GLFW_KEY_KP_DECIMAL;
+        DECL NUMPAD_DIVIDE = GLFW_KEY_KP_DIVIDE;
+        DECL NUMPAD_MULTIPLY = GLFW_KEY_KP_MULTIPLY;
+        DECL NUMPAD_SUBTRACT = GLFW_KEY_KP_SUBTRACT;
+        DECL NUMPAD_ADD = GLFW_KEY_KP_ADD;
+        DECL NUMPAD_ENTER = GLFW_KEY_KP_ENTER;
+        DECL NUMPAD_EQUAL = GLFW_KEY_KP_EQUAL;
+
+        DECLK(LEFT_SHIFT);
+        DECLK(LEFT_CONTROL);
+        DECLK(LEFT_ALT);
+        DECLK(LEFT_SUPER);
+
+        DECLK(RIGHT_SHIFT);
+        DECLK(RIGHT_CONTROL);
+        DECLK(RIGHT_ALT);
+        DECLK(RIGHT_SUPER);
+
+        DECLK(A);
+        DECLK(B);
+        DECLK(C);
+        DECLK(D);
+        DECLK(E);
+        DECLK(F);
+        DECLK(G);
+        DECLK(H);
+        DECLK(I);
+        DECLK(J);
+        DECLK(K);
+        DECLK(L);
+        DECLK(M);
+        DECLK(N);
+        DECLK(O);
+        DECLK(P);
+        DECLK(Q);
+        DECLK(R);
+        DECLK(S);
+        DECLK(T);
+        DECLK(U);
+        DECLK(V);
+        DECLK(W);
+        DECLK(X);
+        DECLK(Y);
+        DECLK(Z);
     }
 
     #undef DECL

@@ -26,9 +26,9 @@ namespace hyengine
         void attach_index_buffer(const GLuint index_buffer_id) const;
 
         template <size_t format_size>
-        void attach_vertex_format(const vertex_format<format_size>& format, const GLuint binding_slot) const
+        void attach_vertex_format(const vertex_format<format_size>& format) const
         {
-            format.apply(buffer_id, binding_slot);
+            format.apply(buffer_id);
         }
 
         static void unbind_state();

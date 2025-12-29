@@ -47,6 +47,7 @@ namespace hyengine
         slice_count = slices;
         slice_size = size;
         buffer_target = target;
+        current_slice_index = 0;
 
         u32 slice_offset = 0;
         for (slice_data& slice : buffer_slices)
@@ -60,6 +61,7 @@ namespace hyengine
         if (buffer_id == 0)
         {
             log_error(logger_tags::GRAPHICS, "Failed to allocate data buffer (buffer ", buffer_id, ")");
+            free();
             return false;
         }
 
@@ -80,7 +82,7 @@ namespace hyengine
         glDeleteBuffers(1, &buffer_id);
 
         buffer_id = 0;
-        current_slice_index = 1;
+        current_slice_index = 0;
         buffer_target = 0;
         total_size = 0;
         slice_size = 0;
@@ -126,15 +128,14 @@ namespace hyengine
         glBindBuffer(buffer_target, 0);
     }
 
-    ///Bind the buffer to a special binding index (shader storage, uniform block, etc)
-    void standard_data_buffer::bind_buffer_base(const GLenum target, const i32 binding) const
+    void standard_data_buffer::bind_buffer_slot(const GLenum target, const u32 binding) const
     {
         ZoneScoped;
         TracyGpuZone("bind standard data buffer (as shader block)");
         glBindBufferBase(target, binding, buffer_id);
     }
 
-    void standard_data_buffer::bind_buffer_range(const GLenum target, const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const
+    void standard_data_buffer::bind_buffer_range(const GLenum target, const u32 binding, const GLintptr offset, const GLsizeiptr bytes) const
     {
         ZoneScoped;
         TracyGpuZone("bind standard data buffer range");
@@ -165,12 +166,12 @@ namespace hyengine
         glCopyNamedBufferSubData(source_buffer_id, buffer_id, read_offset, write_offset, bytes);
     }
 
-    void standard_data_buffer::bind_slice_base(const GLenum target, const i32 binding) const
+    void standard_data_buffer::bind_slice_slot(const GLenum target, const u32 binding) const
     {
         bind_slice_range(target, binding, 0, slice_size);
     }
 
-    void standard_data_buffer::bind_slice_range(const GLenum target, const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const
+    void standard_data_buffer::bind_slice_range(const GLenum target, const u32 binding, const GLintptr offset, const GLsizeiptr bytes) const
     {
         bind_buffer_range(target, binding, get_slice_offset() + offset, bytes);
     }
@@ -185,7 +186,7 @@ namespace hyengine
         copy_buffer_range(source_buffer_id, read_offset, get_slice_offset() + write_offset, bytes);
     }
 
-    void standard_data_buffer::block_ready()
+    void standard_data_buffer::next_slice()
     {
         ZoneScoped;
         sync_fence();      //Set sync point for everything done with previous buffer slice data
@@ -207,7 +208,7 @@ namespace hyengine
         memcpy(dest_pointer + address, source_pointer, size);
     }
 
-    bool standard_data_buffer::await_ready(const u64 timeout_nanos)
+    bool standard_data_buffer::next_slice_wait(const u64 timeout_nanos)
     {
         ZoneScoped;
         sync_fence();

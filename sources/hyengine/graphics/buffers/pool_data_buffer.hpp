@@ -30,14 +30,19 @@ namespace hyengine
         void deallocate_space(const u32 address);
         [[nodiscard]] u32 get_last_allocated_address() const;
 
-        void block_ready();
+        ///Blocks until the next slice of the staging buffer is available. Ensures all future operations cannot affect in-flight data.
+        void next_staging_slice();
+
+        ///Identical to next_staging_slice(), but with a timeout. If the function times out it will return false and does not gaurentee future operations are safe.
+        [[nodiscard]] bool next_staging_slice_wait(const u64 timeout_nanos);
+
         [[nodiscard]] bool upload(const u32& address, const void* const data, const u32 size);
 
         void bind_state() const;
         void unbind_state() const;
 
-        void bind_buffer_base(GLenum target, i32 binding) const;
-        void bind_buffer_range(GLenum target, i32 binding, GLintptr offset, GLsizeiptr size) const;
+        void bind_buffer_slot(GLenum target, u32 binding) const;
+        void bind_buffer_range(GLenum target, u32 binding, GLintptr offset, GLsizeiptr size) const;
 
         [[nodiscard]] GLsizeiptr get_size() const;
         [[nodiscard]] GLuint get_buffer_id() const;

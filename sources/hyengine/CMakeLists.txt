@@ -34,15 +34,14 @@ target_sources(hyengine PRIVATE
         graphics/textures/render_texture.cpp
         graphics/textures/texture_buffer.cpp
 
-        graphics/buffers/basic_framebuffer.cpp
         graphics/buffers/frame_buffer.cpp
         graphics/buffers/pool_data_buffer.cpp
         graphics/buffers/standard_data_buffer.cpp
         graphics/buffers/vertex_format_buffer.cpp
 
 
-        graphics/renderers/basic_renderer.cpp
         graphics/renderers/occlusion_box_renderer.cpp
+        graphics/renderers/simple_vertex_accumulator.cpp
 
         input/input.cpp
         $<$<PLATFORM_ID:Windows>: input/native_input_windows.cpp >
@@ -96,7 +95,7 @@ target_sources(hyengine PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILE
         graphics/textures/render_texture.hpp
         graphics/textures/texture_buffer.hpp
 
-        graphics/buffers/basic_framebuffer.hpp
+        graphics/buffers/standard_framebuffer.hpp
         graphics/buffers/frame_buffer.hpp
         graphics/buffers/pool_data_buffer.hpp
         graphics/buffers/standard_data_buffer.hpp
@@ -104,14 +103,16 @@ target_sources(hyengine PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILE
         graphics/buffers/typed_data_buffer.hpp
         graphics/buffers/typed_pool_buffer.hpp
 
-        graphics/renderers/basic_renderer.hpp
         graphics/renderers/occlusion_box_renderer.hpp
+        graphics/renderers/simple_vertex_accumulator.hpp
 
         input/input.hpp
         input/native_input.hpp
         input/virtual_keyboard.hpp
         input/virtual_mouse.hpp
         input/virtual_controller.hpp
+
+        audio/audio.hpp
 
         library/gl.hpp
         library/glm.hpp
@@ -127,11 +128,13 @@ target_include_directories(hyengine PUBLIC ${GLFW3_INCLUDE_DIRS})
 target_include_directories(hyengine PUBLIC ${OPENGL_INCLUDE_DIR})
 target_include_directories(hyengine PUBLIC ${GLM_INCLUDE_DIRS})
 target_include_directories(hyengine PUBLIC ${PCG_INCLUDE_DIRS})
+target_include_directories(hyengine PUBLIC ${MINIAUDIO_INCLUDE_DIRS})
 
 target_link_libraries(hyengine PUBLIC glfw)
 target_link_libraries(hyengine PUBLIC glad)
 target_link_libraries(hyengine PUBLIC glm::glm)
-
 target_link_libraries(hyengine PUBLIC ${OPENGL_LIBRARIES})
 target_link_libraries(hyengine PUBLIC TracyClient)
+
 target_link_libraries(hyengine PUBLIC stblib)
+target_link_libraries(hyengine PUBLIC miniaudio)

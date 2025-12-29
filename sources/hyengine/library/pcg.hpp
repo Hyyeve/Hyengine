@@ -1,4 +1,4 @@
 #pragma once
-#include <pcg/include/pcg_extras.hpp>
+#include <../../pcg/pcg_extras.hpp>
 #include <pcg/include/pcg_uint128.hpp>
-#include <pcg/include/pcg_random.hpp>
+#include <../../pcg/pcg_random.hpp>

@@ -8,12 +8,6 @@ namespace hyengine
 {
     /* MULTIBUFFERING ORDER OF OPERATIONS
 
-    Sync fence current slice
-    Increment to next slice
-    Sync await / blocking until slice is ready
-    Write data i32o slice
-    Issue commands using the buffer
-    Repeat
 
     */
 
@@ -40,22 +34,31 @@ namespace hyengine
         void bind_state() const;
         void unbind_state() const;
 
-        void bind_buffer_base(const GLenum target, const i32 binding) const;
-        void bind_buffer_range(const GLenum target, const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const;
+        ///Bind the buffer to a special binding index (shader storage, uniform block, etc)
+        void bind_buffer_slot(const GLenum target, const u32 binding) const;
+
+        ///Bind a range of the buffer to a special binding index (shader storage, uniform block, etc)
+        void bind_buffer_range(const GLenum target, const u32 binding, const GLintptr offset, const GLsizeiptr bytes) const;
 
         void copy_buffer_data(const GLuint source_buffer_id) const;
         void copy_buffer_range(const GLuint source_buffer_id, const GLintptr read_offset, const GLintptr write_offset, const GLintptr bytes) const;
 
-        void bind_slice_base(const GLenum target, const i32 binding) const;
-        void bind_slice_range(const GLenum target, const i32 binding, const GLintptr offset, const GLsizeiptr bytes) const;
+        ///Bind the current slice to a special binding index (shader storage, uniform block, etc)
+        void bind_slice_slot(const GLenum target, const u32 binding) const;
+
+        ///Bind a range of the current slice to a special binding index (shader storage, uniform block, etc)
+        void bind_slice_range(const GLenum target, const u32 binding, const GLintptr offset, const GLsizeiptr bytes) const;
 
         void copy_slice_data(const GLuint source_buffer_id) const;
         void copy_slice_range(const GLuint source_buffer_id, const GLintptr read_offset, const GLintptr write_offset, const GLintptr bytes) const;
 
-        void block_ready();
         void upload(const u32& address, const void* const data, const u32 size) const;
 
-        [[nodiscard]] bool await_ready(const u64 timeout_nanos);
+        ///Blocks until able to move to the next slice. Ensures all future operations cannot affect in-flight data.
+        void next_slice();
+
+        ///Identical to next_slice(), but with a timeout. If the function times out it will return false and the buffer slice will not have advanced.
+        [[nodiscard]] bool next_slice_wait(const u64 timeout_nanos);
 
         [[nodiscard]] u32 get_slice_offset() const;
 

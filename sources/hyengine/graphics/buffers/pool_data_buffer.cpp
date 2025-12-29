@@ -25,6 +25,7 @@ namespace hyengine
         if (!pool_buffer_allocated || !staging_buffer_allocated)
         {
             log_error(logger_tags::GRAPHICS, "Pool data buffer allocation failed.");
+            free();
             return false;
         }
 
@@ -70,11 +71,19 @@ namespace hyengine
         return pool_allocator.get_last_used_address();
     }
 
-    void pool_data_buffer::block_ready()
+    void pool_data_buffer::next_staging_slice()
     {
         ZoneScoped;
-        staging_buffer.block_ready();
+        staging_buffer.next_slice();
         current_staging_buffer_address = 0;
+    }
+
+    bool pool_data_buffer::next_staging_slice_wait(const u64 timeout_nanos)
+    {
+        ZoneScoped;
+        const bool success = staging_buffer.next_slice_wait(timeout_nanos);
+        if (success) current_staging_buffer_address = 0;
+        return success;
     }
 
     bool pool_data_buffer::upload(const u32& address, const void* const data, const u32 size)
@@ -114,12 +123,12 @@ namespace hyengine
         pool_buffer.unbind_state();
     }
 
-    void pool_data_buffer::bind_buffer_base(const GLenum target, const i32 binding) const
+    void pool_data_buffer::bind_buffer_slot(const GLenum target, const u32 binding) const
     {
-        pool_buffer.bind_buffer_base(target, binding);
+        pool_buffer.bind_buffer_slot(target, binding);
     }
 
-    void pool_data_buffer::bind_buffer_range(const GLenum target, const i32 binding, const GLintptr offset, const GLsizeiptr size) const
+    void pool_data_buffer::bind_buffer_range(const GLenum target, const u32 binding, const GLintptr offset, const GLsizeiptr size) const
     {
         pool_buffer.bind_buffer_range(target, binding, offset, size);
     }

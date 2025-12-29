@@ -5,9 +5,18 @@
 
 #include "../common/sized_numerics.hpp"
 #include "../common/math/aa_rectangle.hpp"
+#include "buffers/standard_data_buffer.hpp"
+#include "buffers/typed_data_buffer.hpp"
 
 namespace hyengine
 {
+    struct global_uniforms
+    {
+        glm::mat4x4 u_projection_mat;
+        glm::mat4x4 u_view_mat;
+        glm::dvec4 u_camera_pos;
+    };
+
     #pragma pack(push, 1)
     struct gl_draw_arrays_indirect_cmd
     {

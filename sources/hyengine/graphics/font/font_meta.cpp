@@ -3,7 +3,7 @@
 
 #include "../../core/file_io.hpp"
 #include "../../common/common.hpp"
-#include "../../graphics/renderers/basic_renderer.hpp"
+#include "../../graphics/renderers/simple_vertex_accumulator.hpp"
 
 namespace hyengine
 {

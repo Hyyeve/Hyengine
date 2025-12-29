@@ -5,6 +5,7 @@ set(H_TARGETS
         glad
         pcg
         stblib
+        miniaudio
 )
 
 add_subdirectory(sources/hyengine)
@@ -12,3 +13,4 @@ add_subdirectory(sources/hyengine-demo)
 add_subdirectory(sources/glad)
 add_subdirectory(sources/stblib)
 add_subdirectory(sources/pcg)
+add_subdirectory(sources/miniaudio)

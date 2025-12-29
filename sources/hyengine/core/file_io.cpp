@@ -8,7 +8,7 @@
 
 #include "logger.hpp"
 #include "../common/common.hpp"
-#include "stblib/include/stb_image.hpp"
+#include "stblib/stb_image.hpp"
 
 /*
  ASSET ID STRUCTURE

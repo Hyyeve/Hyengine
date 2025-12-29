@@ -25,8 +25,8 @@ namespace hyengine
         ~shader();
 
         [[nodiscard]] bool allocate();
-        void deallocate();
-        [[nodiscard]] bool reallocate();
+        void free();
+        [[nodiscard]] bool reload();
 
         static void clear_all_binary_caches();
         void clear_binary_cache() const;

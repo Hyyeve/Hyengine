@@ -1,13 +1,13 @@
 add_library(stblib STATIC)
 
 target_sources(stblib PRIVATE
-        src/stb_libs.cpp
+        stb_libs.cpp
 )
 
 target_sources(stblib PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILES
-        include/stb_truetype.hpp
-        include/stb_image.hpp
-        include/stb_image_write.hpp
+        stb_truetype.hpp
+        stb_image.hpp
+        stb_image_write.hpp
 )
 
 

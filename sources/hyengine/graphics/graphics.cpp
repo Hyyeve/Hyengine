@@ -5,11 +5,11 @@
 #include "../common/colors.hpp"
 #include "../core/logger.hpp"
 #include "../library/gl.hpp"
+#include "buffers/typed_data_buffer.hpp"
 #include "tracy/TracyOpenGL.hpp"
 
 namespace hyengine
 {
-
     bool try_init_glfw()
     {
         ZoneScoped;

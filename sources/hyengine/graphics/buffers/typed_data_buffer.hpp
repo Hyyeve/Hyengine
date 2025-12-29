@@ -56,12 +56,14 @@ namespace hyengine
             internal_data_buffer.unbind_state();
         }
 
-        void bind_buffer_base(const GLenum target, const i32 binding) const
+        ///Bind the buffer to a special binding index (shader storage, uniform block, etc)
+        void bind_buffer_slot(const GLenum target, const u32 binding) const
         {
-            internal_data_buffer.bind_buffer_base(target, binding);
+            internal_data_buffer.bind_buffer_slot(target, binding);
         }
 
-        void bind_buffer_range(const GLenum target, const i32 binding, const GLintptr index, const GLsizeiptr elements) const
+        ///Bind a range of the buffer to a special binding index (shader storage, uniform block, etc)
+        void bind_buffer_range(const GLenum target, const u32 binding, const GLintptr index, const GLsizeiptr elements) const
         {
             internal_data_buffer.bind_buffer_range(target, binding, index * sizeof(type), elements * sizeof(type));
         }
@@ -76,12 +78,14 @@ namespace hyengine
             internal_data_buffer.copy_buffer_range(source_buffer_id, read_index * sizeof(type), write_index * sizeof(type), elements * sizeof(type));
         }
 
-        void bind_slice_base(const GLenum target, const i32 binding) const
+        ///Bind the current slice to a special binding index (shader storage, uniform block, etc)
+        void bind_slice_slot(const GLenum target, const u32 binding) const
         {
-            internal_data_buffer.bind_slice_base(target, binding);
+            internal_data_buffer.bind_slice_slot(target, binding);
         }
 
-        void bind_slice_range(const GLenum target, const i32 binding, const GLintptr index, const GLsizeiptr elements) const
+        ///Bind a range of the current slice to a special binding index (shader storage, uniform block, etc)
+        void bind_slice_range(const GLenum target, const u32 binding, const GLintptr index, const GLsizeiptr elements) const
         {
             internal_data_buffer.bind_slice_range(target, binding, index * sizeof(type), elements * sizeof(type));
         }
@@ -96,9 +100,9 @@ namespace hyengine
             internal_data_buffer.copy_slice_range(source_buffer_id, read_index * sizeof(type), write_index * sizeof(type), elements * sizeof(type));
         }
 
-        void block_ready()
+        void next_slice()
         {
-            internal_data_buffer.block_ready();
+            internal_data_buffer.next_slice();
         }
 
         void upload(const u32& address, const type* data, const u32 elements)
@@ -108,7 +112,7 @@ namespace hyengine
 
         [[nodiscard]] bool await_ready(const unsigned long timeout_nanos)
         {
-            return internal_data_buffer.await_ready(timeout_nanos);
+            return internal_data_buffer.next_slice_wait(timeout_nanos);
         }
 
         [[nodiscard]] u32 get_slice_first_element() const

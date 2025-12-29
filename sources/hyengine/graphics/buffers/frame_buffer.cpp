@@ -30,6 +30,7 @@ namespace hyengine
         if (buffer_id <= 0)
         {
             log_error(logger_tags::GRAPHICS, "Failed to allocate framebuffer!");
+            free();
             return false;
         }
 

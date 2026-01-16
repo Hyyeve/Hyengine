@@ -21,9 +21,9 @@ namespace hyengine
             free();
         }
 
-        [[nodiscard]] bool allocate(const GLenum target, const GLsizeiptr elements, const GLsizeiptr staging_elements)
+        [[nodiscard]] bool allocate(const GLsizeiptr elements, const GLsizeiptr staging_elements)
         {
-            return internal_data_buffer.allocate(target, elements * sizeof(type), staging_elements * sizeof(type));
+            return internal_data_buffer.allocate(elements * sizeof(type), staging_elements * sizeof(type));
         }
 
         void free()
@@ -66,14 +66,9 @@ namespace hyengine
             return internal_data_buffer.upload(address, data, elements * sizeof(type));
         }
 
-        void bind_state() const
+        void bind_state(const GLenum target) const
         {
-            internal_data_buffer.bind_state();
-        }
-
-        void unbind_state() const
-        {
-            internal_data_buffer.unbind_state();
+            internal_data_buffer.bind_state(target);
         }
 
         void bind_buffer_slot(const GLenum target, const u32 binding) const
@@ -94,11 +89,6 @@ namespace hyengine
         [[nodiscard]] GLuint get_buffer_id() const
         {
             return internal_data_buffer.get_buffer_id();
-        }
-
-        [[nodiscard]] GLenum get_target() const
-        {
-            return internal_data_buffer.get_target();
         }
 
     private:

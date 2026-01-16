@@ -22,17 +22,16 @@ namespace hyengine
         explicit standard_data_buffer() = default;
         ~standard_data_buffer();
 
-        [[nodiscard]] bool allocate_for_cpu_writes(const GLenum target, const GLsizeiptr size);
-        [[nodiscard]] bool allocate_for_gpu_writes(const GLenum target, const GLsizeiptr size);
+        [[nodiscard]] bool allocate_for_cpu_writes(const GLsizeiptr size);
+        [[nodiscard]] bool allocate_for_gpu_writes(const GLsizeiptr size);
 
-        [[nodiscard]] bool allocate(const GLenum target, const GLsizeiptr size, const u32 slices, const void* const data, const GLbitfield storage_flags);
+        [[nodiscard]] bool allocate(const GLsizeiptr size, const u32 slices, const void* const data, const GLbitfield storage_flags);
         void free();
 
         void map_storage(const GLbitfield mapping_flags);
         void unmap_storage();
 
-        void bind_state() const;
-        void unbind_state() const;
+        void bind_state(const GLenum target) const;
 
         ///Bind the buffer to a special binding index (shader storage, uniform block, etc)
         void bind_buffer_slot(const GLenum target, const u32 binding) const;
@@ -66,7 +65,6 @@ namespace hyengine
         [[nodiscard]] void* get_mapped_slice_pointer() const;
 
         [[nodiscard]] GLuint get_buffer_id() const;
-        [[nodiscard]] GLenum get_target() const;
         [[nodiscard]] GLsizeiptr get_size() const;
         [[nodiscard]] GLsizeiptr get_slice_size() const;
 
@@ -77,7 +75,6 @@ namespace hyengine
         }
 
     private:
-
         struct slice_data
         {
             GLintptr start_address = 0;
@@ -94,8 +91,6 @@ namespace hyengine
         u32 current_slice_index = 0;
         void* mapped_pointer = nullptr;
 
-        //Set on allocation only
-        GLenum buffer_target = 0;
         GLuint buffer_id = 0;
         GLsizeiptr total_size = 0;
         GLsizeiptr slice_size = 0;

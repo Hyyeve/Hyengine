@@ -14,11 +14,11 @@ namespace hyengine
         free();
     }
 
-    bool pool_data_buffer::allocate(const GLenum target, const GLsizeiptr size, const GLsizeiptr staging_size)
+    bool pool_data_buffer::allocate(const GLsizeiptr size, const GLsizeiptr staging_size)
     {
         ZoneScoped;
         TracyGpuZone("allocate pool staging buffer");
-        const bool pool_buffer_allocated = pool_buffer.allocate_for_gpu_writes(target, size);
+        const bool pool_buffer_allocated = pool_buffer.allocate_for_gpu_writes(size);
         pool_allocator = pool_allocation_tracker(size);
         const bool staging_buffer_allocated = reallocate_staging_buffer(staging_size);
 
@@ -113,14 +113,9 @@ namespace hyengine
         return true;
     }
 
-    void pool_data_buffer::bind_state() const
+    void pool_data_buffer::bind_state(const GLenum target) const
     {
-        pool_buffer.bind_state();
-    }
-
-    void pool_data_buffer::unbind_state() const
-    {
-        pool_buffer.unbind_state();
+        pool_buffer.bind_state(target);
     }
 
     void pool_data_buffer::bind_buffer_slot(const GLenum target, const u32 binding) const
@@ -143,18 +138,13 @@ namespace hyengine
         return pool_buffer.get_buffer_id();
     }
 
-    GLenum pool_data_buffer::get_target() const
-    {
-        return pool_buffer.get_target();
-    }
-
     bool pool_data_buffer::reallocate_staging_buffer(const GLsizeiptr size)
     {
         ZoneScoped;
         TracyGpuZone("pool staging buffer reallocate");
         log_debug(logger_tags::GRAPHICS, "Allocating pool staging buffer to ", stringify_bytes(size), ".");
         staging_buffer.free();
-        const bool could_allocate = staging_buffer.allocate_for_cpu_writes(pool_buffer.get_target(), size);
+        const bool could_allocate = staging_buffer.allocate_for_cpu_writes(size);
         force_reallocate_staging_buffer = false;
 
         if (!could_allocate)

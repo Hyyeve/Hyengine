@@ -16,19 +16,19 @@ namespace hyengine
 
         explicit typed_data_buffer() = default;
 
-        [[nodiscard]] bool allocate_for_cpu_writes(const GLenum target, const GLsizeiptr elements)
+        [[nodiscard]] bool allocate_for_cpu_writes(const GLsizeiptr elements)
         {
-            return internal_data_buffer.allocate_for_cpu_writes(target, elements * sizeof(type));
+            return internal_data_buffer.allocate_for_cpu_writes(elements * sizeof(type));
         }
 
-        [[nodiscard]] bool allocate_for_gpu_writes(const GLenum target, const GLsizeiptr elements)
+        [[nodiscard]] bool allocate_for_gpu_writes(const GLsizeiptr elements)
         {
-            return internal_data_buffer.allocate_for_gpu_writes(target, elements * sizeof(type));
+            return internal_data_buffer.allocate_for_gpu_writes(elements * sizeof(type));
         }
 
-        [[nodiscard]] bool allocate(const GLenum target, const GLsizeiptr elements, const u32 slices, const type* const data, const GLbitfield storage_flags)
+        [[nodiscard]] bool allocate(const GLsizeiptr elements, const u32 slices, const type* const data, const GLbitfield storage_flags)
         {
-            return internal_data_buffer.allocate(target, elements * sizeof(type), slices, data, storage_flags);
+            return internal_data_buffer.allocate(elements * sizeof(type), slices, data, storage_flags);
         }
 
         void free()
@@ -46,14 +46,9 @@ namespace hyengine
             internal_data_buffer.unmap_storage();
         }
 
-        void bind_state() const
+        void bind_state(const GLenum target) const
         {
-            internal_data_buffer.bind_state();
-        }
-
-        void unbind_state() const
-        {
-            internal_data_buffer.unbind_state();
+            internal_data_buffer.bind_state(target);
         }
 
         ///Bind the buffer to a special binding index (shader storage, uniform block, etc)
@@ -138,11 +133,6 @@ namespace hyengine
         [[nodiscard]] GLuint get_buffer_id() const
         {
             return internal_data_buffer.get_buffer_id();
-        }
-
-        [[nodiscard]] GLenum get_target() const
-        {
-            return internal_data_buffer.get_target();
         }
 
         [[nodiscard]] GLsizeiptr get_max_elements() const

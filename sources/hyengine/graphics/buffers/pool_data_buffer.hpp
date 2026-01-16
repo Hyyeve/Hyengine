@@ -20,7 +20,7 @@ namespace hyengine
         explicit pool_data_buffer();
         ~pool_data_buffer();
 
-        [[nodiscard]] bool allocate(const GLenum target, const GLsizeiptr size, const GLsizeiptr staging_size);
+        [[nodiscard]] bool allocate(const GLsizeiptr size, const GLsizeiptr staging_size);
         void free();
 
         void shrink_staging_buffer();
@@ -38,15 +38,13 @@ namespace hyengine
 
         [[nodiscard]] bool upload(const u32& address, const void* const data, const u32 size);
 
-        void bind_state() const;
-        void unbind_state() const;
+        void bind_state(const GLenum target) const;
 
         void bind_buffer_slot(GLenum target, u32 binding) const;
         void bind_buffer_range(GLenum target, u32 binding, GLintptr offset, GLsizeiptr size) const;
 
         [[nodiscard]] GLsizeiptr get_size() const;
         [[nodiscard]] GLuint get_buffer_id() const;
-        [[nodiscard]] GLenum get_target() const;
 
     private:
         [[nodiscard]] bool reallocate_staging_buffer(const GLsizeiptr size);

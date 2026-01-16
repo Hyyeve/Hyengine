@@ -6,6 +6,7 @@ set(H_TARGETS
         pcg
         stblib
         miniaudio
+        stardraw
 )
 
 add_subdirectory(sources/hyengine)
@@ -14,3 +15,4 @@ add_subdirectory(sources/glad)
 add_subdirectory(sources/stblib)
 add_subdirectory(sources/pcg)
 add_subdirectory(sources/miniaudio)
+add_subdirectory(sources/stardraw)

@@ -13,21 +13,21 @@ namespace hyengine
         free();
     }
 
-    bool standard_data_buffer::allocate_for_cpu_writes(const GLenum target, const GLsizeiptr size)
+    bool standard_data_buffer::allocate_for_cpu_writes(const GLsizeiptr size)
     {
         constexpr GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
-        const bool success = allocate(target, size, 3, nullptr, flags);
+        const bool success = allocate(size, 3, nullptr, flags);
         if (!success) return false;
         map_storage(flags);
         return true;
     }
 
-    bool standard_data_buffer::allocate_for_gpu_writes(const GLenum target, const GLsizeiptr size)
+    bool standard_data_buffer::allocate_for_gpu_writes(const GLsizeiptr size)
     {
-        return allocate(target, size, 1, nullptr, 0);
+        return allocate(size, 1, nullptr, 0);
     }
 
-    bool standard_data_buffer::allocate(const GLenum target, const GLsizeiptr size, const u32 slices, const void* const data, const GLbitfield storage_flags)
+    bool standard_data_buffer::allocate(const GLsizeiptr size, const u32 slices, const void* const data, const GLbitfield storage_flags)
     {
         ZoneScoped;
         TracyGpuZone("allocate standard data buffer");
@@ -46,7 +46,6 @@ namespace hyengine
         total_size = size * slices;
         slice_count = slices;
         slice_size = size;
-        buffer_target = target;
         current_slice_index = 0;
 
         u32 slice_offset = 0;
@@ -83,7 +82,6 @@ namespace hyengine
 
         buffer_id = 0;
         current_slice_index = 0;
-        buffer_target = 0;
         total_size = 0;
         slice_size = 0;
         slice_count = 1;
@@ -114,18 +112,11 @@ namespace hyengine
         mapped_pointer = nullptr;
     }
 
-    void standard_data_buffer::bind_state() const
+    void standard_data_buffer::bind_state(const GLenum target) const
     {
         ZoneScoped;
         TracyGpuZone("bind standard data buffer");
-        glBindBuffer(buffer_target, buffer_id);
-    }
-
-    void standard_data_buffer::unbind_state() const
-    {
-        ZoneScoped;
-        TracyGpuZone("unbind standard data buffer");
-        glBindBuffer(buffer_target, 0);
+        glBindBuffer(target, buffer_id);
     }
 
     void standard_data_buffer::bind_buffer_slot(const GLenum target, const u32 binding) const
@@ -186,14 +177,6 @@ namespace hyengine
         copy_buffer_range(source_buffer_id, read_offset, get_slice_offset() + write_offset, bytes);
     }
 
-    void standard_data_buffer::next_slice()
-    {
-        ZoneScoped;
-        sync_fence();      //Set sync point for everything done with previous buffer slice data
-        increment_slice(); //Move to next buffer slice
-        sync_block();      //Wait for buffer slice to finish being used
-    }
-
     void standard_data_buffer::upload(const u32& address, const void* const data, const u32 size) const
     {
         ZoneScoped;
@@ -206,6 +189,14 @@ namespace hyengine
         GLbyte* dest_pointer = static_cast<GLbyte*>(get_mapped_slice_pointer());
         const GLbyte* source_pointer = static_cast<const GLbyte*>(data);
         memcpy(dest_pointer + address, source_pointer, size);
+    }
+
+    void standard_data_buffer::next_slice()
+    {
+        ZoneScoped;
+        sync_fence();      //Set sync point for everything done with previous buffer slice data
+        increment_slice(); //Move to next buffer slice
+        sync_block();      //Wait for buffer slice to finish being used
     }
 
     bool standard_data_buffer::next_slice_wait(const u64 timeout_nanos)
@@ -237,11 +228,6 @@ namespace hyengine
     GLuint standard_data_buffer::get_buffer_id() const
     {
         return buffer_id;
-    }
-
-    GLenum standard_data_buffer::get_target() const
-    {
-        return buffer_target;
     }
 
     GLsizeiptr standard_data_buffer::get_size() const

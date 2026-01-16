@@ -8,7 +8,6 @@ namespace hyengine
 {
     using namespace hyengine;
 
-
     class frame_buffer
     {
     public:

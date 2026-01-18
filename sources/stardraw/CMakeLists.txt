@@ -8,6 +8,7 @@ target_sources(stardraw PRIVATE
 
         gl/commands_impl_gl.cpp
         gl/backend_impl_gl.hpp gl/backend_impl_gl.cpp
+        gl/object_states_gl.hpp gl/object_states_gl.cpp
         gl/types_gl.hpp
 )
 
@@ -19,7 +20,6 @@ target_sources(stardraw PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILE
 
         api/descriptors.hpp
         api/commands.hpp
-
 )
 
 target_include_directories(stardraw PUBLIC

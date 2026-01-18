@@ -1,5 +1,4 @@
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 
 #include "backend_impl_gl.hpp"
 #include "tracy/Tracy.hpp"
@@ -14,6 +13,18 @@ namespace stardraw
             case draw_mode::TRIANGLES: return GL_TRIANGLES;
             case draw_mode::TRIANGLE_FAN: return GL_TRIANGLE_FAN;
             case draw_mode::TRIANGLE_STRIP: return GL_TRIANGLE_STRIP;
+        }
+
+        return -1;
+    }
+
+    inline GLenum gl_index_size(const draw_indexed_index_type type)
+    {
+        switch (type)
+        {
+            case draw_indexed_index_type::UINT_32: return GL_UNSIGNED_INT;
+            case draw_indexed_index_type::UINT_16: return GL_UNSIGNED_SHORT;
+            case draw_indexed_index_type::UINT_8: return GL_UNSIGNED_BYTE;
         }
 
         return -1;
@@ -35,12 +46,24 @@ namespace stardraw
         }
     }
 
+    inline GLenum gl_buffer_attach_point(const buffer_attachment_type attachment)
+    {
+        switch (attachment)
+        {
+            case buffer_attachment_type::SHADER_STORAGE_BLOCK: return GL_SHADER_STORAGE_BUFFER;
+            case buffer_attachment_type::SHADER_UNIFORM_BLOCK: return GL_UNIFORM_BUFFER;
+            case buffer_attachment_type::SHADER_ATOMIC_COUNTER_BLOCK: return GL_ATOMIC_COUNTER_BUFFER;
+        }
+
+        return -1;
+    }
+
     status backend_impl_gl::execute_draw_cmd(const draw_command* cmd)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute draw cmd");
 
-        const status bind_result = bind_vertex_buffer(cmd->vertex_source);
+        const status bind_result = bind_buffer(cmd->vertex_source, GL_ARRAY_BUFFER);
         if (bind_result != status::SUCCESS) return bind_result;
         glDrawArraysInstancedBaseInstance(gl_draw_mode(cmd->mode), cmd->vertex_source_offset, cmd->count, cmd->instances, cmd->instance_offset);
         return status::SUCCESS;
@@ -51,12 +74,12 @@ namespace stardraw
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute draw indexed cmd");
 
-        const status vertex_bind_result = bind_vertex_buffer(cmd->vertex_source);
+        const status vertex_bind_result = bind_buffer(cmd->vertex_source, GL_ARRAY_BUFFER);
         if (vertex_bind_result != status::SUCCESS) return vertex_bind_result;
-        const status index_bind_result = bind_index_buffer(cmd->index_source);
+        const status index_bind_result = bind_buffer(cmd->index_source, GL_ELEMENT_ARRAY_BUFFER);
         if (index_bind_result != status::SUCCESS) return index_bind_result;
 
-        const GLenum index_element_type = GL_UNSIGNED_INT; //TODO: Read from index buffer state
+        const GLenum index_element_type = gl_index_size(cmd->index_type);
         const uint32_t index_element_size = gl_type_size(index_element_type);
 
         glDrawElementsInstancedBaseVertexBaseInstance(gl_draw_mode(cmd->mode), cmd->count, index_element_type, reinterpret_cast<const void*>(cmd->index_source_offset * index_element_size), cmd->instances, cmd->vertex_source_offset, cmd->instance_offset);
@@ -69,9 +92,9 @@ namespace stardraw
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute draw indirect cmd");
 
-        const status vertex_bind_result = bind_vertex_buffer(cmd->vertex_source);
+        const status vertex_bind_result = bind_buffer(cmd->vertex_source, GL_ARRAY_BUFFER);
         if (vertex_bind_result != status::SUCCESS) return vertex_bind_result;
-        const status indirect_bind_result = bind_indirect_buffer(cmd->indirect_source);
+        const status indirect_bind_result = bind_buffer(cmd->indirect_source, GL_DRAW_INDIRECT_BUFFER);
         if (indirect_bind_result != status::SUCCESS) return indirect_bind_result;
 
         glMultiDrawArraysIndirect(gl_draw_mode(cmd->mode), reinterpret_cast<const void*>(cmd->indirect_source_offset * sizeof(gl_draw_arrays_indirect_params)), cmd->draw_count, 0);
@@ -83,17 +106,72 @@ namespace stardraw
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute draw indirect cmd");
 
-        const status vertex_bind_result = bind_vertex_buffer(cmd->vertex_source);
+        const status vertex_bind_result = bind_buffer(cmd->vertex_source, GL_ARRAY_BUFFER);
         if (vertex_bind_result != status::SUCCESS) return vertex_bind_result;
-        const status index_bind_result = bind_index_buffer(cmd->index_source);
+        const status index_bind_result = bind_buffer(cmd->index_source, GL_ELEMENT_ARRAY_BUFFER);
         if (index_bind_result != status::SUCCESS) return index_bind_result;
-        const status indirect_bind_result = bind_indirect_buffer(cmd->indirect_source);
+        const status indirect_bind_result = bind_buffer(cmd->indirect_source, GL_DRAW_INDIRECT_BUFFER);
         if (indirect_bind_result != status::SUCCESS) return indirect_bind_result;
 
-        const GLenum index_element_type = GL_UNSIGNED_INT; //TODO: Read from index buffer state
+        const GLenum index_element_type = gl_index_size(cmd->index_type);
 
         glMultiDrawElementsIndirect(gl_draw_mode(cmd->mode), index_element_type, reinterpret_cast<const void*>(cmd->indirect_source_offset * sizeof(gl_draw_elements_indirect_params)), cmd->draw_count, 0);
         return status::SUCCESS;
+    }
+
+    status backend_impl_gl::execute_buffer_sync(const buffer_sync_command* cmd)
+    {
+        ZoneScoped;
+        TracyGpuZone("[Stardraw] Execute buffer sync cmd");
+
+        gl_buffer_state* buffer_state = find_gl_buffer_state(cmd->buffer_identifier);
+        if (buffer_state == nullptr) return status::UNKNOWN_SOURCE;
+        if (!buffer_state->is_valid()) return status::BROKEN_SOURCE;
+
+        return buffer_state->sync_buffer();
+    }
+
+    status backend_impl_gl::execute_buffer_upload(const buffer_upload_command* cmd)
+    {
+        ZoneScoped;
+        TracyGpuZone("[Stardraw] Execute buffer upload cmd");
+
+        gl_buffer_state* buffer_state = find_gl_buffer_state(cmd->buffer_identifier);
+        if (buffer_state == nullptr) return status::UNKNOWN_SOURCE;
+        if (!buffer_state->is_valid()) return status::BROKEN_SOURCE;
+
+        return buffer_state->upload_data(cmd->upload_address, cmd->upload_data, cmd->upload_bytes);
+    }
+
+    status backend_impl_gl::execute_buffer_copy(const buffer_copy_command* cmd)
+    {
+        ZoneScoped;
+        TracyGpuZone("[Stardraw] Execute buffer copy cmd");
+
+        const gl_buffer_state* source_state = find_gl_buffer_state(cmd->source_identifier);
+        if (source_state == nullptr) return status::UNKNOWN_SOURCE;
+        if (!source_state->is_valid()) return status::BROKEN_SOURCE;
+
+        const gl_buffer_state* dest_state = find_gl_buffer_state(cmd->dest_identifier);
+        if (dest_state == nullptr) return status::UNKNOWN_SOURCE;
+        if (!dest_state->is_valid()) return status::BROKEN_SOURCE;
+
+        if (!source_state->is_in_buffer_range(cmd->source_address, cmd->bytes)) return status::RANGE_OVERFLOW;
+        if (!dest_state->is_in_buffer_range(cmd->dest_address, cmd->bytes)) return status::RANGE_OVERFLOW;
+
+        return dest_state->copy_data(source_state->transfer_source_gl_id(), cmd->source_address, cmd->dest_address, cmd->bytes);
+    }
+
+    status backend_impl_gl::execute_buffer_attach(const buffer_attach_command* cmd)
+    {
+        ZoneScoped;
+        TracyGpuZone("[Stardraw] Execute buffer attach cmd");
+
+        const gl_buffer_state* buffer_state = find_gl_buffer_state(cmd->buffer_identifier);
+        if (buffer_state == nullptr) return status::UNKNOWN_SOURCE;
+        if (!buffer_state->is_valid()) return status::BROKEN_SOURCE;
+
+        return buffer_state->bind_to_slot(gl_buffer_attach_point(cmd->attachment_type), cmd->attachment_index);
     }
 
     inline GLenum gl_blend_factor(const blending_factor factor)
@@ -134,6 +212,7 @@ namespace stardraw
 
         return -1;
     }
+
 
     status backend_impl_gl::execute_config_blending(const config_blending_command* cmd)
     {

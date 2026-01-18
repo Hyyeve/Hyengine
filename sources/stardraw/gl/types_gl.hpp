@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 
+#include "glad/glad.h"
 #include "stardraw/api/descriptors.hpp"
 
 namespace stardraw
@@ -24,9 +25,15 @@ namespace stardraw
     };
     #pragma pack(pop)
 
-    struct gl_object_state
+    class gl_object_state
     {
-        virtual ~gl_object_state() = 0;
-        descriptor* object_descriptor = nullptr;
+    public:
+        virtual ~gl_object_state() = default;
+        [[nodiscard]] virtual descriptor_type object_type() const = 0;
+    };
+
+    struct gl_signal_state
+    {
+        GLsync sync_point;
     };
 }

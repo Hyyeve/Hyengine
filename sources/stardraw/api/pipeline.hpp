@@ -23,32 +23,32 @@ namespace stardraw
 
         status create_backend(graphics_api api);
 
-        [[nodiscard]] status execute_command(const command* cmd) const;
-        [[nodiscard]] status execute_command_list(const std::string_view& name) const;
-        [[nodiscard]] status execute_temp_command_list(command_list_ptr cmd_list) const;
+        [[nodiscard]] status execute_command_buffer(const std::string_view& name) const;
+        [[nodiscard]] status execute_temp_command_buffer(command_list_ptr cmd_list) const;
+        [[nodiscard]] status create_command_buffer(const std::string_view& name, command_list_ptr cmd_list) const;
+        [[nodiscard]] status delete_command_buffer(const std::string_view& name) const;
+        [[nodiscard]] status create_objects(const descriptor_list_ptr descriptors) const;
+        [[nodiscard]] status delete_object(const std::string_view& name) const;
 
-        [[nodiscard]] status attach_command_list(const std::string_view& list_name, command_list_ptr cmd_list) const;
-        [[nodiscard]] status attach_descriptor_list(const std::string_view& list_name, const descriptor_list_ptr descriptors) const;
-
-        [[nodiscard]] status delete_command_list(const std::string_view& list_name) const;
-        [[nodiscard]] status delete_descriptor_list(const std::string_view& list_name) const;
+        [[nodiscard]] signal_status check_signal(const std::string_view& name) const;
+        [[nodiscard]] signal_status wait_signal(const std::string_view& name, const uint64_t timeout_nanos) const;
 
         template <typename... command_types>
-        [[nodiscard]] status attach_commands(const std::string_view& name, const command_types&... commands)
+        [[nodiscard]] status create_command_buffer_from_commands(const std::string_view& name, const command_types&... commands)
         {
             command_list_builder builder;
             (builder.add(std::forward<const command_types&...>(commands)), ...);
             command_list_ptr list = builder.finish();
-            return attach_command_list(name, std::move(list));
+            return create_command_buffer(name, std::move(list));
         }
 
         template <typename... descriptor_types>
-        [[nodiscard]] status attach_descriptors(const std::string_view& name, const descriptor_types... commands)
+        [[nodiscard]] status create_objects_from_descriptors(const descriptor_types... descriptors)
         {
             descriptor_list_builder builder;
-            (builder.add(std::forward<descriptor_types...>(commands)), ...);
+            (builder.add(std::forward<descriptor_types...>(descriptors)), ...);
             descriptor_list_ptr list = builder.finish();
-            return attach_descriptor_list(name, std::move(list));
+            return create_objects(std::move(list));
         }
 
     private:

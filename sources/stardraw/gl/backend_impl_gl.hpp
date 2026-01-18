@@ -2,6 +2,7 @@
 #include <string_view>
 #include <unordered_map>
 
+#include "object_states_gl.hpp"
 #include "types_gl.hpp"
 #include "stardraw/api/api_backend.hpp"
 #include "stardraw/api/commands.hpp"
@@ -15,27 +16,55 @@ namespace stardraw
         backend_impl_gl() = default;
         ~backend_impl_gl() override = default;
 
-        [[nodiscard]] status execute_cmd(const command* cmd) override;
-        [[nodiscard]] status execute_cmd_list(const std::string_view& name) override;
-        [[nodiscard]] status execute_temp_cmd_list(command_list_ptr commands) override;
-        [[nodiscard]] status attach_command_list(std::string_view list_name, command_list_ptr commands) override;
-        [[nodiscard]] status attach_descriptor_list(std::string_view list_name, descriptor_list_ptr descriptors) override;
-        [[nodiscard]] status delete_command_list(const std::string_view& list_name) override;
-        [[nodiscard]] status delete_descriptor_list(const std::string_view& list_name) override;
+        [[nodiscard]] status execute_command(const command* cmd) override;
+        [[nodiscard]] status execute_command_buffer(const std::string_view& name) override;
+        [[nodiscard]] status execute_temp_command_buffer(command_list_ptr commands) override;
+        [[nodiscard]] status create_command_buffer(const std::string_view& name, command_list_ptr commands) override;
+        [[nodiscard]] status delete_command_buffer(const std::string_view& name) override;
+        [[nodiscard]] status create_objects(descriptor_list_ptr descriptors) override;
+        [[nodiscard]] status delete_object(const std::string_view& name) override;
+        [[nodiscard]] signal_status check_signal(const std::string_view& name) override;
+        [[nodiscard]] signal_status wait_signal(const std::string_view& name, uint64_t timeout) override;
 
     private:
-        status bind_vertex_buffer(const std::string_view& source);
-        status bind_index_buffer(const std::string_view& source);
-        status bind_indirect_buffer(const std::string_view& source);
+        [[nodiscard]] status bind_buffer(const object_identifier& source, GLenum target);
 
-        status execute_draw_cmd(const draw_command* cmd);
-        status execute_draw_indexed(const draw_indexed_command* cmd);
-        status execute_draw_indirect(const draw_indirect_command* cmd);
-        status execute_draw_indexed_indirect(const draw_indexed_indirect_command* cmd);
+        [[nodiscard]] status execute_draw_cmd(const draw_command* cmd);
+        [[nodiscard]] status execute_draw_indexed(const draw_indexed_command* cmd);
+        [[nodiscard]] status execute_draw_indirect(const draw_indirect_command* cmd);
+        [[nodiscard]] status execute_draw_indexed_indirect(const draw_indexed_indirect_command* cmd);
 
-        static status execute_config_blending(const config_blending_command* cmd);
-        static status execute_config_stencil(const config_stencil_command* cmd);
+        [[nodiscard]] status execute_buffer_sync(const buffer_sync_command* cmd);
+        [[nodiscard]] status execute_buffer_upload(const buffer_upload_command* cmd);
+        [[nodiscard]] status execute_buffer_copy(const buffer_copy_command* cmd);
+        [[nodiscard]] status execute_buffer_attach(const buffer_attach_command* cmd);
 
-        std::unordered_map<std::string, gl_object_state*> objects;
+        [[nodiscard]] static status execute_config_blending(const config_blending_command* cmd);
+        [[nodiscard]] static status execute_config_stencil(const config_stencil_command* cmd);
+
+        template <typename state_type, descriptor_type object_type>
+        [[nodiscard]] state_type* find_gl_state(const object_identifier& identifier)
+        {
+            static_assert(std::is_base_of_v<gl_object_state, state_type>);
+            if (objects.contains(identifier.hash))
+            {
+                gl_object_state* identified_state = objects[identifier.hash];
+                if (identified_state->object_type() == object_type)
+                {
+                    return dynamic_cast<state_type*>(identified_state);
+                }
+            }
+
+            return nullptr;
+        }
+
+        [[nodiscard]] inline gl_buffer_state* find_gl_buffer_state(const object_identifier& identifier)
+        {
+            return find_gl_state<gl_buffer_state, descriptor_type::BUFFER>(identifier);
+        }
+
+        std::unordered_map<std::string, command_list_ptr> command_lists;
+        std::unordered_map<uint64_t, gl_object_state*> objects;
+        std::unordered_map<std::string, gl_signal_state> signals;
     };
 }

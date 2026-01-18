@@ -29,49 +29,54 @@ namespace stardraw
         return status::SUCCESS;
     }
 
-    status pipeline::execute_command(const command* cmd) const
+    status pipeline::execute_command_buffer(const std::string_view& name) const
     {
         if (backend == nullptr) return status::NOT_INITIALIZED;
-        if (cmd == nullptr) return status::UNEXPECTED_NULL;
-        return backend->execute_cmd(cmd);
+        return backend->execute_command_buffer(name);
     }
 
-    status pipeline::execute_command_list(const std::string_view& name) const
-    {
-        if (backend == nullptr) return status::NOT_INITIALIZED;
-        return backend->execute_cmd_list(name);
-    }
-
-    status pipeline::execute_temp_command_list(command_list_ptr cmd_list) const
+    status pipeline::execute_temp_command_buffer(command_list_ptr cmd_list) const
     {
         if (backend == nullptr) return status::NOT_INITIALIZED;
         if (cmd_list == nullptr) return status::UNEXPECTED_NULL;
-        return backend->execute_temp_cmd_list(std::move(cmd_list));
+        return backend->execute_temp_command_buffer(std::move(cmd_list));
     }
 
-    status pipeline::attach_command_list(const std::string_view& list_name, command_list_ptr cmd_list) const
+    status pipeline::create_command_buffer(const std::string_view& name, command_list_ptr cmd_list) const
     {
         if (backend == nullptr) return status::NOT_INITIALIZED;
         if (cmd_list == nullptr) return status::UNEXPECTED_NULL;
-        return backend->attach_command_list(list_name, std::move(cmd_list));
+        return backend->create_command_buffer(name, std::move(cmd_list));
     }
 
-    status pipeline::attach_descriptor_list(const std::string_view& list_name, descriptor_list_ptr descriptors) const
+    status pipeline::create_objects(descriptor_list_ptr descriptors) const
     {
         if (backend == nullptr) return status::NOT_INITIALIZED;
         if (descriptors == nullptr) return status::UNEXPECTED_NULL;
-        return backend->attach_descriptor_list(list_name, std::move(descriptors));
+        return backend->create_objects(std::move(descriptors));
     }
 
-    status pipeline::delete_command_list(const std::string_view& list_name) const
+    status pipeline::delete_command_buffer(const std::string_view& name) const
     {
         if (backend == nullptr) return status::NOT_INITIALIZED;
-        return backend->delete_command_list(list_name);
+        return backend->delete_command_buffer(name);
     }
 
-    status pipeline::delete_descriptor_list(const std::string_view& list_name) const
+    status pipeline::delete_object(const std::string_view& name) const
     {
         if (backend == nullptr) return status::NOT_INITIALIZED;
-        return backend->delete_descriptor_list(list_name);
+        return backend->delete_object(name);
+    }
+
+    signal_status pipeline::check_signal(const std::string_view& name) const
+    {
+        if (backend == nullptr) return signal_status::UNKNOWN_SIGNAL;
+        return backend->check_signal(name);
+    }
+
+    signal_status pipeline::wait_signal(const std::string_view& name, const uint64_t timeout_nanos) const
+    {
+        if (backend == nullptr) return signal_status::UNKNOWN_SIGNAL;
+        return backend->wait_signal(name, timeout_nanos);
     }
 }

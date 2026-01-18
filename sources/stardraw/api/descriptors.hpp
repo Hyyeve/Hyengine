@@ -3,17 +3,21 @@
 
 namespace stardraw
 {
+    enum class buffer_type : uint8_t
+    {
+        PERSISTANT, STREAMING
+    };
+
     struct buffer_descriptor final : descriptor
     {
-        explicit buffer_descriptor(const uint64_t size, const uint8_t multibuffer_count = 1, const bool require_cpu_access = false) : size(size), multibuffer_count(multibuffer_count), require_cpu_access(require_cpu_access) {}
+        explicit buffer_descriptor(const std::string_view& name, const uint64_t size, const buffer_type type = buffer_type::PERSISTANT) : descriptor(name), size(size), buff_type(type) {}
 
-        [[nodiscard]] descriptor_type type() override
+        [[nodiscard]] descriptor_type type() const override
         {
             return descriptor_type::BUFFER;
         }
 
-        uint64_t size = 0;
-        uint8_t multibuffer_count = 1;
-        bool require_cpu_access = false;
+        uint64_t size;
+        buffer_type buff_type;
     };
 }

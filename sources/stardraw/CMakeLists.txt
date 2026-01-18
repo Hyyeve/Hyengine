@@ -1,7 +1,6 @@
-add_executable(stardraw)
+add_library(stardraw STATIC)
 
 target_sources(stardraw PRIVATE
-        demo.cpp
 
         api/api_backend.cpp
         api/pipeline.cpp

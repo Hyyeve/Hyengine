@@ -41,6 +41,13 @@ namespace stardraw
 
         [[nodiscard]] static status execute_config_blending(const config_blending_command* cmd);
         [[nodiscard]] static status execute_config_stencil(const config_stencil_command* cmd);
+        [[nodiscard]] static status execute_config_scissor(const config_scissor_command* cmd);
+        [[nodiscard]] static status execute_config_face_cull(const config_face_cull_command* cmd);
+        [[nodiscard]] static status execute_config_depth_test(const config_depth_test_command* cmd);
+        [[nodiscard]] static status execute_config_depth_range(const config_depth_range_command* cmd);
+
+        [[nodiscard]] static status execute_config_clear_values(const config_clear_values_command* cmd);
+        [[nodiscard]] static status execute_clear_window(const clear_window_command* cmd);
 
         template <typename state_type, descriptor_type object_type>
         [[nodiscard]] state_type* find_gl_state(const object_identifier& identifier)

@@ -58,6 +58,60 @@ namespace stardraw
         return -1;
     }
 
+    inline void gl_set_flag(const GLenum flag, const bool enable, const GLuint index = 0)
+    {
+        if (enable)
+        {
+            glEnablei(flag, index);
+        }
+        else
+        {
+            glDisablei(flag, index);
+        }
+    }
+
+    inline GLenum gl_face_cull_mode(const face_cull_mode& mode)
+    {
+        switch (mode)
+        {
+            case BACK: return GL_BACK;
+            case FRONT: return GL_FRONT;
+            case BOTH: return GL_FRONT_AND_BACK;
+            default: return -1;
+        }
+    }
+
+    inline GLenum gl_depth_test_func(const depth_test_func& func)
+    {
+        switch (func)
+        {
+            case depth_test_func::ALWAYS: return GL_ALWAYS;
+            case depth_test_func::NEVER: return GL_NEVER;
+            case depth_test_func::LESS: return GL_LESS;
+            case depth_test_func::LESS_EQUAL: return GL_LEQUAL;
+            case depth_test_func::GREATER: return GL_GREATER;
+            case depth_test_func::GREATER_EQUAL: return GL_GEQUAL;
+            case depth_test_func::EQUAL: return GL_EQUAL;
+            case depth_test_func::NOT_EQUAL: return GL_NOTEQUAL;
+            default: return -1;
+        }
+    }
+
+    inline GLbitfield gl_clear_mask(const clear_window_mode& mode)
+    {
+        switch (mode)
+        {
+            case clear_window_mode::COLOR: return GL_COLOR_BUFFER_BIT;
+            case clear_window_mode::DEPTH: return GL_DEPTH_BUFFER_BIT;
+            case clear_window_mode::STENCIL: return GL_STENCIL_BUFFER_BIT;
+            case clear_window_mode::COLOR_AND_DEPTH: return GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
+            case clear_window_mode::COLOR_AND_STENCIL: return GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
+            case clear_window_mode::DEPTH_AND_STENCIL: return GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
+            case clear_window_mode::ALL: return GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
+        }
+        return -1;
+    }
+
     status backend_impl_gl::execute_draw_cmd(const draw_command* cmd)
     {
         ZoneScoped;
@@ -219,19 +273,23 @@ namespace stardraw
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute config blending cmd");
         const blending_config& config = cmd->config;
+
+        gl_set_flag(GL_BLEND, config.enabled);
+        if (!config.enabled) return status::SUCCESS;
+
         glBlendColor(config.constant_blend_r, config.constant_blend_g, config.constant_blend_b, config.constant_blend_a);
         glBlendEquationSeparatei(cmd->draw_buffer_index, gl_blend_func(config.rgb_equation), gl_blend_func(config.alpha_equation));
         glBlendFuncSeparatei(cmd->draw_buffer_index, gl_blend_factor(config.source_blend_rgb), gl_blend_factor(config.dest_blend_rgb), gl_blend_factor(config.source_blend_alpha), gl_blend_factor(config.dest_blend_alpha));
         return status::SUCCESS;
     }
 
-    inline GLenum gl_stencil_facing(const triangle_facing facing)
+    inline GLenum gl_stencil_facing(const stencil_facing facing)
     {
         switch (facing)
         {
-            case triangle_facing::FRONT: return GL_FRONT;
-            case triangle_facing::BACK: return GL_BACK;
-            case triangle_facing::BOTH: return GL_FRONT_AND_BACK;
+            case stencil_facing::FRONT: return GL_FRONT;
+            case stencil_facing::BACK: return GL_BACK;
+            case stencil_facing::BOTH: return GL_FRONT_AND_BACK;
         }
 
         return -1;
@@ -274,10 +332,89 @@ namespace stardraw
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute config stencil cmd");
         const stencil_config& config = cmd->config;
+
+        gl_set_flag(GL_STENCIL_TEST, config.enabled);
+        if (!config.enabled) return status::SUCCESS;
+
         const GLenum gl_facing = gl_stencil_facing(cmd->for_facing);
         glStencilFuncSeparate(gl_facing, gl_stencil_test_func(config.test_func), config.reference, config.test_mask);
         glStencilMaskSeparate(gl_facing, config.write_mask);
         glStencilOpSeparate(gl_facing, gl_stencil_test_op(config.stencil_fail_op), gl_stencil_test_op(config.depth_fail_op), gl_stencil_test_op(config.pixel_pass_op));
+        return status::SUCCESS;
+    }
+
+    status backend_impl_gl::execute_config_scissor(const config_scissor_command* cmd)
+    {
+        ZoneScoped;
+        TracyGpuZone("[Stardraw] Execute config scissor cmd");
+        const scissor_test_config& config = cmd->config;
+
+        gl_set_flag(GL_STENCIL_TEST, config.enabled, cmd->viewport_index);
+        if (!config.enabled) return status::SUCCESS;
+
+        glScissorIndexed(cmd->viewport_index, config.left, config.bottom, config.width, config.height);
+        return status::SUCCESS;
+    }
+
+    status backend_impl_gl::execute_config_face_cull(const config_face_cull_command* cmd)
+    {
+        ZoneScoped;
+        TracyGpuZone("[Stardraw] Execute config face cull cmd");
+
+        if (cmd->mode == face_cull_mode::DISABLED)
+        {
+            gl_set_flag(GL_CULL_FACE, false);
+            return status::SUCCESS;
+        }
+
+        gl_set_flag(GL_CULL_FACE, true);
+        glCullFace(gl_face_cull_mode(cmd->mode));
+
+        return status::SUCCESS;
+    }
+
+    status backend_impl_gl::execute_config_depth_test(const config_depth_test_command* cmd)
+    {
+        ZoneScoped;
+        TracyGpuZone("[Stardraw] Execute config depth test cmd");
+        const depth_test_config& config = cmd->config;
+
+        gl_set_flag(GL_DEPTH_TEST, config.enabled);
+        if (!config.enabled) return status::SUCCESS;
+
+        glDepthFunc(gl_depth_test_func(config.test_func));
+        glDepthMask(config.enable_depth_write);
+        return status::SUCCESS;
+    }
+
+    status backend_impl_gl::execute_config_depth_range(const config_depth_range_command* cmd)
+    {
+        ZoneScoped;
+        TracyGpuZone("[Stardraw] Execute config depth range cmd");
+
+        glDepthRangeIndexed(cmd->viewport_index, cmd->near, cmd->far);
+        return status::SUCCESS;
+    }
+
+    status backend_impl_gl::execute_config_clear_values(const config_clear_values_command* cmd)
+    {
+        ZoneScoped;
+        TracyGpuZone("[Stardraw] Execute config clear values cmd");
+        const clear_values_config& config = cmd->config;
+
+        glClearColor(config.color_r, config.color_g, config.color_b, config.color_a);
+        glClearDepth(config.depth);
+        glClearStencil(config.stencil);
+
+        return status::SUCCESS;
+    }
+    status backend_impl_gl::execute_clear_window(const clear_window_command* cmd)
+    {
+        ZoneScoped;
+        TracyGpuZone("[Stardraw] Execute clear window cmd");
+
+        glClear(gl_clear_mask(cmd->mode));
+
         return status::SUCCESS;
     }
 }

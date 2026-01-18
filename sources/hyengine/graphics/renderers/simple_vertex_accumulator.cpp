@@ -26,7 +26,7 @@ namespace hyengine
 
         const u32 max_vertices = ((1024 * 1024) / sizeof(simple_vertex)) * memory_budget_mb;
 
-        const bool vertex_buffer_allocated = vertex_buffer.allocate_for_cpu_writes(GL_ARRAY_BUFFER, max_vertices);
+        const bool vertex_buffer_allocated = vertex_buffer.allocate_for_cpu_writes(max_vertices);
         const bool vertex_format_buffer_allocated = vertex_format_buffer.allocate();
 
         if (!vertex_buffer_allocated || !vertex_format_buffer_allocated)

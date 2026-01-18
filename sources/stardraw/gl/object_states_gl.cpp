@@ -17,15 +17,24 @@ namespace stardraw
         }
 
         is_streaming_buffer = descriptor->buff_type == buffer_type::STREAMING;
-        slice_size = descriptor->size;
-        main_buffer_size = slice_size * (is_streaming_buffer ? 3 : 1);
-        current_slice_index = 0;
 
-        GLsizeiptr slice_offset = 0;
-        for (slice& slice : buffer_slices)
+        if (is_streaming_buffer)
         {
-            slice.start_address = slice_offset;
-            slice_offset += slice_size;
+            slice_size = descriptor->size;
+            main_buffer_size = slice_size * buffer_slices.size();
+            current_slice_index = 0;
+
+            GLsizeiptr slice_offset = 0;
+            for (slice& slice : buffer_slices)
+            {
+                slice.start_address = slice_offset;
+                slice_offset += slice_size;
+            }
+        }
+        else
+        {
+            main_buffer_size = descriptor->size;
+            //Slices will be setup by staging buffer allocation later
         }
 
         glCreateBuffers(1, &main_buffer_id);
@@ -163,10 +172,11 @@ namespace stardraw
 
     bool gl_buffer_state::is_in_buffer_range(const GLintptr address, const GLsizeiptr size) const
     {
-        return is_streaming_buffer ? address + size <= slice_size : address + size <= main_buffer_size;
+        return address + size <= get_usable_size();
     }
 
-    GLuint gl_buffer_state::transfer_source_gl_id() const {
+    GLuint gl_buffer_state::transfer_source_gl_id() const
+    {
         return main_buffer_id;
     }
 
@@ -226,6 +236,7 @@ namespace stardraw
         }
 
         slice_size = size;
+        const GLsizeiptr total_size = size * buffer_slices.size();
         current_slice_index = 0;
 
         GLsizeiptr slice_offset = 0;
@@ -239,9 +250,9 @@ namespace stardraw
         if (staging_buffer_id == 0) return status::BACKEND_FAILURE;
 
         constexpr GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
-        glNamedBufferStorage(staging_buffer_id, size * 3 /*three slices of size*/, nullptr, flags);
+        glNamedBufferStorage(staging_buffer_id, total_size, nullptr, flags);
 
-        write_pointer = glMapNamedBufferRange(staging_buffer_id, 0, size * 3, flags);
+        write_pointer = glMapNamedBufferRange(staging_buffer_id, 0, total_size, flags);
         if (write_pointer == nullptr) return status::BACKEND_FAILURE;
 
         return status::SUCCESS;

@@ -1,7 +1,7 @@
 #pragma once
-#include <string>
 #include <string_view>
 
+#include "hyengine/core/hyengine.hpp"
 #include "stardraw/api/types.hpp"
 
 namespace stardraw
@@ -109,7 +109,7 @@ namespace stardraw
         KEEP, ZERO, REPLACE, INCREMENT, INCREMENT_WRAP, DECREMENT, DECREMENT_WRAP, INVERT
     };
 
-    enum class triangle_facing : uint8_t
+    enum class stencil_facing : uint8_t
     {
         FRONT, BACK, BOTH
     };
@@ -125,11 +125,18 @@ namespace stardraw
         int reference = 0;
         int test_mask = std::numeric_limits<int>::max();
         int write_mask = std::numeric_limits<int>::max();
+
+        bool enabled = true;
     };
+
+    namespace stencil_configs
+    {
+        constexpr stencil_config DISABLED = {.enabled = false };
+    }
 
     struct config_stencil_command final : command
     {
-        explicit config_stencil_command(const stencil_config& config, const triangle_facing for_facing) : config(config), for_facing(for_facing) {}
+        explicit config_stencil_command(const stencil_config& config, const stencil_facing faces = stencil_facing::BOTH) : config(config), for_facing(faces) {}
 
         [[nodiscard]] command_type type() const override
         {
@@ -137,7 +144,7 @@ namespace stardraw
         }
 
         stencil_config config;
-        triangle_facing for_facing;
+        stencil_facing for_facing;
     };
 
     enum class blending_func : uint8_t
@@ -187,10 +194,13 @@ namespace stardraw
         float constant_blend_g = 1.0f;
         float constant_blend_b = 1.0f;
         float constant_blend_a = 1.0f;
+
+        bool enabled = true;
     };
 
-    namespace standard_blending_configs
+    namespace blending_configs
     {
+        constexpr blending_config DISABLED = {.enabled = false};
         constexpr blending_config ALPHA = {};
         constexpr blending_config OVERWRITE = {blending_factor::ONE, blending_factor::ZERO, blending_func::ADD, blending_factor::ONE, blending_factor::ZERO};
         constexpr blending_config ADDITIVE = {blending_factor::ONE, blending_factor::ONE};
@@ -213,9 +223,132 @@ namespace stardraw
         uint32_t draw_buffer_index;
     };
 
+    enum class depth_test_func : uint8_t
+    {
+        ALWAYS, NEVER, LESS, LESS_EQUAL, GREATER, GREATER_EQUAL, EQUAL, NOT_EQUAL
+    };
+
+    struct depth_test_config
+    {
+        depth_test_func test_func = depth_test_func::LESS;
+        bool enable_depth_write = true;
+        bool enabled = true;
+    };
+
+    namespace depth_test_configs
+    {
+        constexpr depth_test_config DISABLED = {.enabled = false};
+        constexpr depth_test_config NORMAL = {};
+        constexpr depth_test_config NORMAL_NO_WRITE = {.enable_depth_write = false};
+        constexpr depth_test_config WRITE_UNCONDITIONALLY = {depth_test_func::ALWAYS};
+    }
+
+    struct config_depth_test_command final : command
+    {
+        explicit config_depth_test_command(const depth_test_config& config) : config(config) {}
+
+        [[nodiscard]] command_type type() const override
+        {
+            return command_type::CONFIG_DEPTH_TEST;
+        }
+
+        depth_test_config config;
+    };
+
+    struct config_depth_range_command final : command
+    {
+        explicit config_depth_range_command(const double near, const double far, const uint32_t viewport_index = 0) : near(near), far(far), viewport_index(viewport_index) {}
+
+        [[nodiscard]] command_type type() const override
+        {
+            return command_type::CONFIG_DEPTH_RANGE;
+        }
+
+        double near;
+        double far;
+        uint32_t viewport_index;
+    };
+
+    enum face_cull_mode
+    {
+        DISABLED, BACK, FRONT, BOTH
+    };
+
+    struct config_face_cull_command final : command
+    {
+        explicit config_face_cull_command(const face_cull_mode& mode) : mode(mode) {}
+
+        [[nodiscard]] command_type type() const override
+        {
+            return command_type::CONFIG_FACE_CULL;
+        }
+
+        face_cull_mode mode;
+    };
+
+
+    struct scissor_test_config
+    {
+        int32_t left = std::numeric_limits<int32_t>::min();
+        int32_t bottom = std::numeric_limits<int32_t>::min();
+
+        int32_t width = std::numeric_limits<int32_t>::max();
+        int32_t height = std::numeric_limits<int32_t>::max();
+
+        bool enabled = true;
+    };
+
+    namespace scissor_test_configs
+    {
+        constexpr scissor_test_config DISABLED = {.enabled = false };
+    }
+
+    struct config_scissor_command final : command
+    {
+        explicit config_scissor_command(const scissor_test_config& config, const uint32_t viewport_index = 0) : config(config), viewport_index(viewport_index) {}
+
+        [[nodiscard]] command_type type() const override
+        {
+            return command_type::CONFIG_SCISSOR;
+        }
+
+        scissor_test_config config;
+        uint32_t viewport_index;
+    };
+
+    struct clear_values_config
+    {
+        float color_r = 0.0f;
+        float color_g = 0.0f;
+        float color_b = 0.0f;
+        float color_a = 1.0f;
+
+        double depth = 1.0f;
+
+        int32_t stencil = 0;
+    };
+
+    namespace clear_values_configs
+    {
+        constexpr clear_values_config DEFAULT = {};
+    }
+
+    struct config_clear_values_command final : command
+    {
+        explicit config_clear_values_command(const clear_values_config& config) : config(config) {}
+
+        [[nodiscard]] command_type type() const override
+        {
+            return command_type::CONFIG_CLEAR_VALUES;
+        }
+
+        clear_values_config config;
+    };
+
     struct buffer_sync_command final : command
     {
         explicit buffer_sync_command(const std::string_view buffer_source) : buffer_identifier(buffer_source) {}
+
         [[nodiscard]] command_type type() const override
         {
             return command_type::BUFFER_SYNC;
@@ -242,6 +375,7 @@ namespace stardraw
     struct buffer_copy_command final : command
     {
         explicit buffer_copy_command(const std::string_view& from_source, const std::string_view& to_source, const uint64_t from_address, const uint64_t to_address, const uint64_t bytes) : source_identifier(from_source), dest_identifier(to_source), source_address(from_address), dest_address(to_address), bytes(bytes) {}
+
         [[nodiscard]] command_type type() const override
         {
             return command_type::BUFFER_COPY;
@@ -272,4 +406,24 @@ namespace stardraw
         buffer_attachment_type attachment_type;
         uint32_t attachment_index;
     };
+
+    enum class clear_window_mode
+    {
+        COLOR, DEPTH, STENCIL,
+        COLOR_AND_DEPTH, COLOR_AND_STENCIL, DEPTH_AND_STENCIL,
+        ALL
+    };
+
+    struct clear_window_command final : command
+    {
+        explicit clear_window_command(const clear_window_mode mode) : mode(mode) {}
+
+        [[nodiscard]] command_type type() const override
+        {
+            return command_type::CLEAR_WINDOW;
+        }
+
+        clear_window_mode mode;
+    };
+
 }

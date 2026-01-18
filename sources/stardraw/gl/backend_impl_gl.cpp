@@ -19,12 +19,20 @@ namespace stardraw
 
             case command_type::CONFIG_BLENDING: return execute_config_blending(dynamic_cast<const config_blending_command*>(cmd));
             case command_type::CONFIG_STENCIL: return execute_config_stencil(dynamic_cast<const config_stencil_command*>(cmd));
+            case command_type::CONFIG_SCISSOR: return execute_config_scissor(dynamic_cast<const config_scissor_command*>(cmd));
+            case command_type::CONFIG_FACE_CULL: return execute_config_face_cull(dynamic_cast<const config_face_cull_command*>(cmd));
+            case command_type::CONFIG_DEPTH_TEST: return execute_config_depth_test(dynamic_cast<const config_depth_test_command*>(cmd));
+            case command_type::CONFIG_DEPTH_RANGE: return execute_config_depth_range(dynamic_cast<const config_depth_range_command*>(cmd));
 
             case command_type::BUFFER_SYNC: return execute_buffer_sync(dynamic_cast<const buffer_sync_command*>(cmd));
             case command_type::BUFFER_UPLOAD: return execute_buffer_upload(dynamic_cast<const buffer_upload_command*>(cmd));
             case command_type::BUFFER_COPY: return execute_buffer_copy(dynamic_cast<const buffer_copy_command*>(cmd));
-            case command_type::BUFFER_DOWNLOAD: return status::UNSUPPORTED; //TODO
+            case command_type::BUFFER_DOWNLOAD: return status::UNIMPLEMENTED; //TODO
             case command_type::BUFFER_ATTACH: return execute_buffer_attach(dynamic_cast<const buffer_attach_command*>(cmd));
+
+            case command_type::CONFIG_CLEAR_VALUES: return execute_config_clear_values(dynamic_cast<const config_clear_values_command*>(cmd));
+            case command_type::CLEAR_WINDOW: return execute_clear_window(dynamic_cast<const clear_window_command*>(cmd));
+            case command_type::CLEAR_BUFFER: return status::UNIMPLEMENTED; //TODO
         }
 
         return status::UNSUPPORTED;
@@ -74,12 +82,12 @@ namespace stardraw
 
     [[nodiscard]] status backend_impl_gl::create_objects(descriptor_list_ptr descriptors)
     {
-        return status::UNIMPLEMENTED;
+        return status::UNIMPLEMENTED; //TODO
     }
 
     [[nodiscard]] status backend_impl_gl::delete_object(const std::string_view& name)
     {
-        return status::UNIMPLEMENTED;
+        return status::UNIMPLEMENTED; //TODO
     }
 
     [[nodiscard]] signal_status backend_impl_gl::check_signal(const std::string_view& name)

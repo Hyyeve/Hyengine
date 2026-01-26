@@ -34,7 +34,6 @@ namespace stardraw
         [[nodiscard]] status execute_draw_indirect(const draw_indirect_command* cmd);
         [[nodiscard]] status execute_draw_indexed_indirect(const draw_indexed_indirect_command* cmd);
 
-        [[nodiscard]] status execute_buffer_sync(const buffer_sync_command* cmd);
         [[nodiscard]] status execute_buffer_upload(const buffer_upload_command* cmd);
         [[nodiscard]] status execute_buffer_copy(const buffer_copy_command* cmd);
         [[nodiscard]] status execute_buffer_attach(const buffer_attach_command* cmd);
@@ -46,8 +45,13 @@ namespace stardraw
         [[nodiscard]] static status execute_config_depth_test(const config_depth_test_command* cmd);
         [[nodiscard]] static status execute_config_depth_range(const config_depth_range_command* cmd);
 
-        [[nodiscard]] static status execute_config_clear_values(const config_clear_values_command* cmd);
         [[nodiscard]] static status execute_clear_window(const clear_window_command* cmd);
+
+        [[nodiscard]] status create_object(const descriptor* descriptor);
+
+        [[nodiscard]] status create_buffer_state(const buffer_descriptor* descriptor);
+        [[nodiscard]] status create_vertex_specification_state(const vertex_specification_descriptor* descriptor);
+        [[nodiscard]] status bind_vertex_specification_state(const object_identifier& source, GLsizeiptr& out_index_buffer_offset);
 
         template <typename state_type, descriptor_type object_type>
         [[nodiscard]] state_type* find_gl_state(const object_identifier& identifier)
@@ -68,6 +72,11 @@ namespace stardraw
         [[nodiscard]] inline gl_buffer_state* find_gl_buffer_state(const object_identifier& identifier)
         {
             return find_gl_state<gl_buffer_state, descriptor_type::BUFFER>(identifier);
+        }
+
+        [[nodiscard]] inline gl_vertex_specification_state* find_gl_vertex_specification_state(const object_identifier& identifier)
+        {
+            return find_gl_state<gl_vertex_specification_state, descriptor_type::VERTEX_SPECIFICATION>(identifier);
         }
 
         std::unordered_map<std::string, command_list_ptr> command_lists;

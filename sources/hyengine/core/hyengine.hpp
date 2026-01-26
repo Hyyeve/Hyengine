@@ -64,6 +64,9 @@ namespace hyengine
     ///Time since the application started.
     f64 time();
 
+    void seed_random(u64 seed);
+    u64 random();
+
     ///Start running a frame loop. Will not return until the loop update function writes the exit flag.
     void run_frame_loop(const frame_loop::config& config);
 }

@@ -18,62 +18,61 @@ namespace stardraw
 
     struct draw_command final : command
     {
-        draw_command(const std::string_view& vertex_source, const draw_mode mode, const uint32_t count, const uint32_t offset = 0, const uint32_t instances = 1, const uint32_t instance_offset = 0) : vertex_source(vertex_source), mode(mode), count(count), vertex_source_offset(offset), instances(instances), instance_offset(instance_offset) {}
+        draw_command(const std::string_view& vertex_specification_source, const draw_mode mode, const uint32_t count, const uint32_t start_vertex = 0, const uint32_t instances = 1, const uint32_t start_instance = 0) : vertex_specification_source(vertex_specification_source), mode(mode), count(count), start_vertex(start_vertex), instances(instances), start_instance(start_instance) {}
 
         [[nodiscard]] command_type type() const override
         {
             return command_type::DRAW;
         }
 
-        object_identifier vertex_source;
+        object_identifier vertex_specification_source;
         draw_mode mode;
         uint32_t count;
+
         ///Starting index for vertices
-        uint32_t vertex_source_offset;
+        uint32_t start_vertex;
 
         uint32_t instances;
         ///Starting index for instanced attributes
-        uint32_t instance_offset = 0;
+        uint32_t start_instance = 0;
     };
 
     struct draw_indexed_command final : command
     {
-        draw_indexed_command(const std::string_view& vertex_source, const std::string_view& index_source, const draw_mode mode, const uint32_t count, const int32_t offset = 0, const uint32_t index_offset = 0, const uint32_t instances = 1, const uint32_t instance_offset = 0, const draw_indexed_index_type index_type = draw_indexed_index_type::UINT_32) : vertex_source(vertex_source), index_source(index_source), mode(mode), index_type(index_type), count(count), vertex_source_offset(offset), index_source_offset(index_offset), instances(instances), instance_offset(instance_offset) {}
+        draw_indexed_command(const std::string_view& vertex_specification_source, const draw_mode mode, const uint32_t count, const int32_t vertex_index_offset = 0, const uint32_t start_index = 0, const uint32_t instances = 1, const uint32_t start_instance = 0, const draw_indexed_index_type index_type = draw_indexed_index_type::UINT_32) : vertex_specification_source(vertex_specification_source), mode(mode), index_type(index_type), count(count), vertex_index_offset(vertex_index_offset), start_index(start_index), instances(instances), start_instance(start_instance) {}
 
         [[nodiscard]] command_type type() const override
         {
             return command_type::DRAW_INDEXED;
         }
 
-        object_identifier vertex_source;
-        object_identifier index_source;
+        object_identifier vertex_specification_source;
 
         draw_mode mode;
         draw_indexed_index_type index_type;
         uint32_t count;
 
         ///Offset applied to all vertex indices
-        int32_t vertex_source_offset;
+        int32_t vertex_index_offset;
 
         ///Starting index for indices
-        uint32_t index_source_offset;
+        uint32_t start_index;
 
         uint32_t instances;
         ///Starting index for instanced attributes
-        uint32_t instance_offset;
+        uint32_t start_instance;
     };
 
     struct draw_indirect_command final : command
     {
-        draw_indirect_command(const std::string_view& vertex_source, const std::string_view& indirect_source, const draw_mode mode, const uint32_t draw_count, const uint32_t indirect_source_offset = 0) : vertex_source(vertex_source), indirect_source(indirect_source), mode(mode), draw_count(draw_count), indirect_source_offset(indirect_source_offset) {}
+        draw_indirect_command(const std::string_view& vertex_specification_source, const draw_mode mode, const uint32_t draw_count, const uint32_t indirect_source_offset = 0) : vertex_specification_source(vertex_specification_source), mode(mode), draw_count(draw_count), indirect_source_offset(indirect_source_offset) {}
 
         [[nodiscard]] command_type type() const override
         {
             return command_type::DRAW_INDIRECT;
         }
 
-        object_identifier vertex_source;
-        object_identifier indirect_source;
+        object_identifier vertex_specification_source;
 
         draw_mode mode;
         uint32_t draw_count;
@@ -82,16 +81,14 @@ namespace stardraw
 
     struct draw_indexed_indirect_command final : command
     {
-        draw_indexed_indirect_command(const std::string_view& vertex_source, const std::string_view& index_source, const std::string_view& indirect_source, const draw_mode mode, const uint32_t draw_count, const uint32_t indirect_source_offset = 0, const draw_indexed_index_type index_type = draw_indexed_index_type::UINT_32) : vertex_source(vertex_source), index_source(index_source), indirect_source(indirect_source), mode(mode), index_type(index_type), draw_count(draw_count), indirect_source_offset(indirect_source_offset) {}
+        draw_indexed_indirect_command(const std::string_view& vertex_specification_source, const draw_mode mode, const uint32_t draw_count, const uint32_t indirect_source_offset = 0, const draw_indexed_index_type index_type = draw_indexed_index_type::UINT_32) : vertex_specification_source(vertex_specification_source), mode(mode), index_type(index_type), draw_count(draw_count), indirect_source_offset(indirect_source_offset) {}
 
         [[nodiscard]] command_type type() const override
         {
             return command_type::DRAW_INDIRECT;
         }
 
-        object_identifier vertex_source;
-        object_identifier index_source;
-        object_identifier indirect_source;
+        object_identifier vertex_specification_source;
 
         draw_mode mode;
         draw_indexed_index_type index_type;
@@ -316,50 +313,17 @@ namespace stardraw
         uint32_t viewport_index;
     };
 
-    struct clear_values_config
+    ///UNSAFE_DIRECT: Fastest, least memory cost, but can overwrite in-use data (does no syncing check)
+    ///SAFE_STREAMING: Slower, may increase buffer memory use (up to 2x base size max)
+    ///SAFE_ONE_TIME: Slowest, temporarily increases buffer memory use by the size of the upload
+    enum class buffer_upload_type : uint8_t
     {
-        float color_r = 0.0f;
-        float color_g = 0.0f;
-        float color_b = 0.0f;
-        float color_a = 1.0f;
-
-        double depth = 1.0f;
-
-        int32_t stencil = 0;
-    };
-
-    namespace clear_values_configs
-    {
-        constexpr clear_values_config DEFAULT = {};
-    }
-
-    struct config_clear_values_command final : command
-    {
-        explicit config_clear_values_command(const clear_values_config& config) : config(config) {}
-
-        [[nodiscard]] command_type type() const override
-        {
-            return command_type::CONFIG_CLEAR_VALUES;
-        }
-
-        clear_values_config config;
-    };
-
-    struct buffer_sync_command final : command
-    {
-        explicit buffer_sync_command(const std::string_view buffer_source) : buffer_identifier(buffer_source) {}
-
-        [[nodiscard]] command_type type() const override
-        {
-            return command_type::BUFFER_SYNC;
-        }
-
-        object_identifier buffer_identifier;
+        UNSAFE_DIRECT, SAFE_STREAMING, SAFE_ONE_TIME
     };
 
     struct buffer_upload_command final : command
     {
-        explicit buffer_upload_command(const std::string_view& buffer_source, const uint64_t bytes, const uint64_t upload_bytes, const void* const data) : buffer_identifier(buffer_source), upload_address(bytes), upload_bytes(upload_bytes), upload_data(data) {}
+        explicit buffer_upload_command(const std::string_view& buffer_source, const uint64_t address, const uint64_t bytes, const void* const data, const buffer_upload_type upload_type = buffer_upload_type::SAFE_ONE_TIME) : buffer_identifier(buffer_source), upload_address(address), upload_bytes(bytes), upload_data(data), upload_type(upload_type) {}
 
         [[nodiscard]] command_type type() const override
         {
@@ -370,6 +334,7 @@ namespace stardraw
         uint64_t upload_address;
         uint64_t upload_bytes;
         const void* const upload_data;
+        buffer_upload_type upload_type;
     };
 
     struct buffer_copy_command final : command
@@ -414,9 +379,26 @@ namespace stardraw
         ALL
     };
 
+    struct clear_values_config
+    {
+        float color_r = 0.0f;
+        float color_g = 0.0f;
+        float color_b = 0.0f;
+        float color_a = 1.0f;
+
+        double depth = 1.0f;
+
+        int32_t stencil = 0;
+    };
+
+    namespace clear_values_configs
+    {
+        constexpr clear_values_config DEFAULT = {};
+    }
+
     struct clear_window_command final : command
     {
-        explicit clear_window_command(const clear_window_mode mode) : mode(mode) {}
+        explicit clear_window_command(const clear_window_mode mode, const clear_values_config& config = clear_values_configs::DEFAULT) : mode(mode), config(config) {}
 
         [[nodiscard]] command_type type() const override
         {
@@ -424,6 +406,7 @@ namespace stardraw
         }
 
         clear_window_mode mode;
+        clear_values_config config;
     };
 
 }

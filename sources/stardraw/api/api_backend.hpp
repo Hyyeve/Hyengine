@@ -1,7 +1,5 @@
 #pragma once
 #include <string_view>
-
-#include "polymorphic_list.hpp"
 #include "types.hpp"
 
 namespace stardraw

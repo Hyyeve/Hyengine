@@ -16,55 +16,55 @@ namespace stardraw
     {
         if (backend != nullptr)
         {
-            return status::ALREADY_INITIALIZED;
+            return { status_type::ALREADY_INITIALIZED, "Pipeline already has backend set" };
         }
 
         backend = api_backend::create(api);
 
         if (backend == nullptr)
         {
-            return status::UNSUPPORTED;
+            return { status_type::UNSUPPORTED, "Failed to create pipeline backend" };
         }
 
-        return status::SUCCESS;
+        return { status_type::SUCCESS };
     }
 
     status pipeline::execute_command_buffer(const std::string_view& name) const
     {
-        if (backend == nullptr) return status::NOT_INITIALIZED;
+        if (backend == nullptr) return { status_type::NOT_INITIALIZED, "No pipeline backend" };
         return backend->execute_command_buffer(name);
     }
 
     status pipeline::execute_temp_command_buffer(command_list_ptr cmd_list) const
     {
-        if (backend == nullptr) return status::NOT_INITIALIZED;
-        if (cmd_list == nullptr) return status::UNEXPECTED_NULL;
+        if (backend == nullptr) return { status_type::NOT_INITIALIZED, "No pipeline backend" };
+        if (cmd_list == nullptr) return { status_type::UNEXPECTED_NULL, "Null command list"};
         return backend->execute_temp_command_buffer(std::move(cmd_list));
     }
 
     status pipeline::create_command_buffer(const std::string_view& name, command_list_ptr cmd_list) const
     {
-        if (backend == nullptr) return status::NOT_INITIALIZED;
-        if (cmd_list == nullptr) return status::UNEXPECTED_NULL;
+        if (backend == nullptr) return { status_type::NOT_INITIALIZED, "No pipeline backend" };
+        if (cmd_list == nullptr) return { status_type::UNEXPECTED_NULL, "Null command list"};
         return backend->create_command_buffer(name, std::move(cmd_list));
     }
 
     status pipeline::create_objects(descriptor_list_ptr descriptors) const
     {
-        if (backend == nullptr) return status::NOT_INITIALIZED;
-        if (descriptors == nullptr) return status::UNEXPECTED_NULL;
+        if (backend == nullptr) return { status_type::NOT_INITIALIZED, "No pipeline backend" };
+        if (descriptors == nullptr) return { status_type::UNEXPECTED_NULL, "Null descriptor list"};
         return backend->create_objects(std::move(descriptors));
     }
 
     status pipeline::delete_command_buffer(const std::string_view& name) const
     {
-        if (backend == nullptr) return status::NOT_INITIALIZED;
+        if (backend == nullptr) return { status_type::NOT_INITIALIZED, "No pipeline backend" };
         return backend->delete_command_buffer(name);
     }
 
     status pipeline::delete_object(const std::string_view& name) const
     {
-        if (backend == nullptr) return status::NOT_INITIALIZED;
+        if (backend == nullptr) return { status_type::NOT_INITIALIZED, "No pipeline backend" };
         return backend->delete_object(name);
     }
 

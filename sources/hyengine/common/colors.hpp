@@ -4,6 +4,7 @@
 
 #include "glm/glm.hpp"
 #include "../common/common.hpp"
+#include "hyengine/core/hyengine.hpp"
 
 namespace hyengine
 {
@@ -86,10 +87,10 @@ namespace hyengine
         return byte_r << 24u | (byte_g << 16u) | (byte_b << 8u) | byte_a;
     }
 
-    ///Converts the bits of a random u64 into a color
+    ///Converts the bits of a random u32 into a color
     [[nodiscard]] inline glm::vec4 random_color()
     {
-        return bits_to_color(rand());
+        return bits_to_color(random());
     }
 
     ///Returns the value of a named color constant by name

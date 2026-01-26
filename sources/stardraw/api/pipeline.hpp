@@ -34,19 +34,28 @@ namespace stardraw
         [[nodiscard]] signal_status wait_signal(const std::string_view& name, const uint64_t timeout_nanos) const;
 
         template <typename... command_types>
-        [[nodiscard]] status create_command_buffer_from_commands(const std::string_view& name, const command_types&... commands)
+        [[nodiscard]] status execute_commands(const command_types&... commands)
         {
             command_list_builder builder;
             (builder.add(std::forward<const command_types&...>(commands)), ...);
+            command_list_ptr list = builder.finish();
+            return execute_temp_command_buffer(std::move(list));
+        }
+
+        template <typename... command_types>
+        [[nodiscard]] status emplace_command_buffer(const std::string_view& name, const command_types&... commands)
+        {
+            command_list_builder builder;
+            (builder.add(std::forward<const command_types&>(commands)), ...);
             command_list_ptr list = builder.finish();
             return create_command_buffer(name, std::move(list));
         }
 
         template <typename... descriptor_types>
-        [[nodiscard]] status create_objects_from_descriptors(const descriptor_types... descriptors)
+        [[nodiscard]] status emplace_objects(const descriptor_types&... descriptors)
         {
             descriptor_list_builder builder;
-            (builder.add(std::forward<descriptor_types...>(descriptors)), ...);
+            (builder.add(std::forward<const descriptor_types&>(descriptors)), ...);
             descriptor_list_ptr list = builder.finish();
             return create_objects(std::move(list));
         }

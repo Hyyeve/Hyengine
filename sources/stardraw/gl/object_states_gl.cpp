@@ -1,85 +1,45 @@
 #include "object_states_gl.hpp"
 
+#include <format>
+
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
 
 namespace stardraw
 {
-    gl_buffer_state::gl_buffer_state(buffer_descriptor* desc) : descriptor(desc)
+    gl_buffer_state::gl_buffer_state(const buffer_descriptor& desc)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Create buffer object");
 
-        if (descriptor->buff_type != buffer_type::STREAMING && desc->buff_type != buffer_type::PERSISTANT)
-        {
-            descriptor = nullptr;
-            return;
-        }
-
-        is_streaming_buffer = descriptor->buff_type == buffer_type::STREAMING;
-
-        if (is_streaming_buffer)
-        {
-            slice_size = descriptor->size;
-            main_buffer_size = slice_size * buffer_slices.size();
-            current_slice_index = 0;
-
-            GLsizeiptr slice_offset = 0;
-            for (slice& slice : buffer_slices)
-            {
-                slice.start_address = slice_offset;
-                slice_offset += slice_size;
-            }
-        }
-        else
-        {
-            main_buffer_size = descriptor->size;
-            //Slices will be setup by staging buffer allocation later
-        }
+        buffer_name = desc.identifier().name;
 
         glCreateBuffers(1, &main_buffer_id);
+        if (main_buffer_id == 0) return;
 
-        if (main_buffer_id == 0)
-        {
-            descriptor = nullptr;
-            return;
-        }
+        const GLbitfield flags = (desc.hint == buffer_memory_storage::SYSRAM) ? GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT | GL_MAP_WRITE_BIT | GL_CLIENT_STORAGE_BIT : 0;
 
-        constexpr GLbitfield mapping_flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
-        glNamedBufferStorage(main_buffer_id, main_buffer_size, nullptr, is_streaming_buffer ? mapping_flags : 0);
+        main_buffer_size = desc.size;
+        glNamedBufferStorage(main_buffer_id, main_buffer_size, nullptr, flags);
     }
 
     gl_buffer_state::~gl_buffer_state()
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Delete buffer object");
-        if (is_streaming_buffer)
+
+        if (staging_buff_pointer != nullptr)
         {
-            if (write_pointer != nullptr)
-            {
-                glUnmapNamedBuffer(main_buffer_id);
-                write_pointer = nullptr;
-            }
-
-            glDeleteBuffers(1, &main_buffer_id);
-        }
-        else
-        {
-            if (write_pointer != nullptr)
-            {
-                glUnmapNamedBuffer(staging_buffer_id);
-                write_pointer = nullptr;
-            }
-
-            if (staging_buffer_id != 0)
-            {
-                glDeleteBuffers(1, &staging_buffer_id);
-            }
-
-            glDeleteBuffers(1, &main_buffer_id);
+            glUnmapNamedBuffer(staging_buffer_id);
+            staging_buff_pointer = nullptr;
         }
 
-        delete descriptor;
+        if (staging_buffer_id != 0)
+        {
+            glDeleteBuffers(1, &staging_buffer_id);
+        }
+
+        glDeleteBuffers(1, &main_buffer_id);
     }
 
     descriptor_type gl_buffer_state::object_type() const
@@ -89,11 +49,7 @@ namespace stardraw
 
     bool gl_buffer_state::is_valid() const
     {
-        const bool descriptor_ok = descriptor != nullptr;
-        const bool buffers_ok = main_buffer_id != 0 && (is_streaming_buffer ? true : staging_buffer_id != 0);
-        const bool mapping_ok = write_pointer != nullptr;
-
-        return descriptor_ok && buffers_ok && mapping_ok;
+        return main_buffer_id != 0;
     }
 
     status gl_buffer_state::bind_to(const GLenum target) const
@@ -101,119 +57,136 @@ namespace stardraw
         ZoneScoped;
         TracyGpuZone("[Stardraw] Bind buffer");
         glBindBuffer(target, main_buffer_id);
-        return status::SUCCESS;
+        return status_type::SUCCESS;
     }
 
     status gl_buffer_state::bind_to_slot(const GLenum target, const GLuint slot) const
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Bind buffer (slot binding)");
-        glBindBufferRange(target, slot, main_buffer_id, get_start_offset(), slice_size);
-        return status::SUCCESS;
+        glBindBufferRange(target, slot, main_buffer_id, 0, main_buffer_size);
+        return status_type::SUCCESS;
     }
 
-    status gl_buffer_state::bind_to_slot(const GLenum target, const GLuint slot, const GLintptr offset, const GLsizeiptr bytes) const
+    status gl_buffer_state::bind_to_slot(const GLenum target, const GLuint slot, const GLintptr address, const GLsizeiptr bytes) const
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Bind buffer (slot binding)");
-        if (offset + bytes > slice_size) return status::RANGE_OVERFLOW;
-        glBindBufferRange(target, slot, main_buffer_id, get_start_offset() + offset, bytes);
-        return status::SUCCESS;
+        if (!is_in_buffer_range(address, bytes)) return  {status_type::RANGE_OVERFLOW, std::format("Requested bind range is out of range in buffer '{0}'", buffer_name)};
+        glBindBufferRange(target, slot, main_buffer_id, address, bytes);
+        return status_type::SUCCESS;
     }
 
-    status gl_buffer_state::sync_buffer()
+    status gl_buffer_state::upload_data_direct(const GLintptr address, const void* const data, const GLsizeiptr bytes)
     {
         ZoneScoped;
-        TracyGpuZone("[Stardraw] Sync buffer for upload");
+        TracyGpuZone("[Stardraw] Direct buffer upload");
+        if (!is_in_buffer_range(address, bytes)) return  {status_type::RANGE_OVERFLOW, std::format("Requested upload range is out of range in buffer '{0}'", buffer_name)};
 
-        //Place new sync point
-        GLsync& new_sync = buffer_slices[current_slice_index].fence;
-        if (new_sync != nullptr) { glDeleteSync(new_sync); }
-        new_sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        if (main_buff_pointer == nullptr)
+        {
+            const status map_status = map_main_buffer();
+            if (is_error_status(map_status)) return map_status;
+        }
 
-        //Move to next slice
-        current_slice_index = (current_slice_index + 1) % buffer_slices.size();
-        current_staging_buff_address = 0;
-
-        //Wait for slice to become available
-        const GLsync& wait_sync = buffer_slices[current_slice_index].fence;
-        if (wait_sync == nullptr) return status::SUCCESS;
-        const GLenum wait_return = glClientWaitSync(wait_sync, 0, GL_TIMEOUT_IGNORED);
-        if (wait_return == GL_ALREADY_SIGNALED || wait_return == GL_CONDITION_SATISFIED) return status::SUCCESS;
-        return status::TIMEOUT;
-    }
-
-    status gl_buffer_state::upload_data(const GLintptr address, const void* const data, const GLintptr bytes)
-    {
-        if (is_streaming_buffer) return upload_data_streamed(address, data, bytes);
-        return upload_data_staged(address, data, bytes);
-    }
-
-    status gl_buffer_state::copy_data(const GLuint source_buffer_id, const GLintptr read_offset, const GLintptr write_offset, const GLintptr bytes) const
-    {
-        ZoneScoped;
-        TracyGpuZone("[Stardraw] Buffer data transfer");
-
-        if (!is_in_buffer_range(write_offset, bytes)) return status::RANGE_OVERFLOW;
-        glCopyNamedBufferSubData(source_buffer_id, main_buffer_id, read_offset, get_start_offset() + write_offset, bytes);
-        return status::SUCCESS;
-    }
-
-    GLintptr gl_buffer_state::get_start_offset() const
-    {
-        if (is_streaming_buffer) return buffer_slices[current_slice_index].start_address;
-        return 0;
-    }
-
-    GLsizeiptr gl_buffer_state::get_usable_size() const
-    {
-        return is_streaming_buffer ? slice_size : main_buffer_size;
-    }
-
-    bool gl_buffer_state::is_in_buffer_range(const GLintptr address, const GLsizeiptr size) const
-    {
-        return address + size <= get_usable_size();
-    }
-
-    GLuint gl_buffer_state::transfer_source_gl_id() const
-    {
-        return main_buffer_id;
-    }
-
-    status gl_buffer_state::upload_data_streamed(const GLintptr address, const void* const data, const GLsizeiptr bytes) const
-    {
-        ZoneScoped;
-        TracyGpuZone("[Stardraw] Streaming buffer upload")
-        if (!is_in_buffer_range(address, bytes)) return status::RANGE_OVERFLOW;
         const GLbyte* source_pointer = static_cast<const GLbyte*>(data);
-        GLbyte* dest_pointer = static_cast<GLbyte*>(write_pointer) + get_start_offset();
+        GLbyte* dest_pointer = static_cast<GLbyte*>(main_buff_pointer);
         memcpy(dest_pointer + address, source_pointer, bytes);
-        return status::SUCCESS;
+        return status_type::SUCCESS;
     }
 
     status gl_buffer_state::upload_data_staged(const GLintptr address, const void* const data, const GLintptr bytes)
     {
         ZoneScoped;
-        TracyGpuZone("[Stardraw] Persistant buffer upload")
-        const GLsizeiptr upload_offset = current_staging_buff_address;
-        current_staging_buff_address += bytes;
+        TracyGpuZone("[Stardraw] Staged buffer upload");
+        if (!is_in_buffer_range(address, bytes)) return  {status_type::RANGE_OVERFLOW, std::format("Requested upload range is out of range in buffer '{0}'", buffer_name)};
 
-        if (current_staging_buff_address > slice_size || staging_buffer_id == 0)
+        update_staging_buffer_space(); //Clean up any free blocks ahead of us
+
+        if (bytes > remaining_staging_buffer_space)
         {
-            const status realloc_status = prepare_staging_buffer(current_staging_buff_address * 2);
-            if (realloc_status != status::SUCCESS)
-            {
-                current_staging_buff_address -= bytes;
-                return realloc_status;
-            }
+            //Not enough space - try wrapping to the start of the buffer and cleaning up more blocks
             current_staging_buff_address = 0;
+            remaining_staging_buffer_space = 0;
+            update_staging_buffer_space();
+
+            if (bytes > remaining_staging_buffer_space)
+            {
+                //Still not enough - try and create new staging buffer.
+                const status prepared = prepare_staging_buffer(std::min(bytes * 3, main_buffer_size));
+                if (is_error_status(prepared)) return prepared;
+            }
         }
 
-        GLbyte* upload_buffer_pointer = static_cast<GLbyte*>(write_pointer) + get_start_offset();
+        GLbyte* upload_buffer_pointer = static_cast<GLbyte*>(staging_buff_pointer);
         const GLbyte* source_pointer = static_cast<const GLbyte*>(data);
-        memcpy(upload_buffer_pointer + upload_offset, source_pointer, bytes);
+        memcpy(upload_buffer_pointer + current_staging_buff_address, source_pointer, bytes);
 
-        return copy_data(staging_buffer_id, get_start_offset() + upload_offset, address, bytes);
+        const status copy_status = copy_data(staging_buffer_id, current_staging_buff_address, address, bytes);
+
+        upload_chunks.emplace(current_staging_buff_address, bytes, glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0));
+        current_staging_buff_address += bytes;
+        remaining_staging_buffer_space -= bytes;
+
+        return copy_status;
+    }
+
+    status gl_buffer_state::upload_data_temp_copy(const GLintptr address, const void* const data, const GLintptr bytes) const
+    {
+        ZoneScoped;
+        TracyGpuZone("[Stardraw] Temp copy buffer upload");
+        if (!is_in_buffer_range(address, bytes)) return  {status_type::RANGE_OVERFLOW, std::format("Requested upload range is out of range in buffer '{0}'", buffer_name)};
+
+        GLuint temp_buffer;
+        glCreateBuffers(1, &temp_buffer);
+        if (temp_buffer == 0) return  { status_type::BACKEND_FAILURE, std::format("Unable to create temporary upload destination for buffer '{0}'", buffer_name) };
+
+        glNamedBufferStorage(temp_buffer, bytes, nullptr, GL_MAP_WRITE_BIT);
+        GLbyte* pointer = static_cast<GLbyte*>(glMapNamedBuffer(temp_buffer, GL_WRITE_ONLY));
+        if (pointer == nullptr)
+        {
+            glDeleteBuffers(1, &temp_buffer);
+            return { status_type::BACKEND_FAILURE, std::format("Unable to write to temporary upload destination for buffer '{0}'", buffer_name) };
+        }
+
+        memcpy(pointer, data, bytes);
+
+        const bool unmap_success = glUnmapNamedBuffer(temp_buffer);
+        if (!unmap_success)
+        {
+            glDeleteBuffers(1, &temp_buffer);
+            return { status_type::BACKEND_FAILURE, std::format("Unable to write to temporary upload destination for buffer '{0}'", buffer_name) };
+        }
+
+        const status copy_status = copy_data(temp_buffer, 0, address, bytes);
+        glDeleteBuffers(1, &temp_buffer);
+
+        return copy_status;
+    }
+
+    status gl_buffer_state::copy_data(const GLuint source_buffer_id, const GLintptr read_address, const GLintptr write_address, const GLintptr bytes) const
+    {
+        ZoneScoped;
+        TracyGpuZone("[Stardraw] Buffer data transfer");
+
+        if (!is_in_buffer_range(read_address, bytes)) return  {status_type::RANGE_OVERFLOW, std::format("Requested upload range is out of range in buffer '{0}'", buffer_name)};
+        glCopyNamedBufferSubData(source_buffer_id, main_buffer_id, read_address, write_address, bytes);
+        return status_type::SUCCESS;
+    }
+
+    GLsizeiptr gl_buffer_state::get_size() const
+    {
+        return main_buffer_size;
+    }
+
+    bool gl_buffer_state::is_in_buffer_range(const GLintptr address, const GLsizeiptr size) const
+    {
+        return address + size <= get_size();
+    }
+
+    GLuint gl_buffer_state::gl_id() const
+    {
+        return main_buffer_id;
     }
 
     status gl_buffer_state::prepare_staging_buffer(const GLsizeiptr size)
@@ -221,40 +194,124 @@ namespace stardraw
         ZoneScoped;
         TracyGpuZone("[Stardraw] Allocate staging buffer");
 
-        //Deallocate previous buffer if one exists
+        if (staging_buff_pointer != nullptr)
         {
-            if (write_pointer != nullptr)
-            {
-                glUnmapNamedBuffer(staging_buffer_id);
-                write_pointer = nullptr;
-            }
-
-            if (staging_buffer_id != 0)
-            {
-                glDeleteBuffers(1, &staging_buffer_id);
-            }
+            glUnmapNamedBuffer(staging_buffer_id);
+            staging_buff_pointer = nullptr;
         }
 
-        slice_size = size;
-        const GLsizeiptr total_size = size * buffer_slices.size();
-        current_slice_index = 0;
-
-        GLsizeiptr slice_offset = 0;
-        for (slice& slice : buffer_slices)
+        if (staging_buffer_id != 0)
         {
-            slice.start_address = slice_offset;
-            slice_offset += slice_size;
+            glDeleteBuffers(1, &staging_buffer_id);
         }
+
+        while (!upload_chunks.empty())
+        {
+            const upload_chunk& chunk = upload_chunks.front();
+            upload_chunks.pop();
+            glDeleteSync(chunk.fence);
+        }
+
+        staging_buffer_size = size;
+        current_staging_buff_address = 0;
+        remaining_staging_buffer_space = size;
 
         glCreateBuffers(1, &staging_buffer_id);
-        if (staging_buffer_id == 0) return status::BACKEND_FAILURE;
+        if (staging_buffer_id == 0) return  { status_type::BACKEND_FAILURE, std::format("Unable to create staging buffer for buffer '{0}'", buffer_name)};
 
         constexpr GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
-        glNamedBufferStorage(staging_buffer_id, total_size, nullptr, flags);
+        glNamedBufferStorage(staging_buffer_id, staging_buffer_size, nullptr, flags);
 
-        write_pointer = glMapNamedBufferRange(staging_buffer_id, 0, total_size, flags);
-        if (write_pointer == nullptr) return status::BACKEND_FAILURE;
+        staging_buff_pointer = glMapNamedBufferRange(staging_buffer_id, 0, staging_buffer_size, flags);
+        if (staging_buffer_id == 0) return { status_type::BACKEND_FAILURE, std::format("Unable to create staging buffer for buffer '{0}'", buffer_name)};
 
-        return status::SUCCESS;
+        return status_type::SUCCESS;
+    }
+
+    void gl_buffer_state::update_staging_buffer_space()
+    {
+        ZoneScoped;
+        TracyGpuZone("[Stardraw] Staging buffer free space check");
+
+        while (true)
+        {
+            if (upload_chunks.empty()) break;
+
+            const upload_chunk& previous_chunk = upload_chunks.front();
+            if (previous_chunk.address < current_staging_buff_address) break;
+
+            const GLenum status = glClientWaitSync(previous_chunk.fence, 0, 0);
+            if (status == GL_ALREADY_SIGNALED || status == GL_CONDITION_SATISFIED)
+            {
+                upload_chunks.pop();
+                remaining_staging_buffer_space += previous_chunk.size;
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    status gl_buffer_state::map_main_buffer()
+    {
+        if (main_buff_pointer != nullptr) return status_type::NOTHING_TO_DO;
+        constexpr GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+        main_buff_pointer = glMapNamedBufferRange(main_buffer_id, 0, main_buffer_size, flags);
+        if (main_buff_pointer == nullptr) return  { status_type::BACKEND_FAILURE, std::format("Unable to write directly to buffer '{0}' (you probably need to create it with the SYSRAM memory hint?)", buffer_name) };
+        return status_type::SUCCESS;
+    }
+
+    gl_vertex_specification_state::gl_vertex_specification_state()
+    {
+        ZoneScoped;
+        TracyGpuZone("[Stardraw] Create vertex specification");
+        glCreateVertexArrays(1, &vertex_array_id);
+    }
+
+    gl_vertex_specification_state::~gl_vertex_specification_state()
+    {
+        glDeleteVertexArrays(1, &vertex_array_id);
+    }
+
+    bool gl_vertex_specification_state::is_valid() const
+    {
+        ZoneScoped;
+        if (vertex_array_id == 0) return false;
+        for (const GLuint buffer : vertex_buffers)
+        {
+            if (!glIsBuffer(buffer)) return false;
+        }
+
+        if (index_buffer != 0 && !glIsBuffer(index_buffer)) return false;
+
+        return true;
+    }
+
+    status gl_vertex_specification_state::bind() const
+    {
+        ZoneScoped;
+        TracyGpuZone("[Stardraw] Bind vertex specification");
+        glBindVertexArray(vertex_array_id);
+        return status_type::SUCCESS;
+    }
+
+    status gl_vertex_specification_state::attach_vertex_buffer(const GLuint slot, const GLuint id, const GLintptr offset, const GLsizei stride)
+    {
+        ZoneScoped;
+        TracyGpuZone("[Stardraw] Attach vertex buffer to vertex specification");
+        glVertexArrayVertexBuffer(vertex_array_id, slot, id, offset, stride);
+        vertex_buffers.push_back(id);
+        return status_type::SUCCESS;
+
+    }
+
+    status gl_vertex_specification_state::attach_index_buffer(const GLuint index_buffer_id)
+    {
+        ZoneScoped;
+        TracyGpuZone("[Stardraw] Attach index buffer to vertex specification");
+        glVertexArrayElementBuffer(vertex_array_id, index_buffer_id);
+        index_buffer = index_buffer_id;
+        return status_type::SUCCESS;
     }
 }

@@ -7,6 +7,7 @@
 
 #include "logger.hpp"
 #include "../input/input.hpp"
+#include "pcg/pcg_random.hpp"
 #include "tracy/TracyOpenGL.hpp"
 
 
@@ -56,6 +57,18 @@ namespace hyengine
     f64 time()
     {
         return glfwGetTime();
+    }
+
+    pcg::pcg64 global_rand;
+
+    void seed_random(u64 seed)
+    {
+        global_rand.seed(seed);
+    }
+
+    u64 random()
+    {
+        return global_rand();
     }
 
     void launch_frame_loop(const frame_loop::config& config)

@@ -13,7 +13,7 @@ namespace stardraw
 
     struct buffer_descriptor final : descriptor
     {
-        explicit buffer_descriptor(const std::string_view& name, const uint64_t size, const buffer_memory_storage hint = buffer_memory_storage::VRAM) : descriptor(name), size(size), hint(hint) {}
+        explicit buffer_descriptor(const std::string_view& name, const uint64_t size, const buffer_memory_storage memory = buffer_memory_storage::VRAM) : descriptor(name), size(size), memory(memory) {}
 
         [[nodiscard]] descriptor_type type() const override
         {
@@ -21,7 +21,7 @@ namespace stardraw
         }
 
         uint64_t size;
-        buffer_memory_storage hint;
+        buffer_memory_storage memory;
     };
 
     enum vertex_element_type : uint8_t
@@ -53,34 +53,24 @@ namespace stardraw
         std::string buffer_source;
     };
 
-    struct vertex_format_specification
+    struct vertex_elements_specification
     {
-        constexpr vertex_format_specification(const std::initializer_list<vertex_element> elements) : elements(elements) {}
-        explicit constexpr vertex_format_specification(const std::vector<vertex_element>& elements) : elements(elements) {}
+        constexpr vertex_elements_specification(const std::initializer_list<vertex_element> elements) : elements(elements) {}
+        explicit constexpr vertex_elements_specification(const std::vector<vertex_element>& elements) : elements(elements) {}
 
         std::vector<vertex_element> elements;
     };
 
-    struct vertex_buffers_specification
-    {
-        constexpr vertex_buffers_specification(const std::initializer_list<std::string> vertex_sources, const std::string_view& index_source) : index_source(index_source), vertex_sources(vertex_sources) {}
-        constexpr vertex_buffers_specification(const std::initializer_list<std::string> vertex_sources) : index_source(""), vertex_sources(vertex_sources) {}
-        constexpr vertex_buffers_specification(const std::vector<std::string>& vertex_sources, const std::string_view& index_source) : index_source(index_source), vertex_sources(vertex_sources) {}
-
-        std::string index_source;
-        std::vector<std::string> vertex_sources;
-    };
-
     struct vertex_specification_descriptor final : descriptor
     {
-        constexpr vertex_specification_descriptor(const std::string_view& name, const vertex_buffers_specification& buffers, const vertex_format_specification& elements) : descriptor(name), buffers(buffers), format(elements) {}
+        constexpr vertex_specification_descriptor(const std::string_view& name, const vertex_elements_specification& elements, const std::string_view& index_buffer_source = "") : descriptor(name), format(elements), index_buffer_source(index_buffer_source) {}
 
         [[nodiscard]] descriptor_type type() const override
         {
             return descriptor_type::VERTEX_SPECIFICATION;
         }
 
-        vertex_buffers_specification buffers;
-        vertex_format_specification format;
+        vertex_elements_specification format;
+        std::string index_buffer_source;
     };
 }

@@ -3,16 +3,16 @@
 #include <queue>
 #include <unordered_map>
 
-#include "types_gl.hpp"
+#include "types.hpp"
 #include "glad/glad.h"
 
-namespace stardraw
+namespace stardraw::gl45
 {
-    class gl_buffer_state final : public gl_object_state
+    class buffer_state final : public object_state
     {
     public:
-        explicit gl_buffer_state(const buffer_descriptor& desc);
-        ~gl_buffer_state() override;
+        explicit buffer_state(const buffer_descriptor& desc);
+        ~buffer_state() override;
 
         [[nodiscard]] descriptor_type object_type() const override;
 
@@ -61,12 +61,12 @@ namespace stardraw
         std::string buffer_name;
     };
 
-    class gl_vertex_specification_state final : public gl_object_state
+    class vertex_specification_state final : public object_state
     {
     public:
 
-        explicit gl_vertex_specification_state();
-        ~gl_vertex_specification_state() override;
+        explicit vertex_specification_state();
+        ~vertex_specification_state() override;
 
         [[nodiscard]] bool is_valid() const;
 

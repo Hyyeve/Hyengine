@@ -5,10 +5,10 @@ target_sources(stardraw PRIVATE
         api/api_backend.cpp
         api/pipeline.cpp
 
-        gl/commands_impl_gl.cpp
-        gl/backend_impl_gl.hpp gl/backend_impl_gl.cpp
-        gl/object_states_gl.hpp gl/object_states_gl.cpp
-        gl/types_gl.hpp
+        gl45/commands_impl.cpp
+        gl45/backend_impl.hpp gl45/backend_impl.cpp
+        gl45/object_states.hpp gl45/object_states.cpp
+        gl45/types.hpp
 )
 
 target_sources(stardraw PUBLIC FILE_SET HEADERS BASE_DIRS ${H_SOURCES_ROOT} FILES

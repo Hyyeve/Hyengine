@@ -1,6 +1,6 @@
-#include "backend_impl_gl.hpp"
+#include "backend_impl.hpp"
 
-namespace stardraw
+namespace stardraw::gl45
 {
     std::tuple<GLenum, GLuint, bool, bool> gl_vertex_element_data_type(const vertex_element_type& type)
     {
@@ -58,7 +58,7 @@ namespace stardraw
         return {-1, -1, false, false};
     }
 
-    [[nodiscard]] status backend_impl_gl::execute_command(const command* cmd)
+    [[nodiscard]] status backend_impl::execute_command(const command* cmd)
     {
         if (cmd == nullptr)
         {
@@ -92,7 +92,7 @@ namespace stardraw
         return{ status_type::UNSUPPORTED, "Unsupported command" };
     }
 
-    [[nodiscard]] status backend_impl_gl::execute_command_buffer(const std::string_view& name)
+    [[nodiscard]] status backend_impl::execute_command_buffer(const std::string_view& name)
     {
         //Opengl doesn't have any persistant command buffers, so we just execute it like a temporary one without consuming it.
         if (!command_lists.contains(std::string(name))) return status_type::UNKNOWN_NAME;
@@ -107,7 +107,7 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    [[nodiscard]] status backend_impl_gl::execute_temp_command_buffer(const command_list_ptr commands)
+    [[nodiscard]] status backend_impl::execute_temp_command_buffer(const command_list_ptr commands)
     {
         if (commands.get() == nullptr)
         {
@@ -123,14 +123,14 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    [[nodiscard]] status backend_impl_gl::create_command_buffer(const std::string_view& name, command_list_ptr commands)
+    [[nodiscard]] status backend_impl::create_command_buffer(const std::string_view& name, command_list_ptr commands)
     {
         if (command_lists.contains(std::string(name))) return  { status_type::DUPLICATE_NAME, std::format("A command buffer named '{0}' already exists", name) };
         command_lists[std::string(name)] = std::move(commands);
         return status_type::SUCCESS;
     }
 
-    [[nodiscard]] status backend_impl_gl::delete_command_buffer(const std::string_view& name)
+    [[nodiscard]] status backend_impl::delete_command_buffer(const std::string_view& name)
     {
         if (!command_lists.contains(std::string(name))) return status_type::NOTHING_TO_DO;
         command_list_ptr cmd_list = std::move(command_lists[std::string(name)]);
@@ -139,18 +139,7 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    [[nodiscard]] status backend_impl_gl::create_object(const descriptor* descriptor)
-    {
-        const descriptor_type type = descriptor->type();
-        switch (type)
-        {
-            case descriptor_type::BUFFER: return create_buffer_state(dynamic_cast<const buffer_descriptor*>(descriptor));
-            case descriptor_type::VERTEX_SPECIFICATION: return create_vertex_specification_state(dynamic_cast<const vertex_specification_descriptor*>(descriptor));
-        }
-        return status_type::UNIMPLEMENTED;
-    }
-
-    [[nodiscard]] status backend_impl_gl::create_objects(const descriptor_list_ptr descriptors)
+    [[nodiscard]] status backend_impl::create_objects(const descriptor_list_ptr descriptors)
     {
         if (descriptors.get() == nullptr)
         {
@@ -166,31 +155,31 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    [[nodiscard]] status backend_impl_gl::delete_object(const std::string_view& name)
+    [[nodiscard]] status backend_impl::delete_object(const std::string_view& name)
     {
         const object_identifier identifier = object_identifier(name);
         if (!objects.contains(identifier.hash)) return status_type::NOTHING_TO_DO;
 
-        const gl_object_state* state = objects[identifier.hash];
+        const object_state* state = objects[identifier.hash];
         objects.erase(identifier.hash);
         delete state;
 
         return status_type::SUCCESS;
     }
 
-    [[nodiscard]] signal_status backend_impl_gl::check_signal(const std::string_view& name)
+    [[nodiscard]] signal_status backend_impl::check_signal(const std::string_view& name)
     {
         return wait_signal(name, 0);
     }
 
-    [[nodiscard]] signal_status backend_impl_gl::wait_signal(const std::string_view& name, const uint64_t timeout)
+    [[nodiscard]] signal_status backend_impl::wait_signal(const std::string_view& name, const uint64_t timeout)
     {
         if (!signals.contains(std::string(name)))
         {
             return signal_status::UNKNOWN_SIGNAL;
         }
 
-        const gl_signal_state& state = signals[std::string(name)];
+        const signal_state& state = signals[std::string(name)];
         const GLenum status = glClientWaitSync(state.sync_point, 0, timeout);
         switch (status)
         {
@@ -201,50 +190,65 @@ namespace stardraw
         }
     }
 
-    [[nodiscard]] status backend_impl_gl::bind_buffer(const object_identifier& source, const GLenum target)
+    [[nodiscard]] status backend_impl::bind_buffer(const object_identifier& source, const GLenum target)
     {
-        const gl_buffer_state* buffer_state = find_gl_buffer_state(source);
+        const buffer_state* buffer_state = find_gl_buffer_state(source);
         if (buffer_state == nullptr) return { status_type::UNKNOWN_SOURCE, std::format("No buffer with name '{0}' exists in pipeline", source.name) };
         return buffer_state->bind_to(target);
     }
 
-    [[nodiscard]] status backend_impl_gl::create_buffer_state(const buffer_descriptor* descriptor)
+    [[nodiscard]] status backend_impl::create_object(const descriptor* descriptor)
     {
-        gl_buffer_state* buffer_state = new gl_buffer_state(*descriptor);
-        if (!buffer_state->is_valid())
+        const descriptor_type type = descriptor->type();
+        switch (type)
         {
-            delete buffer_state;
+            case descriptor_type::BUFFER: return create_buffer_state(dynamic_cast<const buffer_descriptor*>(descriptor));
+            case descriptor_type::VERTEX_SPECIFICATION: return create_vertex_specification_state(dynamic_cast<const vertex_specification_descriptor*>(descriptor));
+        }
+        return status_type::UNIMPLEMENTED;
+    }
+
+    [[nodiscard]] status backend_impl::create_buffer_state(const buffer_descriptor* descriptor)
+    {
+        buffer_state* buff_state = new buffer_state(*descriptor);
+        if (!buff_state->is_valid())
+        {
+            delete buff_state;
             return { status_type::BACKEND_FAILURE, std::format("Attempting to create buffer '{0}' resulted in an invalid buffer", descriptor->identifier().name) };
         }
 
-        objects[descriptor->identifier().hash] = buffer_state;
+        objects[descriptor->identifier().hash] = buff_state;
 
         return status_type::SUCCESS;
     }
 
-    status backend_impl_gl::create_vertex_specification_state(const vertex_specification_descriptor* descriptor)
+    status backend_impl::create_vertex_specification_state(const vertex_specification_descriptor* descriptor)
     {
-        gl_vertex_specification_state* vertex_specification_state = new gl_vertex_specification_state();
-        if (vertex_specification_state->vertex_array_id == 0)
+        vertex_specification_state* vertex_spec = new vertex_specification_state();
+        if (vertex_spec->vertex_array_id == 0)
         {
-            delete vertex_specification_state;
+            delete vertex_spec;
             return { status_type::BACKEND_FAILURE, std::format("Attempting to create vertex specification '{0}' resulted in an invalid buffer", descriptor->identifier().name) };
         }
 
-        const vertex_buffers_specification& buffers = descriptor->buffers;
-        const vertex_format_specification& format = descriptor->format;
+        const vertex_elements_specification& format = descriptor->format;
         std::vector<GLsizeiptr> buffer_strides;
+        std::vector<std::string> buffer_names;
         std::unordered_map<std::string, GLuint> buffer_slots;
-        std::unordered_map<std::string, gl_buffer_state*> buffer_states;
+        std::unordered_map<std::string, buffer_state*> buffer_states;
 
         GLuint buffer_slot = 0;
-        for (std::string buffer_name : buffers.vertex_sources)
+        for (const vertex_element& element : format.elements)
         {
+            const std::string& buffer_name = element.buffer_source;
+            if (buffer_slots.contains(buffer_name)) continue;
             buffer_slots[buffer_name] = buffer_slot;
-            gl_buffer_state* buffer_state = find_gl_buffer_state(object_identifier(buffer_name));
+            buffer_names.push_back(buffer_name);
+
+            buffer_state* buffer_state = find_gl_buffer_state(object_identifier(buffer_name));
             if (buffer_state == nullptr)
             {
-                delete vertex_specification_state;
+                delete vertex_spec;
                 return { status_type::UNKNOWN_SOURCE, std::format("No buffer named '{0}' found while creating vertex specification '{1}'", buffer_name, descriptor->identifier().name)};
             }
             buffer_states[buffer_name] = buffer_state;
@@ -253,7 +257,7 @@ namespace stardraw
 
         buffer_strides.resize(buffer_slot);
 
-        const GLuint vao_id = vertex_specification_state->vertex_array_id;
+        const GLuint vao_id = vertex_spec->vertex_array_id;
 
         for (uint32_t idx = 0; idx < format.elements.size(); idx++)
         {
@@ -282,53 +286,54 @@ namespace stardraw
             offset += vertex_element_size(elem.type);
         }
 
-        for (const std::string& vertex_buffer : buffers.vertex_sources)
+        for (const std::string& vertex_buffer : buffer_names)
         {
-            const gl_buffer_state* buffer_state = buffer_states[vertex_buffer];
-            const status attach_status = vertex_specification_state->attach_vertex_buffer(buffer_slots[vertex_buffer], buffer_state->gl_id(), 0, buffer_strides[buffer_slots[vertex_buffer]]);
+            const buffer_state* buffer_state = buffer_states[vertex_buffer];
+            const status attach_status = vertex_spec->attach_vertex_buffer(buffer_slots[vertex_buffer], buffer_state->gl_id(), 0, buffer_strides[buffer_slots[vertex_buffer]]);
 
             if (is_error_status(attach_status))
             {
-                delete vertex_specification_state;
+                delete vertex_spec;
                 return attach_status;
             }
         }
 
-        if (!buffers.index_source.empty())
+        if (!descriptor->index_buffer_source.empty())
         {
-            const gl_buffer_state* index_buffer_state = find_gl_buffer_state(object_identifier(buffers.index_source));
+            const buffer_state* index_buffer_state = find_gl_buffer_state(object_identifier(descriptor->index_buffer_source));
             if (index_buffer_state == nullptr)
             {
-                delete vertex_specification_state;
-                return { status_type::UNKNOWN_SOURCE, std::format("No buffer named '{0}' found while creating vertex specification '{1}'", buffers.index_source, descriptor->identifier().name)};
+                delete vertex_spec;
+                return { status_type::UNKNOWN_SOURCE, std::format("No buffer named '{0}' found while creating vertex specification '{1}'", descriptor->index_buffer_source, descriptor->identifier().name)};
             }
 
-            const status attach_status = vertex_specification_state->attach_index_buffer(index_buffer_state->gl_id());
+            const status attach_status = vertex_spec->attach_index_buffer(index_buffer_state->gl_id());
 
             if (is_error_status(attach_status))
             {
-                delete vertex_specification_state;
+                delete vertex_spec;
                 return attach_status;
             }
         }
 
-        if (!vertex_specification_state->is_valid())
+        if (!vertex_spec->is_valid())
         {
-            delete vertex_specification_state;
+            delete vertex_spec;
             return { status_type::BACKEND_FAILURE, std::format("Creating vertex specification '{0}' resulted in an invalid object", descriptor->identifier().name)};
         }
 
-        objects[descriptor->identifier().hash] = vertex_specification_state;
+        objects[descriptor->identifier().hash] = vertex_spec;
 
         return status_type::SUCCESS;
     }
 
-    status backend_impl_gl::bind_vertex_specification_state(const object_identifier& source, GLsizeiptr& out_index_buffer_offset)
+    status backend_impl::bind_vertex_specification_state(const object_identifier& source, GLsizeiptr& out_index_buffer_offset, const bool requires_index_buffer = false)
     {
         out_index_buffer_offset = 0;
-        const gl_vertex_specification_state* state = find_gl_vertex_specification_state(source);
+        const vertex_specification_state* state = find_gl_vertex_specification_state(source);
         if (state == nullptr) return { status_type::UNKNOWN_SOURCE, std::format("No vertex specification with name '{0}' exists in pipeline", source.name) };
         if (!state->is_valid()) return { status_type::BROKEN_SOURCE, std::format("Vertex specification object '{0}' is in an invalid state", source.name) };
+        if (requires_index_buffer && state->index_buffer == 0) return { status_type::BROKEN_SOURCE, std::format("Vertex specification '{0}' does not have an index buffer, cannot be used for indexed drawing", source.name)};
         return state->bind();
     }
 }

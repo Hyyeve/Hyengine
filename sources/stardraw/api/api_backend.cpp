@@ -1,5 +1,5 @@
 #include "api_backend.hpp"
-#include "stardraw/gl/backend_impl_gl.hpp"
+#include "stardraw/gl45/backend_impl.hpp"
 
 namespace stardraw
 {
@@ -7,7 +7,7 @@ namespace stardraw
     {
         switch (api)
         {
-            case graphics_api::GL: return new backend_impl_gl();
+            case graphics_api::GL45: return new gl45::backend_impl();
         }
         return nullptr;
     }

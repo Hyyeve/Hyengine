@@ -2,19 +2,19 @@
 #include <string_view>
 #include <unordered_map>
 
-#include "object_states_gl.hpp"
-#include "types_gl.hpp"
+#include "object_states.hpp"
+#include "types.hpp"
 #include "stardraw/api/api_backend.hpp"
 #include "stardraw/api/commands.hpp"
 #include "stardraw/api/types.hpp"
 
-namespace stardraw
+namespace stardraw::gl45
 {
-    class backend_impl_gl final : public api_backend
+    class backend_impl final : public api_backend
     {
     public:
-        backend_impl_gl() = default;
-        ~backend_impl_gl() override = default;
+        backend_impl() = default;
+        ~backend_impl() override = default;
 
         [[nodiscard]] status execute_command(const command* cmd) override;
         [[nodiscard]] status execute_command_buffer(const std::string_view& name) override;
@@ -51,15 +51,15 @@ namespace stardraw
 
         [[nodiscard]] status create_buffer_state(const buffer_descriptor* descriptor);
         [[nodiscard]] status create_vertex_specification_state(const vertex_specification_descriptor* descriptor);
-        [[nodiscard]] status bind_vertex_specification_state(const object_identifier& source, GLsizeiptr& out_index_buffer_offset);
+        [[nodiscard]] status bind_vertex_specification_state(const object_identifier& source, GLsizeiptr& out_index_buffer_offset, bool requires_index_buffer);
 
         template <typename state_type, descriptor_type object_type>
         [[nodiscard]] state_type* find_gl_state(const object_identifier& identifier)
         {
-            static_assert(std::is_base_of_v<gl_object_state, state_type>);
+            static_assert(std::is_base_of_v<object_state, state_type>);
             if (objects.contains(identifier.hash))
             {
-                gl_object_state* identified_state = objects[identifier.hash];
+                object_state* identified_state = objects[identifier.hash];
                 if (identified_state->object_type() == object_type)
                 {
                     return dynamic_cast<state_type*>(identified_state);
@@ -69,18 +69,18 @@ namespace stardraw
             return nullptr;
         }
 
-        [[nodiscard]] inline gl_buffer_state* find_gl_buffer_state(const object_identifier& identifier)
+        [[nodiscard]] inline buffer_state* find_gl_buffer_state(const object_identifier& identifier)
         {
-            return find_gl_state<gl_buffer_state, descriptor_type::BUFFER>(identifier);
+            return find_gl_state<buffer_state, descriptor_type::BUFFER>(identifier);
         }
 
-        [[nodiscard]] inline gl_vertex_specification_state* find_gl_vertex_specification_state(const object_identifier& identifier)
+        [[nodiscard]] inline vertex_specification_state* find_gl_vertex_specification_state(const object_identifier& identifier)
         {
-            return find_gl_state<gl_vertex_specification_state, descriptor_type::VERTEX_SPECIFICATION>(identifier);
+            return find_gl_state<vertex_specification_state, descriptor_type::VERTEX_SPECIFICATION>(identifier);
         }
 
         std::unordered_map<std::string, command_list_ptr> command_lists;
-        std::unordered_map<uint64_t, gl_object_state*> objects;
-        std::unordered_map<std::string, gl_signal_state> signals;
+        std::unordered_map<uint64_t, object_state*> objects;
+        std::unordered_map<std::string, signal_state> signals;
     };
 }

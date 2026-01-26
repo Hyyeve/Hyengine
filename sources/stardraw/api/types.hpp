@@ -10,7 +10,7 @@ namespace stardraw
 {
     enum class graphics_api : uint8_t
     {
-        GL,
+        GL45,
     };
 
     enum class signal_status : uint8_t

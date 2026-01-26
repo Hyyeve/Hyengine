@@ -1,13 +1,13 @@
-#include "object_states_gl.hpp"
+#include "object_states.hpp"
 
 #include <format>
 
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
 
-namespace stardraw
+namespace stardraw::gl45
 {
-    gl_buffer_state::gl_buffer_state(const buffer_descriptor& desc)
+    buffer_state::buffer_state(const buffer_descriptor& desc)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Create buffer object");
@@ -17,13 +17,13 @@ namespace stardraw
         glCreateBuffers(1, &main_buffer_id);
         if (main_buffer_id == 0) return;
 
-        const GLbitfield flags = (desc.hint == buffer_memory_storage::SYSRAM) ? GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT | GL_MAP_WRITE_BIT | GL_CLIENT_STORAGE_BIT : 0;
+        const GLbitfield flags = (desc.memory == buffer_memory_storage::SYSRAM) ? GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT | GL_MAP_WRITE_BIT | GL_CLIENT_STORAGE_BIT : 0;
 
         main_buffer_size = desc.size;
         glNamedBufferStorage(main_buffer_id, main_buffer_size, nullptr, flags);
     }
 
-    gl_buffer_state::~gl_buffer_state()
+    buffer_state::~buffer_state()
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Delete buffer object");
@@ -42,17 +42,17 @@ namespace stardraw
         glDeleteBuffers(1, &main_buffer_id);
     }
 
-    descriptor_type gl_buffer_state::object_type() const
+    descriptor_type buffer_state::object_type() const
     {
         return descriptor_type::BUFFER;
     }
 
-    bool gl_buffer_state::is_valid() const
+    bool buffer_state::is_valid() const
     {
         return main_buffer_id != 0;
     }
 
-    status gl_buffer_state::bind_to(const GLenum target) const
+    status buffer_state::bind_to(const GLenum target) const
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Bind buffer");
@@ -60,7 +60,7 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    status gl_buffer_state::bind_to_slot(const GLenum target, const GLuint slot) const
+    status buffer_state::bind_to_slot(const GLenum target, const GLuint slot) const
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Bind buffer (slot binding)");
@@ -68,7 +68,7 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    status gl_buffer_state::bind_to_slot(const GLenum target, const GLuint slot, const GLintptr address, const GLsizeiptr bytes) const
+    status buffer_state::bind_to_slot(const GLenum target, const GLuint slot, const GLintptr address, const GLsizeiptr bytes) const
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Bind buffer (slot binding)");
@@ -77,7 +77,7 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    status gl_buffer_state::upload_data_direct(const GLintptr address, const void* const data, const GLsizeiptr bytes)
+    status buffer_state::upload_data_direct(const GLintptr address, const void* const data, const GLsizeiptr bytes)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Direct buffer upload");
@@ -95,7 +95,7 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    status gl_buffer_state::upload_data_staged(const GLintptr address, const void* const data, const GLintptr bytes)
+    status buffer_state::upload_data_staged(const GLintptr address, const void* const data, const GLintptr bytes)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Staged buffer upload");
@@ -131,7 +131,7 @@ namespace stardraw
         return copy_status;
     }
 
-    status gl_buffer_state::upload_data_temp_copy(const GLintptr address, const void* const data, const GLintptr bytes) const
+    status buffer_state::upload_data_temp_copy(const GLintptr address, const void* const data, const GLintptr bytes) const
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Temp copy buffer upload");
@@ -164,7 +164,7 @@ namespace stardraw
         return copy_status;
     }
 
-    status gl_buffer_state::copy_data(const GLuint source_buffer_id, const GLintptr read_address, const GLintptr write_address, const GLintptr bytes) const
+    status buffer_state::copy_data(const GLuint source_buffer_id, const GLintptr read_address, const GLintptr write_address, const GLintptr bytes) const
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Buffer data transfer");
@@ -174,22 +174,22 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    GLsizeiptr gl_buffer_state::get_size() const
+    GLsizeiptr buffer_state::get_size() const
     {
         return main_buffer_size;
     }
 
-    bool gl_buffer_state::is_in_buffer_range(const GLintptr address, const GLsizeiptr size) const
+    bool buffer_state::is_in_buffer_range(const GLintptr address, const GLsizeiptr size) const
     {
         return address + size <= get_size();
     }
 
-    GLuint gl_buffer_state::gl_id() const
+    GLuint buffer_state::gl_id() const
     {
         return main_buffer_id;
     }
 
-    status gl_buffer_state::prepare_staging_buffer(const GLsizeiptr size)
+    status buffer_state::prepare_staging_buffer(const GLsizeiptr size)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Allocate staging buffer");
@@ -228,7 +228,7 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    void gl_buffer_state::update_staging_buffer_space()
+    void buffer_state::update_staging_buffer_space()
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Staging buffer free space check");
@@ -253,7 +253,7 @@ namespace stardraw
         }
     }
 
-    status gl_buffer_state::map_main_buffer()
+    status buffer_state::map_main_buffer()
     {
         if (main_buff_pointer != nullptr) return status_type::NOTHING_TO_DO;
         constexpr GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
@@ -262,19 +262,19 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    gl_vertex_specification_state::gl_vertex_specification_state()
+    vertex_specification_state::vertex_specification_state()
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Create vertex specification");
         glCreateVertexArrays(1, &vertex_array_id);
     }
 
-    gl_vertex_specification_state::~gl_vertex_specification_state()
+    vertex_specification_state::~vertex_specification_state()
     {
         glDeleteVertexArrays(1, &vertex_array_id);
     }
 
-    bool gl_vertex_specification_state::is_valid() const
+    bool vertex_specification_state::is_valid() const
     {
         ZoneScoped;
         if (vertex_array_id == 0) return false;
@@ -288,7 +288,7 @@ namespace stardraw
         return true;
     }
 
-    status gl_vertex_specification_state::bind() const
+    status vertex_specification_state::bind() const
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Bind vertex specification");
@@ -296,7 +296,7 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    status gl_vertex_specification_state::attach_vertex_buffer(const GLuint slot, const GLuint id, const GLintptr offset, const GLsizei stride)
+    status vertex_specification_state::attach_vertex_buffer(const GLuint slot, const GLuint id, const GLintptr offset, const GLsizei stride)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Attach vertex buffer to vertex specification");
@@ -306,7 +306,7 @@ namespace stardraw
 
     }
 
-    status gl_vertex_specification_state::attach_index_buffer(const GLuint index_buffer_id)
+    status vertex_specification_state::attach_index_buffer(const GLuint index_buffer_id)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Attach index buffer to vertex specification");

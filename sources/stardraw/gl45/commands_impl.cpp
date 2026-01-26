@@ -1,10 +1,10 @@
 #include <glad/glad.h>
 
-#include "backend_impl_gl.hpp"
+#include "backend_impl.hpp"
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
 
-namespace stardraw
+namespace stardraw::gl45
 {
     inline GLenum gl_draw_mode(const draw_mode mode)
     {
@@ -112,26 +112,26 @@ namespace stardraw
         return -1;
     }
 
-    status backend_impl_gl::execute_draw_cmd(const draw_command* cmd)
+    status backend_impl::execute_draw_cmd(const draw_command* cmd)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute draw cmd");
 
         GLsizeiptr index_offset_unused;
-        const status bind_result = bind_vertex_specification_state(cmd->vertex_specification_source, index_offset_unused);
+        const status bind_result = bind_vertex_specification_state(cmd->vertex_specification_source, index_offset_unused, false);
         if (is_error_status(bind_result)) return bind_result;
 
         glDrawArraysInstancedBaseInstance(gl_draw_mode(cmd->mode), cmd->start_vertex, cmd->count, cmd->instances, cmd->start_instance);
         return status_type::SUCCESS;
     }
 
-    status backend_impl_gl::execute_draw_indexed(const draw_indexed_command* cmd)
+    status backend_impl::execute_draw_indexed(const draw_indexed_command* cmd)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute draw indexed cmd");
 
         GLsizeiptr index_offset;
-        const status bind_result = bind_vertex_specification_state(cmd->vertex_specification_source, index_offset);
+        const status bind_result = bind_vertex_specification_state(cmd->vertex_specification_source, index_offset, true);
         if (is_error_status(bind_result)) return bind_result;
 
         const GLenum index_element_type = gl_index_size(cmd->index_type);
@@ -142,42 +142,42 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    status backend_impl_gl::execute_draw_indirect(const draw_indirect_command* cmd)
+    status backend_impl::execute_draw_indirect(const draw_indirect_command* cmd)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute draw indirect cmd");
 
         GLsizeiptr index_offset_unused;
-        const status bind_result = bind_vertex_specification_state(cmd->vertex_specification_source, index_offset_unused);
+        const status bind_result = bind_vertex_specification_state(cmd->vertex_specification_source, index_offset_unused, false);
         if (is_error_status(bind_result)) return bind_result;
 
-        glMultiDrawArraysIndirect(gl_draw_mode(cmd->mode), reinterpret_cast<const void*>(cmd->indirect_source_offset * sizeof(gl_draw_arrays_indirect_params)), cmd->draw_count, 0);
+        glMultiDrawArraysIndirect(gl_draw_mode(cmd->mode), reinterpret_cast<const void*>(cmd->indirect_source_offset * sizeof(draw_arrays_indirect_params)), cmd->draw_count, 0);
         return status_type::SUCCESS;
     }
 
-    status backend_impl_gl::execute_draw_indexed_indirect(const draw_indexed_indirect_command* cmd)
+    status backend_impl::execute_draw_indexed_indirect(const draw_indexed_indirect_command* cmd)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute draw indirect cmd");
 
         GLsizeiptr index_offset_unused;
-        const status bind_result = bind_vertex_specification_state(cmd->vertex_specification_source, index_offset_unused);
+        const status bind_result = bind_vertex_specification_state(cmd->vertex_specification_source, index_offset_unused, true);
         if (is_error_status(bind_result)) return bind_result;
 
         //NOTE: will not work properly if a streaming buffer is used for indices
 
         const GLenum index_element_type = gl_index_size(cmd->index_type);
 
-        glMultiDrawElementsIndirect(gl_draw_mode(cmd->mode), index_element_type, reinterpret_cast<const void*>(cmd->indirect_source_offset * sizeof(gl_draw_elements_indirect_params)), cmd->draw_count, 0);
+        glMultiDrawElementsIndirect(gl_draw_mode(cmd->mode), index_element_type, reinterpret_cast<const void*>(cmd->indirect_source_offset * sizeof(draw_elements_indirect_params)), cmd->draw_count, 0);
         return status_type::SUCCESS;
     }
 
-    status backend_impl_gl::execute_buffer_upload(const buffer_upload_command* cmd)
+    status backend_impl::execute_buffer_upload(const buffer_upload_command* cmd)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute buffer upload cmd");
 
-        gl_buffer_state* buffer_state = find_gl_buffer_state(cmd->buffer_identifier);
+        buffer_state* buffer_state = find_gl_buffer_state(cmd->buffer_identifier);
         if (buffer_state == nullptr) return { status_type::UNKNOWN_SOURCE, std::format("No buffer with name '{0}' in pipeline", cmd->buffer_identifier.name) };
         if (!buffer_state->is_valid()) return{ status_type::BROKEN_SOURCE, std::format("Buffer '{0}' is in an invalid state", cmd->buffer_identifier.name) };
 
@@ -191,16 +191,16 @@ namespace stardraw
         return  { status_type::UNSUPPORTED, "Uknowmn buffer upload type" };
     }
 
-    status backend_impl_gl::execute_buffer_copy(const buffer_copy_command* cmd)
+    status backend_impl::execute_buffer_copy(const buffer_copy_command* cmd)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute buffer copy cmd");
 
-        const gl_buffer_state* source_state = find_gl_buffer_state(cmd->source_identifier);
+        const buffer_state* source_state = find_gl_buffer_state(cmd->source_identifier);
         if (source_state == nullptr) return { status_type::UNKNOWN_SOURCE, std::format("No buffer with name '{0}' in pipeline", cmd->source_identifier.name) };
         if (!source_state->is_valid()) return{ status_type::BROKEN_SOURCE, std::format("Buffer '{0}' is in an invalid state", cmd->source_identifier.name) };
 
-        const gl_buffer_state* dest_state = find_gl_buffer_state(cmd->dest_identifier);
+        const buffer_state* dest_state = find_gl_buffer_state(cmd->dest_identifier);
         if (dest_state == nullptr) return { status_type::UNKNOWN_SOURCE, std::format("No buffer with name '{0}' in pipeline", cmd->dest_identifier.name) };
         if (!dest_state->is_valid()) return{ status_type::BROKEN_SOURCE, std::format("Buffer '{0}' is in an invalid state", cmd->dest_identifier.name) };
 
@@ -210,12 +210,12 @@ namespace stardraw
         return dest_state->copy_data(source_state->gl_id(), cmd->source_address, cmd->dest_address, cmd->bytes);
     }
 
-    status backend_impl_gl::execute_buffer_attach(const buffer_attach_command* cmd)
+    status backend_impl::execute_buffer_attach(const buffer_attach_command* cmd)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute buffer attach cmd");
 
-        const gl_buffer_state* buffer_state = find_gl_buffer_state(cmd->buffer_identifier);
+        const buffer_state* buffer_state = find_gl_buffer_state(cmd->buffer_identifier);
         if (buffer_state == nullptr) return { status_type::UNKNOWN_SOURCE, std::format("No buffer with name '{0}' in pipeline", cmd->buffer_identifier.name) };
         if (!buffer_state->is_valid()) return{ status_type::BROKEN_SOURCE, std::format("Buffer '{0}' is in an invalid state", cmd->buffer_identifier.name) };
 
@@ -262,7 +262,7 @@ namespace stardraw
     }
 
 
-    status backend_impl_gl::execute_config_blending(const config_blending_command* cmd)
+    status backend_impl::execute_config_blending(const config_blending_command* cmd)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute config blending cmd");
@@ -321,7 +321,7 @@ namespace stardraw
         return -1;
     }
 
-    status backend_impl_gl::execute_config_stencil(const config_stencil_command* cmd)
+    status backend_impl::execute_config_stencil(const config_stencil_command* cmd)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute config stencil cmd");
@@ -337,7 +337,7 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    status backend_impl_gl::execute_config_scissor(const config_scissor_command* cmd)
+    status backend_impl::execute_config_scissor(const config_scissor_command* cmd)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute config scissor cmd");
@@ -350,7 +350,7 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    status backend_impl_gl::execute_config_face_cull(const config_face_cull_command* cmd)
+    status backend_impl::execute_config_face_cull(const config_face_cull_command* cmd)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute config face cull cmd");
@@ -367,7 +367,7 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    status backend_impl_gl::execute_config_depth_test(const config_depth_test_command* cmd)
+    status backend_impl::execute_config_depth_test(const config_depth_test_command* cmd)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute config depth test cmd");
@@ -381,7 +381,7 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    status backend_impl_gl::execute_config_depth_range(const config_depth_range_command* cmd)
+    status backend_impl::execute_config_depth_range(const config_depth_range_command* cmd)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute config depth range cmd");
@@ -390,7 +390,7 @@ namespace stardraw
         return status_type::SUCCESS;
     }
 
-    status backend_impl_gl::execute_clear_window(const clear_window_command* cmd)
+    status backend_impl::execute_clear_window(const clear_window_command* cmd)
     {
         ZoneScoped;
         TracyGpuZone("[Stardraw] Execute clear window cmd");

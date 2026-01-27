@@ -6,6 +6,8 @@ find_package(glm CONFIG REQUIRED)
 
 include(FetchContent)
 
+add_subdirectory(libraries/stardraw)
+
 FetchContent_Declare(
         tracy
         GIT_REPOSITORY https://github.com/wolfpld/tracy.git

@@ -1,0 +1,4 @@
+[submodule "libraries/stardraw"]
+	path = libraries/stardraw
+	url = https://github.com/Hyyeve/stardraw
+	branch = master
